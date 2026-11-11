@@ -1,0 +1,77 @@
+# Priority-1 core suite (PROJECT_SPEC section 7), written in Prompt 3C (2026-10-05).
+#
+# FROZEN in Prompt 4 (2026-10-05) from the laptop learning pilot (seed 999, runs/PILOT.md,
+# runs/pilot_results/); the decision record, hashes, budgets and ETA are in RUN_PLAN.md.  Four values
+# differ from the 3B starting values; each is the setting of a completed pilot job:
+#   * f-PG learning rate, finite 0.1 -> 0.3 and continuous 0.001 -> 0.003 (pilot variant lr_high:
+#     lowest last-checkpoint held-out JS of the three tested rates in both mazes);
+#   * FB temperature tau 0.1 -> 1.0 in both mazes, latent radius R = sqrt(d) = 4 unchanged
+#     (latent_radius unset; pilot variant tau_1; U-2: tau and R are reported together).
+# Everything else (KDE density, budgets, DM settings, evaluation, thresholds) keeps the 3B starting
+# value that the pilot ran.  The budgets are the spec's ceilings; they are not claimed sufficient for
+# convergence.  A change after the first launch needs --allow-config-change and is recorded as a
+# manifest revision.  configs/pilot.yaml no longer inherits this file, so the pilot record is unchanged.
+#
+# Jobs (il_memoir.experiment.expand_jobs): per seed, 3 FB pretraining runs (finite open, finite
+# four rooms, continuous four rooms; each shared by its 3 goals), 9 ER/DM adaptations, 9 f-PG
+# runs (JS), their 18 evaluations and 9 expert evaluations.  Three seeds: 18 finite + 9 continuous
+# f-PG runs, 6 + 3 FB models, 27 adaptations; 144 jobs.
+schema: il_memoir/suite-v1
+suite: core
+kind: final
+description: >-
+  Core comparison: f-PG (JS, fixed expert target) versus pretrained FB with DM_FB and ER_FB on the
+  finite open and four-rooms mazes and the continuous four-rooms maze, three goals each, final seeds 0, 1, 2.
+environment_config: configs/environment.yaml
+seeds: final
+data:
+  id: final-v1                         # data/final-v1/ (shared with compact_ablations and reduced)
+  n_demos: 4                           # N_E = 4 demonstrations of H = 100 transitions (spec section 5)
+  replay:                              # task-blind FB replay (spec section 7 initial budgets)
+    finite: {n_transitions: 50000, segment_length: 50}
+    continuous: {n_transitions: 100000, segment_length: 50}
+  reference:                           # held-out expert reference rollouts (continuous evaluation target)
+    continuous: {n_trajectories: 2000}
+grid:
+  - {env: finite, layout: open, tasks: [goal_5_1, goal_5_5, goal_1_5]}
+  - {env: finite, layout: four_rooms, tasks: [goal_5_1, goal_5_5, goal_1_5]}
+  - {env: continuous, layout: four_rooms, tasks: [goal_5_1, goal_5_5, goal_1_5]}
+methods:
+  fpg:
+    divergences: [js]                  # standard JS with half weights (spec section 6)
+    finite:
+      settings: {n_traj: 20, n_folds: 2, baseline: time, lr: 0.3, ppo_epochs: 0, entropy_coef: 0.0}   # lr frozen (pilot lr_high)
+      budget_transitions: 50000        # ceiling (spec section 7): 25 iterations of 20 x 100 transitions
+      eval_every_iterations: 5         # policy checkpoints evaluated on held-out metrics
+    continuous:
+      settings: {n_traj: 20, n_folds: 2, baseline: time, lr: 0.003, density: kde, ppo_epochs: 0, entropy_coef: 0.0}   # lr frozen (pilot lr_high); KDE kept
+      budget_transitions: 100000       # ceiling: 50 iterations
+      eval_every_iterations: 5
+    variants: {base: {}}
+  fb:
+    finite:
+      settings: {d: 16, hidden: 64, n_hidden_layers: 2, activation: silu, first_layer_norm: true, tau: 1.0,
+                 batch_size: 128, target_batch_size: 128, lr: 0.0003, orth_coef: 1.0, target_momentum: 0.99,
+                 n_updates: 10000}     # tau frozen (pilot tau_1); latent radius R = sqrt(16) = 4 (default)
+      snapshot_every: 2500             # frozen FB snapshots (ER/DM curves over pretraining)
+      log_every_updates: 100
+    continuous:
+      settings: {d: 16, hidden: 64, n_hidden_layers: 2, activation: silu, first_layer_norm: true, tau: 1.0,
+                 batch_size: 128, target_batch_size: 128, lr: 0.0003, orth_coef: 1.0, target_momentum: 0.99,
+                 n_updates: 20000}     # tau frozen (pilot tau_1); R = 4
+      snapshot_every: 5000
+      log_every_updates: 100
+    variants: {base: {}}
+  adaptation:
+    dm: {K: 60, include_t0: true, steps: 300, lr: 0.05, project: true}    # D4-D5; at most 300 latent steps
+    dm_snapshot_steps: [0, 50, 100, 150, 200, 250, 300]
+    fb_snapshots: all                  # ER and DM at every FB snapshot
+evaluation:
+  device: cpu                          # evaluation on the CPU: device-independent metrics (METHOD_MAP K2)
+  finite: {mc_rollouts: 200}           # exact oracle metrics plus a Monte Carlo cross-check
+  continuous: {rollouts: 500}          # Monte Carlo against 2000 held-out reference rollouts
+  convergence: {js_max_nats: 0.10, success_min: 0.80}    # operational thresholds, frozen as predeclared (study choices)
+runner:
+  cpu_threads: 4                       # spec section 7: at most 4 CPU threads (the pilot measured with 4)
+  checkpoint_every_updates: 1000       # resume checkpoints (FB updates or f-PG iterations); not part of job identity
+  checkpoint_every_seconds: 120

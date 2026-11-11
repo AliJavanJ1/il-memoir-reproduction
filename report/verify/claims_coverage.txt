@@ -1,0 +1,431 @@
+# Numeric tokens of the TeX sources (sections/, appendix/) outside \vn, for review by hand.
+# Every token in text mode is listed; in math mode, only tokens with two or more digits, a decimal point
+# or a thousands separator.  Comments, verbatim blocks, labels, references, citations, figure files,
+# lengths and references to the sources (Eq., Theorem, p., ...) are skipped.  Generated tables are not
+# scanned: make_tables.py writes them from the recomputed values.
+# Registered claims not tied to the text (bound=False): 95: aJ.cfg_in_plan, aJ.dirty, aJ.package_in_plan, aJ.pytest.skip_posix, abs.cont.none, abs.dm.loss_all, env.hist_partition, env.report_config, fig.env.config_same, fig.env.copy.env_continuous_expert_rollouts.png, fig.env.copy.env_finite_expert_maps.png, rows.dm_steps, rows.fpg_checkpoints.finite, rows.mc_n, rows.mc_n_everywhere, rows.n_reference, s09.pilot.dm_finite_best_js_tau0.3, s09.pilot.er_cont_best_success_tau1, s09.pilot.er_finite_best_tau, s10.audit, s10.cont_expert_success, s10.core.eval, s10.core.evalexp, s10.device, s10.expert_gap0, s10.first_attempt_only, s10.perseed.sum, s10.pilot.cont_er_dm_fail, s10.pilot.lr_rule, s10.pilot.tau_rule, s11.dm.mid_cross_runs, s11.dm55.same_as_core, s11.er.early, s11.er.last_runs, s11.fpg.30k_run, s11.jssa_ge_js, s11.sd.dm_n_ge_0.20, s12.dm.max_vs_log2_e4, s12.fbil.snap_runs, s12.fpg.curve_runs, s12.fpg.js_mono, s12.fpg.n08, s12.hcov.cells, s12.hcov.hash_checked, s12.hcov.lattice_as_recorded, s12.hcov.seeds, s13.all9, s13.dm.spread_smaller, s13.kldq.n, s13.none_met, s14.abl.reused_rows, s14.fb.wall_sd.c, s14.fb.wall_sd.f, set.H, set.bins, set.dm, set.dm.steps_logged, set.eps, set.eval_rollouts, set.fb.activation, set.fb.batch_size, set.fb.d, set.fb.first_layer_norm, set.fb.hidden, set.fb.lr, set.fb.n_hidden_layers, set.fb.orth_coef, set.fb.radius, set.fb.snapshots, set.fb.target_batch_size, set.fb.target_momentum, set.fb.tau, set.fb.updates, set.fpg.baseline, set.fpg.budget, set.fpg.eval_every, set.fpg.folds, set.fpg.lr, set.fpg.mlp, set.fpg.ntraj, set.fpg.ppo_entropy, set.gamma, set.goal_radius_cells, set.h, set.n_demos, set.n_reference, set.noise, set.replay, set.seeds, set.segment, set.slip, set.threads, set.thresholds, set.w_cells, time.same_day
+
+# tokens per file: appendix/A_occupancy.tex 11, appendix/B_divergences.tex 7, appendix/C_fpg.tex 10, appendix/D_firl.tex 7, appendix/E_fb.tex 23, appendix/F_fbil.tex 14, appendix/G_environment.tex 71, appendix/H_methodmap.tex 27, appendix/I_audit.tex 22, appendix/K_results.tex 12, sections/00_front.tex 3, sections/02_notation.tex 15, sections/03_occupancy.tex 3, sections/04_fpg.tex 23, sections/05_firl.tex 1, sections/06_fb.tex 22, sections/07_fbil.tex 15, sections/08_comparison.tex 1, sections/09_hyperparameters.tex 22, sections/10_protocol.tex 60, sections/11_results_finite.tex 33, sections/12_results_continuous.tex 11, sections/13_ablations.tex 6, sections/14_costs.tex 2, sections/15_discussion.tex 1
+
+appendix/A_occupancy.tex:27: 0,1  [math]
+appendix/A_occupancy.tex:90: 0
+appendix/A_occupancy.tex:90: 1
+appendix/A_occupancy.tex:297: 0,0  [math]
+appendix/A_occupancy.tex:320: 0.95  [math]
+appendix/A_occupancy.tex:320: 100  [math]
+appendix/A_occupancy.tex:431: 0.95  [math]
+appendix/A_occupancy.tex:431: 100  [math]
+appendix/A_occupancy.tex:439: 1
+appendix/A_occupancy.tex:451: 2
+appendix/A_occupancy.tex:458: 1
+appendix/B_divergences.tex:25: 0,1  [math]
+appendix/B_divergences.tex:115: 11  [math]
+appendix/B_divergences.tex:115: 12  [math]
+appendix/B_divergences.tex:155: 1
+appendix/B_divergences.tex:156: 1
+appendix/B_divergences.tex:156: 2
+appendix/B_divergences.tex:175: 0,1  [math]
+appendix/C_fpg.tex:125: 1
+appendix/C_fpg.tex:131: 2
+appendix/C_fpg.tex:138: 3
+appendix/C_fpg.tex:191: 0,1  [math]
+appendix/C_fpg.tex:246: 0,1  [math]
+appendix/C_fpg.tex:254: 1
+appendix/C_fpg.tex:254: 3
+appendix/C_fpg.tex:270: 316  [math]
+appendix/C_fpg.tex:279: 1
+appendix/C_fpg.tex:279: 3
+appendix/D_firl.tex:77: 1
+appendix/D_firl.tex:87: 2
+appendix/D_firl.tex:93: 3
+appendix/D_firl.tex:118: 3
+appendix/D_firl.tex:118: 6
+appendix/D_firl.tex:123: 21  [math]
+appendix/D_firl.tex:139: 21  [math]
+appendix/E_fb.tex:8: 5
+appendix/E_fb.tex:10: -18
+appendix/E_fb.tex:10: -109
+appendix/E_fb.tex:15: -7
+appendix/E_fb.tex:35: 2
+appendix/E_fb.tex:289: 16  [math]
+appendix/E_fb.tex:290: 16  [math]
+appendix/E_fb.tex:292: 0.1  [math]
+appendix/E_fb.tex:318: 16  [math]
+appendix/E_fb.tex:318: 16  [math]
+appendix/E_fb.tex:440: -28
+appendix/E_fb.tex:492: 2
+appendix/E_fb.tex:569: 12  [math]
+appendix/E_fb.tex:591: 12  [math]
+appendix/E_fb.tex:594: 2
+appendix/E_fb.tex:630: 16  [math]
+appendix/E_fb.tex:716: 0.01  [math]
+appendix/E_fb.tex:732: 16  [math]
+appendix/E_fb.tex:732: 64
+appendix/E_fb.tex:756: 0.95  [math]
+appendix/E_fb.tex:756: 40
+appendix/E_fb.tex:756: 0.99  [math]
+appendix/E_fb.tex:756: 0.99  [math]
+appendix/F_fbil.tex:7: 30
+appendix/F_fbil.tex:7: 32
+appendix/F_fbil.tex:7: -37
+appendix/F_fbil.tex:100: 100  [math]
+appendix/F_fbil.tex:100: 0.95  [math]
+appendix/F_fbil.tex:105: 11  [math]
+appendix/F_fbil.tex:245: 60  [math]
+appendix/F_fbil.tex:246: 0.95  [math]
+appendix/F_fbil.tex:246: 100  [math]
+appendix/F_fbil.tex:269: 300
+appendix/F_fbil.tex:336: 4
+appendix/F_fbil.tex:337: 60  [math]
+appendix/F_fbil.tex:339: 300  [math]
+appendix/F_fbil.tex:340: 300  [math]
+appendix/G_environment.tex:29: 3,3  [math]
+appendix/G_environment.tex:30: 0,0  [math]
+appendix/G_environment.tex:30: 1,0  [math]
+appendix/G_environment.tex:30: 0,1  [math]
+appendix/G_environment.tex:30: -1,0  [math]
+appendix/G_environment.tex:32: 0.1  [math]
+appendix/G_environment.tex:37: 1,1  [math]
+appendix/G_environment.tex:37: 5,1  [math]
+appendix/G_environment.tex:37: 5,5  [math]
+appendix/G_environment.tex:37: 1,5  [math]
+appendix/G_environment.tex:38: 0,1  [math]
+appendix/G_environment.tex:46: 0.1  [math]
+appendix/G_environment.tex:47: 16  [math]
+appendix/G_environment.tex:55: 0
+appendix/G_environment.tex:55: -1
+appendix/G_environment.tex:58: 16  [math]
+appendix/G_environment.tex:63: 0.1  [math]
+appendix/G_environment.tex:63: 0.1  [math]
+appendix/G_environment.tex:71: 0,1  [math]
+appendix/G_environment.tex:75: 0.01  [math]
+appendix/G_environment.tex:81: 1.5  [math]
+appendix/G_environment.tex:81: 1.5  [math]
+appendix/G_environment.tex:81: 1,1  [math]
+appendix/G_environment.tex:92: 0.01  [math]
+appendix/G_environment.tex:96: 12  [math]
+appendix/G_environment.tex:116: 0,1  [math]
+appendix/G_environment.tex:117: 0,1  [math]
+appendix/G_environment.tex:145: 2
+appendix/G_environment.tex:153: 90  [math]
+appendix/G_environment.tex:160: 120  [math]
+appendix/G_environment.tex:160: 120  [math]
+appendix/G_environment.tex:162: 0,1  [math]
+appendix/G_environment.tex:168: 1,1  [math]
+appendix/G_environment.tex:168: 100  [math]
+appendix/G_environment.tex:178: 4
+appendix/G_environment.tex:179: 0,1  [math]
+appendix/G_environment.tex:190: 1,1  [math]
+appendix/G_environment.tex:196: 1,1  [math]
+appendix/G_environment.tex:196: 6,6  [math]
+appendix/G_environment.tex:196: 10  [math]
+appendix/G_environment.tex:196: 1,1  [math]
+appendix/G_environment.tex:196: 5,1  [math]
+appendix/G_environment.tex:196: 5,5  [math]
+appendix/G_environment.tex:196: 6,5  [math]
+appendix/G_environment.tex:196: 6,6  [math]
+appendix/G_environment.tex:196: 3,1  [math]
+appendix/G_environment.tex:196: 5,3  [math]
+appendix/G_environment.tex:196: 10  [math]
+appendix/G_environment.tex:210: 0.05  [math]
+appendix/G_environment.tex:212: 1,2  [math]
+appendix/G_environment.tex:224: 0,1  [math]
+appendix/G_environment.tex:236: 0.05  [math]
+appendix/G_environment.tex:237: 95
+appendix/G_environment.tex:240: 0.05  [math]
+appendix/G_environment.tex:253: 10  [math]
+appendix/G_environment.tex:253: 10  [math]
+appendix/G_environment.tex:254: 0,1  [math]
+appendix/G_environment.tex:257: 1,1  [math]
+appendix/G_environment.tex:270: 0,1  [math]
+appendix/G_environment.tex:300: 0.01  [math]
+appendix/G_environment.tex:300: 50  [math]
+appendix/G_environment.tex:300: 40  [math]
+appendix/G_environment.tex:300: 49  [math]
+appendix/G_environment.tex:301: 50
+appendix/G_environment.tex:301: 000
+appendix/G_environment.tex:326: 50  [math]
+appendix/G_environment.tex:326: 40  [math]
+appendix/G_environment.tex:326: 49  [math]
+appendix/G_environment.tex:331: 2
+appendix/G_environment.tex:335: 0
+appendix/G_environment.tex:351: 0,1  [math]
+appendix/H_methodmap.tex:28: 0.01  [math]
+appendix/H_methodmap.tex:29: 2
+appendix/H_methodmap.tex:29: 64
+appendix/H_methodmap.tex:29: 0.01  [math]
+appendix/H_methodmap.tex:30: 20  [math]
+appendix/H_methodmap.tex:30: 100  [math]
+appendix/H_methodmap.tex:36: 0.3  [math]
+appendix/H_methodmap.tex:36: 0.003  [math]
+appendix/H_methodmap.tex:48: 50
+appendix/H_methodmap.tex:50: 16  [math]
+appendix/H_methodmap.tex:50: 64
+appendix/H_methodmap.tex:55: 10  [math]
+appendix/H_methodmap.tex:55: 128  [math]
+appendix/H_methodmap.tex:55: 128  [math]
+appendix/H_methodmap.tex:56: 0.99  [math]
+appendix/H_methodmap.tex:72: 40  [math]
+appendix/H_methodmap.tex:72: 60  [math]
+appendix/H_methodmap.tex:77: 0.05  [math]
+appendix/H_methodmap.tex:77: 300
+appendix/H_methodmap.tex:82: 200
+appendix/H_methodmap.tex:83: 500
+appendix/H_methodmap.tex:83: 2,000  [math]
+appendix/H_methodmap.tex:106: 2
+appendix/H_methodmap.tex:108: 60  [math]
+appendix/H_methodmap.tex:110: 16  [math]
+appendix/H_methodmap.tex:115: 0.99  [math]
+appendix/H_methodmap.tex:118: 0.01  [math]
+appendix/I_audit.tex:28: 1.2
+appendix/I_audit.tex:38: 1.2
+appendix/I_audit.tex:53: 1.2
+appendix/I_audit.tex:54: 200  [math]
+appendix/I_audit.tex:54: -9
+appendix/I_audit.tex:56: 16  [math]
+appendix/I_audit.tex:58: 21  [math]
+appendix/I_audit.tex:58: 21  [math]
+appendix/I_audit.tex:64: 1.2
+appendix/I_audit.tex:71: 1.2
+appendix/I_audit.tex:72: 16
+appendix/I_audit.tex:76: 100  [math]
+appendix/I_audit.tex:76: 60  [math]
+appendix/I_audit.tex:88: 1.2
+appendix/I_audit.tex:91: 0.99  [math]
+appendix/I_audit.tex:92: 60  [math]
+appendix/I_audit.tex:98: 1.2
+appendix/I_audit.tex:100: 4
+appendix/I_audit.tex:108: 0.1  [math]
+appendix/I_audit.tex:113: 0.05  [math]
+appendix/I_audit.tex:114: 0.10  [math]
+appendix/I_audit.tex:114: 0.80  [math]
+appendix/K_results.tex:5: 300
+appendix/K_results.tex:6: 300
+appendix/K_results.tex:15: 5,1
+appendix/K_results.tex:21: 5,5
+appendix/K_results.tex:27: 1,5
+appendix/K_results.tex:33: 5,1
+appendix/K_results.tex:39: 5,5
+appendix/K_results.tex:45: 1,5
+appendix/K_results.tex:51: 5,1
+appendix/K_results.tex:57: 5,5
+appendix/K_results.tex:63: 1,5
+appendix/K_results.tex:71: 5,5  [math]
+sections/00_front.tex:18: -2026
+sections/00_front.tex:29: 0.10  [math]
+sections/00_front.tex:29: 0.80  [math]
+sections/02_notation.tex:10: 0,1  [math]
+sections/02_notation.tex:10: 0.95  [math]
+sections/02_notation.tex:12: 100  [math]
+sections/02_notation.tex:62: 0,1  [math]
+sections/02_notation.tex:62: 0.01  [math]
+sections/02_notation.tex:70: 60  [math]
+sections/02_notation.tex:72: 0.95  [math]
+sections/02_notation.tex:72: 100  [math]
+sections/02_notation.tex:78: 16  [math]
+sections/02_notation.tex:94: 1,1  [math]
+sections/02_notation.tex:95: 0.95  [math]
+sections/02_notation.tex:95: 100  [math]
+sections/02_notation.tex:101: 40  [math]
+sections/02_notation.tex:106: 16  [math]
+sections/02_notation.tex:110: 14  [math]
+sections/03_occupancy.tex:30: 11  [math]
+sections/03_occupancy.tex:44: 0.95  [math]
+sections/03_occupancy.tex:44: 100  [math]
+sections/04_fpg.tex:15: 0,1  [math]
+sections/04_fpg.tex:46: 1
+sections/04_fpg.tex:50: 2
+sections/04_fpg.tex:51: 3
+sections/04_fpg.tex:52: 4
+sections/04_fpg.tex:53: 5
+sections/04_fpg.tex:76: 16  [math]
+sections/04_fpg.tex:87: 0.01  [math]
+sections/04_fpg.tex:87: 0.05  [math]
+sections/04_fpg.tex:88: 64  [math]
+sections/04_fpg.tex:88: 0.01  [math]
+sections/04_fpg.tex:90: 1.3
+sections/04_fpg.tex:91: 20  [math]
+sections/04_fpg.tex:91: 100  [math]
+sections/04_fpg.tex:91: 2,000  [math]
+sections/04_fpg.tex:93: 0.3  [math]
+sections/04_fpg.tex:93: 0.003  [math]
+sections/04_fpg.tex:95: 25
+sections/04_fpg.tex:95: 50,000  [math]
+sections/04_fpg.tex:95: 50
+sections/04_fpg.tex:95: 100,000  [math]
+sections/04_fpg.tex:105: 4
+sections/04_fpg.tex:108: 20
+sections/05_firl.tex:41: 21  [math]
+sections/06_fb.tex:50: 0.1  [math]
+sections/06_fb.tex:51: 16  [math]
+sections/06_fb.tex:56: 200  [math]
+sections/06_fb.tex:72: 0.95  [math]
+sections/06_fb.tex:78: -103
+sections/06_fb.tex:98: 12  [math]
+sections/06_fb.tex:131: 50  [math]
+sections/06_fb.tex:131: 50,000  [math]
+sections/06_fb.tex:131: 1,000  [math]
+sections/06_fb.tex:131: 100,000  [math]
+sections/06_fb.tex:131: 2,000  [math]
+sections/06_fb.tex:132: 16  [math]
+sections/06_fb.tex:132: 64  [math]
+sections/06_fb.tex:133: 128  [math]
+sections/06_fb.tex:133: 128  [math]
+sections/06_fb.tex:133: 128  [math]
+sections/06_fb.tex:133: 10  [math]
+sections/06_fb.tex:133: 0.99  [math]
+sections/06_fb.tex:134: 10,000  [math]
+sections/06_fb.tex:134: 20,000  [math]
+sections/06_fb.tex:134: 2,500  [math]
+sections/06_fb.tex:134: 5,000  [math]
+sections/07_fbil.tex:28: 11  [math]
+sections/07_fbil.tex:66: 60  [math]
+sections/07_fbil.tex:75: 60  [math]
+sections/07_fbil.tex:96: 60  [math]
+sections/07_fbil.tex:96: 40  [math]
+sections/07_fbil.tex:96: 300  [math]
+sections/07_fbil.tex:96: 0.05  [math]
+sections/07_fbil.tex:97: 0,50  [math]
+sections/07_fbil.tex:97: 300  [math]
+sections/07_fbil.tex:109: 10  [math]
+sections/07_fbil.tex:109: 10  [math]
+sections/07_fbil.tex:112: 4
+sections/07_fbil.tex:113: 40  [math]
+sections/07_fbil.tex:114: 60  [math]
+sections/07_fbil.tex:115: 300
+sections/08_comparison.tex:53: 16  [math]
+sections/09_hyperparameters.tex:30: 5,5  [math]
+sections/09_hyperparameters.tex:35: 0.01  [math]
+sections/09_hyperparameters.tex:36: 20  [math]
+sections/09_hyperparameters.tex:36: 10
+sections/09_hyperparameters.tex:37: 0.3  [math]
+sections/09_hyperparameters.tex:37: 0.003  [math]
+sections/09_hyperparameters.tex:38: 0.05  [math]
+sections/09_hyperparameters.tex:39: 0.95  [math]
+sections/09_hyperparameters.tex:39: 100  [math]
+sections/09_hyperparameters.tex:45: 16  [math]
+sections/09_hyperparameters.tex:46: 0.1  [math]
+sections/09_hyperparameters.tex:46: 0.3  [math]
+sections/09_hyperparameters.tex:46: 0.3  [math]
+sections/09_hyperparameters.tex:48: 0.99  [math]
+sections/09_hyperparameters.tex:48: 21  [math]
+sections/09_hyperparameters.tex:48: 21  [math]
+sections/09_hyperparameters.tex:63: 0.8  [math]
+sections/09_hyperparameters.tex:68: 60  [math]
+sections/09_hyperparameters.tex:69: 40  [math]
+sections/09_hyperparameters.tex:70: 300
+sections/09_hyperparameters.tex:70: 0.05  [math]
+sections/09_hyperparameters.tex:70: 100
+sections/10_protocol.tex:10: 0.1  [math]
+sections/10_protocol.tex:11: 1,1  [math]
+sections/10_protocol.tex:11: 5,1  [math]
+sections/10_protocol.tex:11: 5,5  [math]
+sections/10_protocol.tex:11: 1,5  [math]
+sections/10_protocol.tex:11: 5,1  [math]
+sections/10_protocol.tex:11: 1,5  [math]
+sections/10_protocol.tex:11: 5,5  [math]
+sections/10_protocol.tex:15: 1,1  [math]
+sections/10_protocol.tex:16: 0.01  [math]
+sections/10_protocol.tex:20: 14  [math]
+sections/10_protocol.tex:21: 14  [math]
+sections/10_protocol.tex:27: 0.1  [math]
+sections/10_protocol.tex:33: 4
+sections/10_protocol.tex:33: 100
+sections/10_protocol.tex:43: 100  [math]
+sections/10_protocol.tex:43: 2,000  [math]
+sections/10_protocol.tex:56: 2
+sections/10_protocol.tex:56: 64
+sections/10_protocol.tex:57: 0.01  [math]
+sections/10_protocol.tex:57: 0.05  [math]
+sections/10_protocol.tex:57: 0.01  [math]
+sections/10_protocol.tex:58: 25
+sections/10_protocol.tex:58: 0.3  [math]
+sections/10_protocol.tex:58: 20
+sections/10_protocol.tex:58: 50
+sections/10_protocol.tex:58: 0.003  [math]
+sections/10_protocol.tex:58: 20
+sections/10_protocol.tex:59: 50,000  [math]
+sections/10_protocol.tex:59: 100,000  [math]
+sections/10_protocol.tex:61: 3
+sections/10_protocol.tex:62: 16  [math]
+sections/10_protocol.tex:62: 64
+sections/10_protocol.tex:62: 16  [math]
+sections/10_protocol.tex:62: 64
+sections/10_protocol.tex:63: 50,000  [math]
+sections/10_protocol.tex:63: 100,000  [math]
+sections/10_protocol.tex:64: 10,000  [math]
+sections/10_protocol.tex:64: 128  [math]
+sections/10_protocol.tex:64: 128  [math]
+sections/10_protocol.tex:64: 10  [math]
+sections/10_protocol.tex:64: 20,000  [math]
+sections/10_protocol.tex:68: 60  [math]
+sections/10_protocol.tex:68: 300
+sections/10_protocol.tex:68: 0.05  [math]
+sections/10_protocol.tex:75: 5,5  [math]
+sections/10_protocol.tex:77: 2,000  [math]
+sections/10_protocol.tex:83: 5,5  [math]
+sections/10_protocol.tex:87: 5,5  [math]
+sections/10_protocol.tex:93: 5,1  [math]
+sections/10_protocol.tex:93: 1,5  [math]
+sections/10_protocol.tex:96: 300
+sections/10_protocol.tex:104: 200
+sections/10_protocol.tex:107: 500
+sections/10_protocol.tex:107: 2,000  [math]
+sections/10_protocol.tex:110: 5
+sections/10_protocol.tex:110: 50
+sections/10_protocol.tex:111: 0.10  [math]
+sections/10_protocol.tex:111: 0.80  [math]
+sections/10_protocol.tex:111: 300
+sections/11_results_finite.tex:9: 5,1  [math]
+sections/11_results_finite.tex:9: 1,5  [math]
+sections/11_results_finite.tex:9: 5,5  [math]
+sections/11_results_finite.tex:19: 3
+sections/11_results_finite.tex:28: 0.80  [math]
+sections/11_results_finite.tex:28: 0.5  [math]
+sections/11_results_finite.tex:31: 0.80  [math]
+sections/11_results_finite.tex:32: 300
+sections/11_results_finite.tex:48: 0.10  [math]
+sections/11_results_finite.tex:48: 0.80  [math]
+sections/11_results_finite.tex:61: 300
+sections/11_results_finite.tex:64: 5,5  [math]
+sections/11_results_finite.tex:64: 0
+sections/11_results_finite.tex:68: 0.80  [math]
+sections/11_results_finite.tex:69: 1,5  [math]
+sections/11_results_finite.tex:69: 2
+sections/11_results_finite.tex:69: 1,5  [math]
+sections/11_results_finite.tex:69: 0
+sections/11_results_finite.tex:69: 5,1  [math]
+sections/11_results_finite.tex:69: 0
+sections/11_results_finite.tex:72: 1,5  [math]
+sections/11_results_finite.tex:72: 1
+sections/11_results_finite.tex:72: 2
+sections/11_results_finite.tex:72: 5,1  [math]
+sections/11_results_finite.tex:72: 0
+sections/11_results_finite.tex:79: 300
+sections/11_results_finite.tex:79: 300
+sections/11_results_finite.tex:83: 100
+sections/11_results_finite.tex:84: 300
+sections/11_results_finite.tex:106: 5,5  [math]
+sections/11_results_finite.tex:106: 0
+sections/11_results_finite.tex:106: 1
+sections/11_results_finite.tex:106: 2
+sections/12_results_continuous.tex:6: 500
+sections/12_results_continuous.tex:12: 3
+sections/12_results_continuous.tex:12: 500
+sections/12_results_continuous.tex:12: 2,000  [math]
+sections/12_results_continuous.tex:25: 80  [math]
+sections/12_results_continuous.tex:27: 0.80  [math]
+sections/12_results_continuous.tex:33: 0.80  [math]
+sections/12_results_continuous.tex:38: 0
+sections/12_results_continuous.tex:38: 1
+sections/12_results_continuous.tex:38: 2
+sections/12_results_continuous.tex:44: 16  [math]
+sections/13_ablations.tex:3: 5,5  [math]
+sections/13_ablations.tex:9: 5,5  [math]
+sections/13_ablations.tex:9: 3
+sections/13_ablations.tex:16: 5,5  [math]
+sections/13_ablations.tex:21: 0.01  [math]
+sections/13_ablations.tex:21: 0.3  [math]
+sections/14_costs.tex:34: 300
+sections/14_costs.tex:53: 1,1  [math]
+sections/15_discussion.tex:26: 0.80  [math]

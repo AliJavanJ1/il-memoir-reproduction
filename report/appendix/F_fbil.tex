@@ -1,0 +1,355 @@
+% ---------------------------------------------------------------------------
+% Appendix F (from theory/06_fbil.tex)  --  claims FBIL-1 ... FBIL-5
+% ---------------------------------------------------------------------------
+\section{FB imitation: \texorpdfstring{ER$_{\mathrm{FB}}$ and DM$_{\mathrm{FB}}$}{ER-FB and DM-FB}}\label{sec:fbil}
+
+\paragraph{Status and sources.}
+FI24: Eq.~(8) and footnote~3 (pp.~4--5) and the reward reading $r=\rho_e/\rho$ (p.~5) for ER$_{\mathrm{FB}}$; Eq.~(12) (p.~5) and Eqs.~(30)--(32) with Theorem~3 (p.~17; proof p.~18, Eqs.~33--37) for DM$_{\mathrm{FB}}$; the warm start of other methods (p.~7; E.2, p.~31); latent normalization (D.3, p.~28).
+Type labels:
+\begin{itemize}[nosep]
+\item \textsf{S+D}: FBIL-1 (FI24 Eq.~8 and its reward reading; our additions are the domination condition, the span reward $\tilde r_e$ and the limits) and FBIL-2 (FI24 Theorem~3 reproved under our hypotheses, with our successor-feature reading, the extension to approximate models, and the occupancy bound from the start state);
+\item \textsf{D}: FBIL-3 (estimator, truncation and Gram estimate), FBIL-4 (latent gradient) and FBIL-5 (latent constraint), which are ours.
+\end{itemize}
+The section uses the objects of \cref{sec:fb}. The pretrained $(F,B)$ is \emph{frozen}: only the latent $z$ is optimized, and no simulator data is collected during latent adaptation.
+FI24's $\rho$ is our $\nu$; a bar ($\bar\rho$) always denotes a start law for DM$_{\mathrm{FB}}$.
+
+\subsection{Setting}\label{sec:fbil-setting}
+
+\begin{assumption}[A-FBIL]\label{ass:fbil}
+\leavevmode
+\begin{enumerate}[nosep,label=(\roman*)]
+\item \Cref{ass:fb} holds for the frozen online copy $(F,B)=(F_\xi,B_\omega)$ (\cref{rem:fb-design}, decision D1), with the softmax family $\pi_{z,\tau}$, the action-averaged features $F(x,z):=\sum_a\pi_{z,\tau}(a\mid x)F(x,a,z)$, and the averaged model $\hat M_z(x,\cdot):=\sum_a\pi_{z,\tau}(a\mid x)\hat M_z(x,a,\cdot)=F(x,z)^\top B\,\nu$.
+\item \audit{A4} The expert $\pi_E$ is a stationary Markov policy.
+\item The demonstrations are $N_E$ i.i.d.\ trajectories of $\pi_E$ from $\mu_0$, of which the states $s^i_0,\dots,s^i_H$ are observed ($i=1,\dots,N_E$). Actions are stored for diagnostics only and are not used by the learners.
+\end{enumerate}
+\end{assumption}
+
+\begin{definition}[imitation objects]\label{def:fbil}
+\leavevmode
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (FI24 Eq.~8 and footnote~3) $\rho_e:=\frac1{N_E}\sum_i\frac1H\sum_{t=1}^H\delta_{s^i_t}$, the empirical expert state law (equal trajectory weight, uniform over $s_1,\dots,s_H$), and its mean $\bar\rho_e:=\E\rho_e=\frac1H\sum_{t=1}^H\law^{\pi_E}_t$.
+  The ER$_{\mathrm{FB}}$ latent is
+  \begin{equation}\label{eq:fbil-zer}
+  z_{ER}:=\int B\dd\rho_e=\frac1{N_E}\sum_{i=1}^{N_E}\frac1H\sum_{t=1}^HB(s^i_t).
+  \end{equation}
+\item The expert successor features are $\bar\psi_E(x):=\int B\dd M^{\pi_E,+}(x,\cdot)=\E^{\pi_E}_{\delta_x}\sum_{k\ge0}\gamma^kB(s_{k+1})$, with $M^{\pi_E,+}(x,\cdot)=\sum_a\pi_E(a\mid x)M^{\pi_E,+}(x,a,\cdot)$.
+  Along demonstration $i$ the targets are
+  \begin{equation}\label{eq:fbil-psi}
+  \psi^{(K),i}_t:=\sum_{k=0}^{K-1}\gamma^kB(s^i_{t+k+1})\quad(t+K\le H),\qquad\psi^{(\infty),i}_t:=\sum_{k\ge0}\gamma^kB(s^i_{t+k+1}),
+  \end{equation}
+  the latter computed on the infinite (unobserved) continuation. ($K$ is a truncation length, not FI24's number of demonstrations.)
+\item For a probability $\bar\rho$ on $\cS$ (the \emph{start law}),
+  \begin{align}
+  \mathcal L_{DM}(z;\bar\rho)&:=\int\bar\rho(\dd x)\,\|M^{\pi_{z,\tau},+}(x,\cdot)-M^{\pi_E,+}(x,\cdot)\|^2_{L^2(\nu)^\star}\qquad\text{(FI24 Eq.~31)},\label{eq:fbil-LDM}\\
+  \ell_{DM}(z;\bar\rho)&:=\int\bar\rho(\dd x)\,\big[F(x,z)^\top G_BF(x,z)-2F(x,z)^\top\bar\psi_E(x)\big]\qquad\text{(FI24 Eq.~32)}.\label{eq:fbil-lDM}
+  \end{align}
+  $\mathcal L_{DM}$ is used only where its integrand is measurable, for instance under (A1) and (A6) of \cref{thm:fbil-dm}, where it is an integral of jointly measurable functions.
+  More generally $\mathcal L(\pi;\bar\rho)$ denotes the same expression for an arbitrary stationary policy $\pi$ in place of $\pi_{z,\tau}$.
+\item For a finite nonempty deterministic set of start times $\mathcal T\subseteq\N$, let $\bar\rho_{\mathcal T}:=|\mathcal T|^{-1}\sum_{t\in\mathcal T}\law^{\pi_E}_t$. For $\mathcal T\subseteq\{0,\dots,H-K\}$ and a symmetric matrix $G$, define the estimator
+  \begin{equation}\label{eq:fbil-est}
+  \hat\ell^{(K)}(z;G):=\frac1{N_E|\mathcal T|}\sum_{i=1}^{N_E}\sum_{t\in\mathcal T}\Big[F(s^i_t,z)^\top GF(s^i_t,z)-2F(s^i_t,z)^\top\psi^{(K),i}_t\Big].
+  \end{equation}
+  The implemented objective is $\hat\ell^{(K)}(z;\hat G_B)$, with $\hat G_B$ the frozen Gram estimate of \cref{prop:fb-gram}(e). $\hat\ell^{(\infty)}(z;G)$ is the same expression with $\psi^{(\infty),i}_t$, for any finite nonempty deterministic $\mathcal T\subseteq\N$.
+\end{enumerate}
+\end{definition}
+
+\begin{lemma}[Markov property at a fixed time]\label{lem:fbil-markov}
+Under \cref{ass:mdp}, let $\pi$ be stationary Markov, $t\ge0$, $g:\cS\to\R$ and $\Psi:\Omega\to\R$ bounded and measurable, and $\theta^t$ the $t$-fold shift of the proof of \ref{M2}. Then
+$\E^\pi_{\mu_0}[g(s_t)\,\Psi\circ\theta^t]=\E^\pi_{\mu_0}\big[g(s_t)\,\bar\Psi(s_t)\big]$ with $\bar\Psi(x):=\E^\pi_{\delta_x}[\Psi]$.
+\end{lemma}
+\begin{proof}
+$\bar\Psi$ is measurable, and \ref{M1} holds for bounded measurable functions, by the remarks after \eqref{eq:fb-shift}.
+\emph{$t=0$.} By \ref{M1}, $\E_{\mu_0}[g(s_0)\Psi]=\int\mu_0(\dd x)\sum_a\pi(a\mid x)\E_{(x,a)}[g(s_0)\Psi]=\int\mu_0(\dd x)\,g(x)\sum_a\pi(a\mid x)\E_{(x,a)}[\Psi]=\int\mu_0(\dd x)\,g(x)\bar\Psi(x)$, where the last step is \ref{M1} with $\mu_0=\delta_x$.
+\emph{One shift.} For any bounded measurable $\Xi$ on $\Omega$, \ref{M1} and \eqref{eq:fb-shift} give
+$\E_{\mu_0}[\Xi\circ\theta]=\int\mu_0(\dd x)\sum_a\pi(a\mid x)\int P(\dd x_1\mid x,a)\E_{\delta_{x_1}}[\Xi]=\E_{\mu_0}\big[\E_{\delta_{s_1}}[\Xi]\big]$, since $s_1$ has law $\int\mu_0(\dd x)\sum_a\pi(a\mid x)P(\cdot\mid x,a)$ (\cref{lem:occ-recursion}) and $x_1\mapsto\E_{\delta_{x_1}}[\Xi]$ is bounded and measurable.
+\emph{Induction.} Assume the claim for $t$ and every initial law. Apply the one-shift identity to $\Xi:=g(s_t)\,\Psi\circ\theta^t$, then the induction hypothesis under $\delta_{s_1}$, then the one-shift identity backwards to $\Xi':=g(s_t)\bar\Psi(s_t)$:
+\[
+\E_{\mu_0}[g(s_{t+1})\Psi\circ\theta^{t+1}]=\E_{\mu_0}[\E_{\delta_{s_1}}\Xi]=\E_{\mu_0}[\E_{\delta_{s_1}}\Xi']=\E_{\mu_0}[\Xi'\circ\theta]=\E_{\mu_0}[g(s_{t+1})\bar\Psi(s_{t+1})].\qedhere
+\]
+\end{proof}
+
+\subsection{\texorpdfstring{ER$_{\mathrm{FB}}$}{ER-FB}}\label{sec:fbil-er}
+
+\begin{proposition}\claim{FBIL-1}{S+D}\label{prop:fbil-er}
+Assume \cref{ass:fbil}.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (\textsf{S}; FI24 Eq.~8 and p.~5) If $\rho_e\ll\nu$, then $z_{ER}=z_{r_e}$ with $r_e:=\dd\rho_e/\dd\nu$, which is bounded: $\rho_e$ has finitely many atoms $x$, each with $\nu(\{x\})>0$, and $r_e=\rho_e(\{x\})/\nu(\{x\})$ on them and $0$ elsewhere ($\nu$-a.e.).
+\item (\textsf{S+D}) Hence, under exactness at $z_{ER}$:
+  \begin{itemize}[nosep]
+  \item for the greedy family, $\pi^{\gr}_{z_{ER}}$ maximizes $\E\sum_t\gamma^tr_e(s_{t+1})$ from every state (\cref{thm:fb-opt}(b));
+  \item for the softmax family, $V^\star_{r_e}-V^{\pi_{z_{ER},\tau}}_{r_e}\le\tau\log|\cA|/(1-\gamma)$ in the units of $r_e$ (\cref{prop:fb-softmax}(c)), whose maximum is $\|r_e\|_\infty=\max_x\rho_e(\{x\})/\nu(\{x\})$;
+  \item after projection onto $\mathcal Z_R$, and with exactness there, the effective temperature relative to $r_e$ is $\tau\|z_{ER}\|_2/R$ (\cref{prop:fb-softmax}(d)).
+  \end{itemize}
+\item (\textsf{D}) This is a reward-maximization statement, not distribution matching: optimality for $r_e$ does not imply that the next-state occupancy of the policy is close to the expert's occupancy $q_E=d^+_{\pi_E,H}$ (\cref{ex:fbil-er}).
+\item (\textsf{D}; no domination needed) If $G_B$ is invertible, then $z_{ER}=z_{\tilde r_e}$ for the bounded reward $\tilde r_e:=B^\top G_B^{-1}z_{ER}\in\mathrm{span}\{B_1,\dots,B_d\}$, which is as regular as $B$ and is, up to $\nu$-null modifications, the reward of minimal $L^2(\nu)$ norm among all bounded $r$ with $z_r=z_{ER}$.
+  If moreover $\rho_e\ll\nu$, then $\tilde r_e=\Pi_Br_e$.
+  When $\nu$ is diffuse (as the population replay law of the continuous maze is, \cref{prop:env-replay}), the atomic $\rho_e$ is singular to $\nu$ and $\dd\rho_e/\dd\nu$ does not exist. With the empirical buffer law $\hat\nu$, if the kernel has a Lebesgue density (as the implemented kernel has, \cref{prop:env-cont}) and the demonstrations are independent of the buffer, $\rho_e\ll\hat\nu$ fails almost surely. Under exactness, ER$_{\mathrm{FB}}$ then corresponds to $\tilde r_e$, not to a density ratio.
+\item (\textsf{D}) $\rho_e$ (uniform over $s_1,\dots,s_H$) and the $f$-PG target $\hat q_E$ (weights $\gamma^t/Z_H$ on $s_{t+1}$, $t=0,\dots,H-1$) differ in general, and so do their means $\bar\rho_e$ and $q_E$. They are never interchanged.
+\item (\textsf{D}; sampling) Conditionally on the frozen $B$, which does not depend on the demonstrations, $z_{ER}$ is the average of $N_E$ i.i.d.\ trajectory means, each bounded by $\beta_B$; it is unbiased for $\int B\dd\bar\rho_e$, with covariance of order $1/N_E$. No expert-recovery claim is made.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) A finite atomic measure is absolutely continuous with respect to $\nu$ exactly when $\nu$ charges each of its atoms; its density is then the stated ratio on the atoms and $0$ elsewhere, which is bounded. By the definition of the Radon--Nikodym derivative, $\int r_eB\dd\nu=\int B\dd\rho_e$.
+(b) Apply \cref{thm:fb-opt}(b) and \cref{prop:fb-softmax}(c),(d) to the bounded reward $r_e$.
+(c) See \cref{ex:fbil-er}.
+(d) $\int\tilde r_eB\dd\nu=\big(\int BB^\top\dd\nu\big)G_B^{-1}z_{ER}=z_{ER}$, and $|\tilde r_e(x)|\le\beta_B\|G_B^{-1}z_{ER}\|_2$.
+The set $\{r:z_r=z_{ER}\}$ is an affine subspace of $L^2(\nu)$ whose direction is the orthogonal complement of $\mathrm{span}(B)$; its element of minimal norm is its unique element in $\mathrm{span}(B)$, which is $\tilde r_e$.
+If $\rho_e\ll\nu$, the minimizers $w$ of $\|r_e-w^\top B\|^2_{L^2(\nu)}=\|r_e\|^2-2w^\top z_{ER}+w^\top G_Bw$ solve $G_Bw=z_{ER}$, so $\Pi_Br_e=B^\top G_B^{-1}z_{ER}=\tilde r_e$.
+A finite atomic measure charges a finite set, which is $\nu$-null when $\nu$ has no atoms, so $\rho_e\perp\nu$. When the kernel has a Lebesgue density and the demonstrations are independent of the buffer, each $s^i_t$ with $t\ge1$ has a Lebesgue density given the buffer, so it almost surely differs from the finitely many buffer states.
+(e) Example: an expert that reaches the goal at step $n$ and stays there (deterministic dynamics) has $\bar\rho_e(\mathrm{goal})=(H-n+1)/H$ and $q_E(\mathrm{goal})=Z_H^{-1}\sum_{t=n-1}^{H-1}\gamma^t=(\gamma^{n-1}-\gamma^H)/(1-\gamma^H)$.
+For $n=4$, $H=100$, $\gamma=0.95$ these are $\vn{const.dwell.rho}{0.97}$ and $\vn{const.dwell.qE}{0.8565}$. They coincide, for instance, when the expert stays at an absorbing start state.
+(f) Linearity of expectation over the i.i.d.\ demonstrations, and $\|H^{-1}\sum_tB(s^i_t)\|_2\le\beta_B$.
+\end{proof}
+
+\begin{example}[ER$_{\mathrm{FB}}$ is not distribution matching]\label{ex:fbil-er}
+Let $\cS=\{x,y\}$ and $\cA=\{\text{stay},\text{switch}\}$ with deterministic effects, $\mu_0=\delta_x$, and an expert that always switches. For even $H$, $\rho_e=\bar\rho_e=(\frac12,\frac12)$, while the expert's next-state occupancy is $q_E=(\frac\gamma{1+\gamma},\frac1{1+\gamma})$ on $(x,y)$.
+With $\nu=(\frac23,\frac13)$, the ER reward is $r_e=(\frac34,\frac32)$.
+The unique optimal policy for $r_e$ switches at $x$ and stays at $y$: every other policy has some $s_{t+1}=x$, which earns $\frac34<\frac32$.
+Its next-state occupancy is $\delta_y$, at total variation $\gamma/(1+\gamma)$ from $q_E$, and the expert itself is strictly suboptimal for $r_e$.
+With $\nu=(\frac12,\frac12)$, $r_e$ is constant, every policy is optimal, and the greedy tie-breaking rule alone decides the behaviour.
+\end{example}
+
+\subsection{\texorpdfstring{DM$_{\mathrm{FB}}$}{DM-FB}: the expansion}\label{sec:fbil-dm}
+
+\begin{theorem}\claim{FBIL-2}{S+D}\label{thm:fbil-dm}
+Assume \cref{ass:fbil} and let $\bar\rho$ be a start law.
+Consider the hypotheses
+(A1) exactness of the softmax representation at $z$ (on all of $\cS\times\cA$);
+(A3) $G_B$ computed under the same $\nu$;
+(A4) as in \cref{ass:fbil}(ii);
+(A6) for $\bar\rho$-a.e.\ $x$, $M^{\pi_E,+}(x,\cdot)\ll\nu$ with a density $m_E(x,y)$ that is jointly measurable in $(x,y)$ and square integrable in $y$, and $C_E:=\int\bar\rho(\dd x)\|m_E(x,\cdot)\|^2_{L^2(\nu)}<\infty$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (\textsf{S+D}; FI24 Theorem~3, p.~17, with its proof on p.~18, under our hypotheses) Under (A1), (A3), (A4) and (A6), $\mathcal L_{DM}(z;\bar\rho)=\ell_{DM}(z;\bar\rho)+C_E$, where $C_E$ does not depend on $z$.
+  FI24 assumes the exact model for all $z$ with greedy policies and does not state (A6); the proof uses only $M^{\pi_{z,\tau},+}(x,\cdot)=F(x,z)^\top B\,\nu$ \audit{A7}.
+\item (\textsf{D}; successor-feature reading) Assume (A1), (A4) and $G_B$ invertible.
+  Then $\bar\psi^{z}(x):=\int B\dd M^{\pi_{z,\tau},+}(x,\cdot)$ equals $G_BF(x,z)$, and, with $\|v\|^2_{G_B^{-1}}:=v^\top G_B^{-1}v$,
+  \[
+  \ell_{DM}(z;\bar\rho)=\int\bar\rho(\dd x)\,\big\|\bar\psi^{z}(x)-\bar\psi_E(x)\big\|^2_{G_B^{-1}}-\int\bar\rho(\dd x)\,\|\bar\psi_E(x)\|^2_{G_B^{-1}},
+  \]
+  where the subtracted term is finite and does not depend on $z$.
+  Under (A1), with $\Lambda_z:=\beta_B\sup_{s,a}\|F(s,a,z)\|_2$ (finite by \cref{ass:fb}(iv)), $P(\cdot\mid s,a)\le \Lambda_z\nu$ for every $(s,a)$, and every successor measure of every stationary policy, the expert's included, satisfies $M^{\pi,+}(x,\cdot)\le \Lambda_z\nu/(1-\gamma)$ for every $x$.
+  Its $\nu$-density is bounded by $\Lambda_z/(1-\gamma)$. So the square integrability in (A6) and $C_E\le \Lambda_z^2\nu(\cS)/(1-\gamma)^2<\infty$ hold automatically, and (A6) reduces to the joint measurability of a version of $m_E$.
+  Hence (b) is not an extension of (a) to non-square-integrable expert densities, which cannot occur under (A1); it is an equivalent successor-feature reading of the same objective.
+  If (A6) holds, the subtracted term equals $\int\bar\rho\,\|\Pi_Bm_E\|^2_{L^2(\nu)}$, and
+  \[\mathcal L_{DM}(z;\bar\rho)=\int\bar\rho(\dd x)\Big[\|F(x,z)^\top B-\Pi_Bm_E(x,\cdot)\|^2_{L^2(\nu)}+\|m_E(x,\cdot)-\Pi_Bm_E(x,\cdot)\|^2_{L^2(\nu)}\Big]:\]
+  DM$_{\mathrm{FB}}$ can only match the projection of the expert's successor density onto $\mathrm{span}(B)$.
+\item (\textsf{D}; without A1) Without exactness, and for invertible $G_B$, $\ell_{DM}(z;\bar\rho)=\int\bar\rho\,\|G_BF(x,z)-\bar\psi_E(x)\|^2_{G_B^{-1}}-\mathrm{const}$ is, by definition, the population objective that the implemented $\hat\ell^{(K)}(z;\hat G_B)$ estimates (bias: \cref{prop:fbil-est}(d)): a mismatch between the model's predicted features $G_BF(x,z)=\int B\dd\hat M_z(x,\cdot)$ and the expert's.
+  With $\mathcal E_z(x,\cdot):=\sum_a\pi_{z,\tau}(a\mid x)\mathcal E_z(x,a,\cdot)$ (\cref{thm:fb-approx}), for every $x$
+  \[
+  \Big|\,\|\bar\psi^{z}(x)-\bar\psi_E(x)\|_{G_B^{-1}}-\|G_BF(x,z)-\bar\psi_E(x)\|_{G_B^{-1}}\Big|\le\lambda_{\min}(G_B)^{-1/2}\,\beta_B\,\|\mathcal E_z(x,\cdot)\|_{\TV}
+  \]
+  (here $\|\mu\|_{\TV}=|\mu|(\cS)$ as in (N1), twice the distance $\TV$ used in (e)).
+  The quantity $\|\bar\psi^{z}(x)-\bar\psi_E(x)\|_{G_B^{-1}}$ is the dual seminorm $\sup\{\int w^\top B\dd(M^{\pi_{z,\tau},+}(x,\cdot)-M^{\pi_E,+}(x,\cdot)):\|w^\top B\|_{L^2(\nu)}\le1\}$ over $\mathrm{span}(B)$. It is at most the $L^2(\nu)^\star$ norm, and it can be strictly smaller.
+  The bound is pointwise in $x$ and between norms: it compares the model's feature mismatch with the feature-projected distance of the true successor measures at each $x$. It is not a bound between objectives; squaring and integrating over $\bar\rho$ needs further factors, for example $|a^2-b^2|\le|a-b|\,(|a-b|+2b)$ for $a,b\ge0$.
+  So (c) relates $\ell_{DM}$ to a feature-projected version of the true distance, not to $\mathcal L_{DM}$, and nothing ensures that the model error is small.
+\item (\textsf{D}; value-gap reading) Under (A1), (A3), (A4) and (A6), for every bounded $r$ and every $x$,
+  $|V^{\pi_{z,\tau}}_r(x)-V^{\pi_E}_r(x)|\le\|r\|_{L^2(\nu)}\,\|M^{\pi_{z,\tau},+}(x,\cdot)-M^{\pi_E,+}(x,\cdot)\|_{L^2(\nu)^\star}$, where the right-hand side is finite by (b). Hence
+  $\int\bar\rho(\dd x)\big(V^{\pi_{z,\tau}}_r(x)-V^{\pi_E}_r(x)\big)^2\le\|r\|^2_{L^2(\nu)}\big(\ell_{DM}(z;\bar\rho)+C_E\big)$.
+  This controls value gaps only at states charged by $\bar\rho$ (\cref{ex:fbil-blind}).
+\item (\textsf{D}; the occupancy from the start state) Let $\pi$ be any stationary policy and suppose $\bar\rho\ge c\,\mu_0$ for some $c>0$. Assume that, for $\bar\rho$-a.e.\ $x$, $M^{\pi,+}(x,\cdot)-M^{\pi_E,+}(x,\cdot)$ has a $\nu$-density $\dot\mu(x,\cdot)$ that is jointly measurable in $(x,y)$ (automatic in the finite case when $\nu$ has full support). Then
+  \begin{align*}
+  \TV\big(d^+_\pi,d^+_{\pi_E}\big)&\le\frac{1-\gamma}{2c}\,\nu(\cS)^{1/2}\,\mathcal L(\pi;\bar\rho)^{1/2},\\
+  \TV\big(d^+_{\pi,H},q_E\big)&\le2\gamma^H+\frac{1-\gamma}{2c}\,\nu(\cS)^{1/2}\,\mathcal L(\pi;\bar\rho)^{1/2}.
+  \end{align*}
+  In particular $\mathcal L_{DM}(z;\bar\rho)=0$ implies $d^+_{\pi_{z,\tau}}=d^+_{\pi_E}$. If $0\in\mathcal T$, then $\bar\rho_{\mathcal T}\ge\mu_0/|\mathcal T|$, so $c=1/|\mathcal T|$.
+  This concerns the true objective $\mathcal L$; nothing here says that minimizing the model's $\hat\ell$ makes $\mathcal L$ small.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+(a) Under (A1), $M^{\pi_{z,\tau},+}(x,\cdot)=\sum_a\pi_{z,\tau}(a\mid x)\hat M_z(x,a,\cdot)$ has the bounded density $F(x,z)^\top B$ with respect to $\nu$.
+With (A6) the difference of the two successor measures has the density $\dot\mu_x:=F(x,z)^\top B-m_E(x,\cdot)\in L^2(\nu)$, whose dual norm is $\|\dot\mu_x\|_{L^2(\nu)}$ (\cref{lem:fb-dual}). Expanding,
+\[
+\|\dot\mu_x\|^2_{L^2(\nu)}=F(x,z)^\top G_BF(x,z)-2F(x,z)^\top\!\int Bm_E(x,\cdot)\dd\nu+\|m_E(x,\cdot)\|^2_{L^2(\nu)},
+\]
+and $\int Bm_E(x,\cdot)\dd\nu=\int B\dd M^{\pi_E,+}(x,\cdot)=\bar\psi_E(x)$.
+The integrand is jointly measurable, so Tonelli's theorem allows integration over $\bar\rho$; the first two terms are bounded in $x$ (since $\|\bar\psi_E\|_2\le\beta_B/(1-\gamma)$) and the third is integrable by (A6).
+Only $M^{\pi_{z,\tau},+}(x,\cdot)=F(x,z)^\top B\,\nu$ was used, not greediness.
+FI24's proof states after its Eq.~(33) that the constant ``does not depend on $s$''. The constant is $\|M^{\pi_e}(s)\|^2_{L^2(\rho)^\star}$, which depends on the start state $s$ and not on $z$; after averaging over $s_t$ it is a $z$-independent constant, so the conclusion is unaffected.
+
+(b) The identity $\bar\psi^{z}=G_BF(x,z)$ is \cref{prop:fb-sf}, averaged over actions. Then
+$(G_BF-\bar\psi_E)^\top G_B^{-1}(G_BF-\bar\psi_E)=F^\top G_BF-2F^\top\bar\psi_E+\bar\psi_E^\top G_B^{-1}\bar\psi_E$; integrate over $\bar\rho$.
+For the density bound: under (A1), $P(\cdot\mid s,a)\le M^{\pi_{z,\tau},+}(s,a,\cdot)=F(s,a,z)^\top B\,\nu$ (the $t=0$ term of the successor measure), and the density satisfies $F(s,a,z)^\top B(y)\le\|F(s,a,z)\|_2\|B(y)\|_2\le \Lambda_z$, so $P(\cdot\mid s,a)\le \Lambda_z\nu$ for every $(s,a)$.
+For any policy and any start, $\Prob(s_{t+1}\in X)=\E[P(X\mid s_t,a_t)]\le \Lambda_z\nu(X)$; summing $\gamma^t$ over $t\ge0$ gives $M^{\pi,+}(x,\cdot)\le \Lambda_z\nu/(1-\gamma)$ for every $x$.
+A measure bounded by $c\,\nu$ has a $\nu$-density with values in $[0,c]$, which lies in $L^2(\nu)$ with squared norm at most $c^2\nu(\cS)$ because $\nu$ is finite. This gives the bound on $C_E$.
+Under (A6) the $L^2(\nu)$-projection of $m_E(x,\cdot)$ onto $\mathrm{span}(B)$ is $w^\top B$ with $G_Bw=\int Bm_E\dd\nu=\bar\psi_E(x)$, so $\|\Pi_Bm_E\|^2=w^\top G_Bw=\bar\psi_E^\top G_B^{-1}\bar\psi_E$.
+Since $F(x,z)^\top B\in\mathrm{span}(B)$, Pythagoras' theorem splits $\|F^\top B-m_E\|^2$ as stated.
+
+(c) The reverse triangle inequality for the norm $\|\cdot\|_{G_B^{-1}}$ bounds the left-hand side by $\|\bar\psi^{z}(x)-G_BF(x,z)\|_{G_B^{-1}}$.
+As in the proof of \cref{prop:fb-sf}, but without exactness, $G_BF(x,z)=\int B\dd\hat M_z(x,\cdot)$; hence $\bar\psi^{z}(x)-G_BF(x,z)=\int B\dd\mathcal E_z(x,\cdot)$.
+For a unit vector $e$, $|e^\top\int B\dd\mathcal E|\le\beta_B\|\mathcal E\|_{\TV}$, so $\|\int B\dd\mathcal E\|_2\le\beta_B\|\mathcal E\|_{\TV}$; and $\|v\|_{G_B^{-1}}\le\lambda_{\min}(G_B)^{-1/2}\|v\|_2$.
+For the seminorm: with $v:=\bar\psi^{z}(x)-\bar\psi_E(x)=\int B\dd(M^{\pi_{z,\tau},+}-M^{\pi_E,+})(x,\cdot)$, Cauchy--Schwarz in the inner product $\langle w,w'\rangle_{G_B}$ gives $\sup\{w^\top v:w^\top G_Bw\le1\}=(v^\top G_B^{-1}v)^{1/2}$, attained at $w\propto G_B^{-1}v$, and $\|w^\top B\|^2_{L^2(\nu)}=w^\top G_Bw$. The functions $w^\top B$ are bounded, so they belong to the class defining $\|\cdot\|_{L^2(\nu)^\star}$.
+
+(d) By \cref{lem:fb-q}(a) averaged over actions, $V^\pi_r(x)=\int r\dd M^{\pi,+}(x,\cdot)$. The difference of values is therefore $\int r\dd\mu$ for the difference $\mu$ of the two measures, which has a bounded $\nu$-density for every $x$ by (b); \cref{lem:fb-dual} applies. Square, integrate over $\bar\rho$ and use (a).
+
+(e) If $\mathcal L(\pi;\bar\rho)=\infty$ there is nothing to prove. Otherwise, by \cref{lem:fb-dual}, for $\bar\rho$-a.e.\ $x$ the difference $\mu_x$ has the density $\dot\mu(x,\cdot)\in L^2(\nu)$, and $f(x):=\|\dot\mu(x,\cdot)\|_{L^2(\nu)}$ is measurable by Tonelli's theorem.
+Since $\mu_0\le c^{-1}\bar\rho$, $\bar\rho$-null sets are $\mu_0$-null, so $\mu_x=\dot\mu(x,\cdot)\,\nu$ and $f(x)<\infty$ for $\mu_0$-a.e.\ $x$; Tonelli's theorem also makes $x\mapsto|\mu_x|(\cS)=\int|\dot\mu(x,\cdot)|\dd\nu$ measurable.
+Cauchy--Schwarz gives $|\mu_x|(\cS)=\int|\dot\mu(x,\cdot)|\dd\nu\le\nu(\cS)^{1/2}f(x)$.
+By \cref{prop:occ-norm}(c), $d^+_\pi-d^+_{\pi_E}=(1-\gamma)\int\mu_0(\dd x)\,\mu_x$, so its total variation norm is at most $(1-\gamma)\int\mu_0(\dd x)|\mu_x|(\cS)\le(1-\gamma)\nu(\cS)^{1/2}\int\mu_0f$.
+Since $\mu_0\le c^{-1}\bar\rho$ and $f\ge0$, $\int\mu_0f\le c^{-1}\int\bar\rho f\le c^{-1}(\int\bar\rho f^2)^{1/2}=c^{-1}\mathcal L(\pi;\bar\rho)^{1/2}$ by Jensen's inequality.
+Halve the total variation norm to get $\TV$. The second bound adds $\TV(d^+_{\pi,H},d^+_\pi)\le\gamma^H$ and $\TV(d^+_{\pi_E},q_E)\le\gamma^H$ (\cref{prop:occ-tail}(b)).
+Finally $\bar\rho_{\mathcal T}\ge|\mathcal T|^{-1}\law_0=|\mathcal T|^{-1}\mu_0$ when $0\in\mathcal T$.
+\end{proof}
+
+\begin{example}[the loss is blind outside the start law]\label{ex:fbil-blind}
+Let $\cS=\{x_0,x,y\}$, $\mu_0=\delta_{x_0}$ and $\cA=\{a,b\}$. From $x_0$, $a$ leads to $x$ and $b$ to $y$; $x$ and $y$ are absorbing.
+The expert plays $a$ at $x_0$, so its demonstrations are $x_0,x,x,\dots$, and a start law built from $s_1,\dots,s_H$ is $\delta_x$, which excludes $x_0$.
+Every policy has $M^{\pi,+}(x,\cdot)=\delta_x/(1-\gamma)$, so $\mathcal L(\pi;\delta_x)=0$ for every policy, including the policy that plays $b$ at $x_0$.
+That policy has $d^+_{\pi,H}=\delta_y$ while $q_E=\delta_x$: the state-occupancy JS is $\log2$, the maximum, and its return for $r=\ind_{\{x\}}$ is $0$ instead of $Z_H$.
+Here $x_0$ cannot be reached from the later expert states, so its action is invisible to the loss. In the maze, the start state can be revisited through return paths, and its action then enters the loss only through those discounted paths.
+Including $t=0$ puts it in the loss directly, and (e) then controls the occupancy from $\mu_0$.
+\end{example}
+
+\subsection{The estimator, tail truncation and the Gram estimate}\label{sec:fbil-est}
+
+\begin{proposition}\claim{FBIL-3}{D}\label{prop:fbil-est}
+Assume \cref{ass:fbil}, and let $z$ be fixed (not chosen from the demonstrations).
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (unbiasedness with the infinite continuation) For any finite nonempty deterministic $\mathcal T\subseteq\N$, $\E\,\hat\ell^{(\infty)}(z;G_B)=\ell_{DM}(z;\bar\rho_{\mathcal T})$.
+  This makes FI24 Theorem~3's ``unbiased'' precise: the start law is the population law $\bar\rho_{\mathcal T}$, and the targets use the infinite continuation under $\pi_E$.
+\end{enumerate}
+For the remaining parts let $\mathcal T\subseteq\{0,\dots,H-K\}$ be nonempty, with $K\ge1$, so that $\psi^{(K)}$ is observed, and let $\hat G_B$ be symmetric and independent of the demonstrations.
+\begin{enumerate}[resume*]
+\item (truncation) For every demonstration and $t\in\mathcal T$, $\|\psi^{(\infty),i}_t-\psi^{(K),i}_t\|_2\le\gamma^K\beta_B/(1-\gamma)$.
+  With $F_{\max}(z):=\max_{i,t}\|F(s^i_t,z)\|_2$, deterministically, for every symmetric $G$,
+  $|\hat\ell^{(K)}(z;G)-\hat\ell^{(\infty)}(z;G)|\le2\gamma^K\beta_BF_{\max}(z)/(1-\gamma)$.
+  If $z\mapsto F(x,a,z)$ is $C^1$ and $\mathcal J_{\max}(z):=\max_{i,t}\|\partial_zF(s^i_t,z)\|_{\mathrm{op}}$, the $z$-gradients differ by at most $2\gamma^K\beta_B\mathcal J_{\max}(z)/(1-\gamma)$.
+\item (Gram estimate) $|\hat\ell^{(K)}(z;\hat G_B)-\hat\ell^{(K)}(z;G_B)|\le\|\hat G_B-G_B\|_{\mathrm{op}}F_{\max}(z)^2$, and the $z$-gradients differ by at most $2\|\hat G_B-G_B\|_{\mathrm{op}}\mathcal J_{\max}(z)F_{\max}(z)$.
+\item (bias of the implemented objective) With $\bar F(z):=\sup_x\|F(x,z)\|_2$, conditionally on $\hat G_B$,
+  \[
+  \big|\E\,\hat\ell^{(K)}(z;\hat G_B)-\ell_{DM}(z;\bar\rho_{\mathcal T})\big|\le\frac{2\gamma^K\beta_B\bar F(z)}{1-\gamma}+\|\hat G_B-G_B\|_{\mathrm{op}}\bar F(z)^2 .
+  \]
+  FI24's unbiasedness does not transfer unchanged to the truncated estimator with an estimated Gram matrix.
+\item (dependence on future states) $\psi^{(K),i}_t=\sum_{k<K}\gamma^kb_{t+k+1}$ with the slot values $b_j:=B(s^i_j)$, so $\partial\psi^{(K),i}_t/\partial b_{t+k+1}=\gamma^kI$ for $0\le k<K$: changing the expert state in a future slot changes the target of every earlier start time within distance $K$. (When a state repeats, as at a goal, its contributions add over the slots it occupies.)
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) Fix $i$, $t\in\mathcal T$ and a coordinate $j$. With $\Psi_j:=\sum_{k\ge0}\gamma^kB_j(s_{k+1})$, which is bounded and measurable on $\Omega$, we have $\psi^{(\infty),i}_{t,j}=\Psi_j\circ\theta^t$ along demonstration $i$.
+\Cref{lem:fbil-markov} with $g:=F_j(\cdot,z)$ (bounded and measurable) and $\pi=\pi_E$ gives $\E[F_j(s_t,z)\,\psi^{(\infty)}_{t,j}]=\E[F_j(s_t,z)\,\bar\Psi_j(s_t)]$.
+By \cref{lem:fb-q}(a) with the reward $B_j$, averaged over the first action, $\bar\Psi_j(x)=\bar\psi_{E,j}(x)$.
+The quadratic term depends on $s_t$ only, and $s^i_t$ has law $\law^{\pi_E}_t$.
+Averaging over $t\in\mathcal T$ and over the identically distributed demonstrations gives $\ell_{DM}(z;\bar\rho_{\mathcal T})$.
+
+(b) $\|\sum_{k\ge K}\gamma^kB(s_{t+k+1})\|_2\le\beta_B\sum_{k\ge K}\gamma^k$.
+The two estimators differ by $-2$ times the average of $F(s^i_t,z)^\top(\psi^{(K),i}_t-\psi^{(\infty),i}_t)$, and $\nabla_z[F(x,z)^\top v]=\partial_zF(x,z)^\top v$ for a fixed vector $v$.
+
+(c) $|F^\top(\hat G_B-G_B)F|\le\|\hat G_B-G_B\|_{\mathrm{op}}\|F\|_2^2$ and $\nabla_z[F^\top(\hat G_B-G_B)F]=2\,\partial_zF^\top(\hat G_B-G_B)F$.
+
+(d) Write $\hat\ell^{(K)}(z;\hat G_B)-\ell_{DM}=[\hat\ell^{(K)}(z;\hat G_B)-\hat\ell^{(K)}(z;G_B)]+[\hat\ell^{(K)}(z;G_B)-\hat\ell^{(\infty)}(z;G_B)]+[\hat\ell^{(\infty)}(z;G_B)-\ell_{DM}]$. Take expectations conditionally on $\hat G_B$ (independent of the demonstrations): the last bracket has mean $0$ by (a), and the first two are bounded by (c) and (b) with $F_{\max}\le\bar F$.
+
+(e) $\psi^{(K),i}_t$ is linear in the slot values $b_{t+1},\dots,b_{t+K}$ with coefficients $\gamma^0,\dots,\gamma^{K-1}$.
+\end{proof}
+
+\begin{remark}[decisions D4--D5: tail treatment and start times; \audit{U-4}]\label{rem:fbil-u4}
+\leavevmode
+\begin{itemize}[nosep]
+\item \textbf{D4 (decided).} The implemented start-time set is $\mathcal T_K:=\{0,1,\dots,H-K\}$, with $K=K_{DM}=60$ by default (a configuration value, frozen before final runs and not tuned on final test outcomes).
+  For $\gamma=0.95$, the truncation term of (d) has the factor $\gamma^K/(1-\gamma)\approx\vn{const.gK_over}{0.92}$, against $1/(1-\gamma)=\vn{const.mass}{20}$ for the full sum: the worst-case bound on the missing tail is the fraction $\gamma^K\approx\vn{const.gK_pct}{4.6}\%$ of the worst-case bound on the full sum. This is not a bound on the relative bias of the objective. With $H=100$ there are \vn{const.n_starts}{41} start times per demonstration.
+  Rejected alternatives: all start times with per-start truncation (at $t=H-1$ only one of about twenty effective terms remains); and a model bootstrap of the tail, which would use the learner's own model as a surrogate for the expert's continuation and make the target depend on $z$.
+\item \textbf{D5 (decided, configurable).} $t=0$ is included. This deviates from the $\rho_e$ of FI24 Eq.~(8), which starts at $s_1$. FI24 is not explicit about the DM start law: p.~4 calls $\rho_e$ ``the empirical distribution of states visited'', footnote~3 samples ``a state in that trajectory'', and Eq.~(12) writes $s_0\sim\rho_e$; FI24 also does not say how the infinite sum of Eq.~(32) is evaluated near trajectory ends.
+  With $t=0$ included, $\bar\rho_{\mathcal T_K}\ge\mu_0/\vn{const.n_starts}{41}$, so \cref{thm:fbil-dm}(e) controls the occupancy from $\mu_0$ by the true DM objective; \cref{ex:fbil-blind} shows what can be lost otherwise.
+  ER$_{\mathrm{FB}}$ keeps FI24's $\rho_e$ ($t=1,\dots,H$).
+\item The DM start law is therefore $\bar\rho_{\mathcal T_K}$, a stated change of the weighting of FI24 Eq.~(31). The objective that is estimated is $\ell_{DM}(z;\bar\rho_{\mathcal T_K})$ up to the bias of \cref{prop:fbil-est}(d), for a fixed $z$.
+\end{itemize}
+\end{remark}
+
+\subsection{The latent gradient with frozen networks}\label{sec:fbil-grad}
+
+\begin{proposition}\claim{FBIL-4}{D}\label{prop:fbil-grad}
+Assume that $z\mapsto F(x,a,z)$ is $C^1$ for every $(x,a)$ (true for networks with $C^1$ activations; with ReLU the formulas hold only where $F(x,a,\cdot)$ is differentiable, \audit{U-14}), and freeze $(\xi,\omega)$, $\hat G_B$ and the targets.
+For $x\in\cS$ write $\hat Q_a:=F(x,a,z)^\top z$, $\mathcal J_a:=\partial_zF(x,a,z)\in\R^{d\times d}$ and $\pi_a:=\pi_{z,\tau}(a\mid x)$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $\nabla_z\hat Q_a=F(x,a,z)+\mathcal J_a^\top z$.
+\item $\nabla_z\pi_a=\frac{\pi_a}\tau\big(\nabla_z\hat Q_a-\sum_b\pi_b\nabla_z\hat Q_b\big)$.
+\item $\mathcal J(x,z):=\partial_zF(x,z)=\sum_a\big[\pi_a\mathcal J_a+F(x,a,z)(\nabla_z\pi_a)^\top\big]$.
+\item For $\hat\ell(z)=\frac1n\sum_{(i,t)}\big[F(s^i_t,z)^\top\hat G_BF(s^i_t,z)-2F(s^i_t,z)^\top\psi^i_t\big]$,
+  \begin{equation}\label{eq:fbil-grad}
+  \nabla_z\hat\ell(z)=\frac2n\sum_{(i,t)}\mathcal J(s^i_t,z)^\top\big(\hat G_BF(s^i_t,z)-\psi^i_t\big).
+  \end{equation}
+\item Dropping the second term of (c), i.e.\ treating the policy probabilities as constants (``detaching'' them), gives a vector that differs from $\nabla_z\hat\ell$ in general; \texttt{check\_2B.py} exhibits a nonzero difference.
+\item If $\nabla_z\hat\ell(z)\ne0$, a small enough \emph{exact} gradient step decreases $\hat\ell$, as in \cref{prop:fpg-mc}(b). No convexity in $z$ is claimed or used. No descent, convergence or global-optimality property is claimed for the implemented optimizer (Adam, with projection, at most 300 updates): its direction is not the gradient.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) $\mathrm d(F^\top z)=(\mathrm dF)^\top z+F^\top\mathrm dz=z^\top\mathcal J_a\,\mathrm dz+F^\top\mathrm dz$.
+
+(b) $\partial\pi_a/\partial\hat Q_b=\pi_a(\ind[a=b]-\pi_b)/\tau$ for the softmax of $\hat Q/\tau$; apply the chain rule.
+
+(c) Product rule applied to $\sum_a\pi_aF(x,a,z)$.
+
+(d) $\nabla_z[F^\top\hat G_BF]=2\mathcal J^\top\hat G_BF$ because $\hat G_B$ is symmetric, and $\nabla_z[F^\top\psi]=\mathcal J^\top\psi$ for a fixed $\psi$.
+
+(e) The omitted term is $\frac2n\sum\big(\sum_aF(x,a,z)(\nabla_z\pi_a)^\top\big)^\top(\hat G_BF-\psi)$, which is nonzero in general.
+
+(f) $\hat\ell(z-\eta\nabla\hat\ell)=\hat\ell(z)-\eta\|\nabla\hat\ell\|^2+o(\eta)$ by differentiability. For a direction $u\ne\nabla\hat\ell$, the first-order change is $-\eta\nabla\hat\ell^\top u$, whose sign is not controlled in general.
+\end{proof}
+
+\subsection{Constraining the latent}\label{sec:fbil-sphere}
+
+\begin{proposition}\claim{FBIL-5}{D}\label{prop:fbil-sphere}
+Let $\ell$ be $C^1$ on a neighbourhood of the sphere $\mathcal Z_R=\{\|z\|_2=R\}$, $R>0$, and let $g_R(z):=(I-zz^\top/R^2)\nabla\ell(z)$ be the Riemannian gradient.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item If $z^\star$ minimizes $\ell$ on $\mathcal Z_R$, then $g_R(z^\star)=0$, i.e.\ $\nabla\ell(z^\star)$ is parallel to $z^\star$.
+\item For $z\in\mathcal Z_R$, the projected step
+  \begin{equation}\label{eq:fbil-proj}
+  z^+:=R\,\frac{z-\eta\nabla\ell(z)}{\|z-\eta\nabla\ell(z)\|_2}
+  \end{equation}
+  satisfies $z^+=z-\eta g_R(z)+O(\eta^2)$ and $\ell(z^+)=\ell(z)-\eta\|g_R(z)\|^2+o(\eta)$; it decreases $\ell$ for small $\eta$ when $g_R(z)\ne0$. This concerns the exact projected gradient step only.
+\item With the reparametrization $z=Ru/\|u\|_2$, $\nabla_u\ell=(R/\|u\|_2)(I-\hat u\hat u^\top)\nabla\ell(z)$ with $\hat u=u/\|u\|_2=z/R$; its zeros are those of $g_R$. The map is singular at $u=0$.
+\item The constrained problem is a different problem. Minimizers on the sphere need not be stationary points of the unconstrained $\ell$: for $\ell(z)=w^\top z$ with $w\ne0$, the minimizer on $\mathcal Z_R$ is $-Rw/\|w\|_2$, where $\nabla\ell=w\ne0$.
+  Under exactness on $\mathcal Z_R$ and invertible $G_B$, every $z\in\mathcal Z_R$ satisfies $\pi_{z,\tau}=\mathrm{softmax}(Q^{+,\pi_{z,\tau}}_{r_z}/\tau)$ for the reward $r_z:=B^\top G_B^{-1}z$ that it encodes (\cref{thm:fb-opt}(a), $z_{r_z}=z$): relative to that reward the temperature is pinned at $\tau$, and DM$_{\mathrm{FB}}$ cannot sharpen the policy for a fixed reward direction by rescaling $z$.
+  Even under exactness, the temperature relative to the normalized reward $r_z/\|r_z\|_{L^2(\nu)}$ is $\tau(z^\top G_B^{-1}z)^{-1/2}$, since $\|r_z\|^2_{L^2(\nu)}=z^\top G_B^{-1}z$; it is constant on $\mathcal Z_R$ only if $G_B\propto I$. Without exactness nothing is claimed.
+\item (warm start; our choice) $z_0:=Rz_{ER}/\|z_{ER}\|_2$ if $z_{ER}\ne0$. FI24 states the ER warm start explicitly for BC$_{\mathrm{FB}}$, BBELL$_{\mathrm{FB}}$ and FM$_{\mathrm{FB}}$ (p.~7); E.2 (p.~31) describes it for the FB methods that use gradient descent over $z$, a class that includes DM$_{\mathrm{FB}}$; FI24 never names DM$_{\mathrm{FB}}$ in this context, so how DM$_{\mathrm{FB}}$ is initialized is not stated explicitly. If $z_{ER}=0$, a stated fallback must be used (for example a $z$ drawn from $\mathcal D_z$ with a recorded seed).
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) For $v\perp z^\star$, the curve $c(h):=R(z^\star+hv)/\|z^\star+hv\|_2$ lies on $\mathcal Z_R$, with $c(0)=z^\star$ and $c'(0)=v$, because $z^{\star\top}v=0$ and $\|z^\star\|_2=R$.
+Minimality gives $(\ell\circ c)'(0)=\nabla\ell(z^\star)^\top v=0$ for every $v\perp z^\star$, so $\nabla\ell(z^\star)\in\mathrm{span}(z^\star)$.
+
+(b) Let $u:=z-\eta\nabla\ell$. Since $\|z\|_2=R$, $\|u\|^2=R^2-2\eta z^\top\nabla\ell+\eta^2\|\nabla\ell\|^2$, so $R/\|u\|=1+\eta z^\top\nabla\ell/R^2+O(\eta^2)$ and
+$z^+=(z-\eta\nabla\ell)(1+\eta z^\top\nabla\ell/R^2)+O(\eta^2)=z-\eta g_R+O(\eta^2)$.
+Differentiability gives $\ell(z^+)=\ell(z)-\eta\nabla\ell^\top g_R+o(\eta)$, and $\nabla\ell^\top g_R=\|g_R\|^2$ because $g_R$ is the orthogonal projection of $\nabla\ell$ onto $z^\perp$.
+
+(c) The Jacobian of $u\mapsto Ru/\|u\|_2$ is the symmetric matrix $(R/\|u\|_2)(I-\hat u\hat u^\top)$; apply the chain rule.
+
+(d) For the linear example, $\min_{\|z\|=R}w^\top z=-R\|w\|_2$ by Cauchy--Schwarz, attained at $-Rw/\|w\|_2$.
+Under exactness, $z_{r_z}=G_BG_B^{-1}z=z$, and \cref{thm:fb-opt}(a) gives $F(x,\cdot,z)^\top z=Q^{+,\pi_{z,\tau}}_{r_z}(x,\cdot)$.
+Moreover $\|r_z\|^2_{L^2(\nu)}=z^\top G_B^{-1}\big(\int BB^\top\dd\nu\big)G_B^{-1}z=z^\top G_B^{-1}z$, and $Q$-functions are linear in the reward, so $\pi_{z,\tau}=\mathrm{softmax}\big(Q^{+,\pi_{z,\tau}}_{\bar r_z}/(\tau\|r_z\|^{-1}_{L^2(\nu)})\big)$ with $\bar r_z:=r_z/\|r_z\|_{L^2(\nu)}$. (e) is a choice.
+\end{proof}
+
+\subsection{Approximation ledger and the relation to \texorpdfstring{$f$}{f}-PG}\label{sec:fbil-ledger}
+
+The approximations in the FB pipeline, with the result each affects. \textsf{[I]} implementation approximation; \textsf{[C]} stated change of objective.
+\begin{center}
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.15\textwidth}>{\raggedright\arraybackslash}p{0.24\textwidth}>{\raggedright\arraybackslash}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.29\textwidth}@{}}
+\toprule
+Quantity & Exact object & Implemented & Consequence\\
+\midrule
+FB model & $M^{\pi_z,+}$ on $\mathcal Z$ (FB-2, FB-5, FB-7) & rank-16 network, float32 \textsf{[I]} & exactness impossible in the finite maze under the condition of \cref{rem:fb-rank16}; FB-6 with unknown error\\
+Activation & $C^1$ networks (FB-8, FB-9, FBIL-4, FBIL-5) & LayerNorm, $\tanh$, SiLU ($C^\infty$) \textsf{[I]} & covered; ReLU would not be: FB-8(b)--(c) and FB-9 not proved, FBIL-4 only where $F$ is differentiable \audit{U-14}\\
+Reference $\nu$ & law of replay next states & empirical buffer law $\hat\nu$ \textsf{[I]} & one buffer for loss, $\hat G_B$, $z_r$ (\cref{rem:fb-approx})\\
+Pretraining & $L$ (FB-8) & minibatches, Adam, Polyak targets \textsf{[I]} & minibatch gradient unbiased for the gradient of the empirical buffer loss, with $C^1$ activations and independent target states (FB-8(b)); not for the population $\nabla L$; no convergence\\
+Policy & greedy (FB21) & softmax, $\tau>0$ \textsf{[C]} & FB-5 replaces FB-2(b)\\
+Gram matrix & $G_B$ & $\hat G_B$ from buffer next states \textsf{[I]} & exact for $\hat\nu$; unbiased for $G_B$ only for a fixed $B$ and an independent i.i.d.\ sample (FB-10(e)); FBIL-3(c)--(d)\\
+ER latent & $\int B\dd\bar\rho_e$ & $z_{ER}$ from $N_E=4$ demonstrations \textsf{[I]} & FBIL-1(f); reward reading FBIL-1(a),(d)\\
+Latent domain & $z\in\R^d$ & projection onto $\mathcal Z_R$ \textsf{[C]} & FB-5(d), FB-6(e), FBIL-5\\
+DM start law & $\bar\rho_e$ (FI24, $t\ge1$) & $\bar\rho_{\mathcal T_K}$, $t=0,\dots,H-K$ \textsf{[C]}, empirical over 4 demonstrations \textsf{[I]} & FBIL-3(a), FBIL-2(e); D4--D5\\
+DM target & $\bar\psi_E(s_t)$, infinite continuation & $\psi^{(K)}$, $K=60$ \textsf{[I]} & for fixed $z$, conditionally on $\hat G_B$: bias $\le2\gamma^K\beta_B\bar F/(1-\gamma)+\|\hat G_B-G_B\|\bar F^2$ (FBIL-3(d))\\
+Expert measures & A6 & automatic under A1 up to measurability (FBIL-2(b)); it holds for the population replay law (\cref{prop:env-replay}) but fails for the atomic $\hat\nu$ of the continuous maze (\cref{rem:env-atoms}), and then A1 fails too & if $M^{\pi_{z,\tau},+}(x,\cdot)-M^{\pi_E,+}(x,\cdot)$ has no $L^2(\nu)$ density on a $\bar\rho$-non-null set, $\mathcal L_{DM}=+\infty$ (\cref{lem:fb-dual}); $\ell_{DM}$ keeps its model-feature meaning (FBIL-2(c))\\
+Data reuse & fixed $z$ & $z_0$ and $\hat\ell$ from the same demonstrations \textsf{[I]} & FBIL-3(a) holds for a fixed $z$ only; an exact global minimum is optimistically biased, $\E\min_z\hat\ell\le\min_z\E\hat\ell$; nothing is claimed for the output of $\le300$ Adam steps\\
+DM optimization & minimizer over $\mathcal Z$ & $\le300$ projected Adam steps from the projected $z_{ER}$, float32 \textsf{[I]} & no descent or convergence claim (FBIL-4(f), FBIL-5(b) cover exact gradient steps only)\\
+Evaluation & $V^\pi$ from every state, infinite horizon; exact occupancies & H-step returns from $\mu_0$; Monte Carlo rollouts and a density estimator in the continuous maze \textsf{[I]} & \cref{cor:fb-hstep}, OCC-5; no guarantee for plug-in evaluation metrics (cf.\ FPG-5(b))\\
+\bottomrule
+\end{tabular}
+\end{center}
+If minibatches over the pairs $(i,t)$ are used in the latent step, they add sampling noise to the gradient of $\hat\ell$ without changing its expectation over the minibatch draw.
+
+\begin{remark}[relation to the $f$-PG objective; see also \cref{sec:compare}]\label{rem:fbil-fpg}
+$f$-PG minimizes a divergence between \emph{marginal} next-state occupancies from $\mu_0$ over $H$ steps (\cref{sec:fpg}).
+Under (A1) and (A6), the population objective of DM$_{\mathrm{FB}}$ is, up to the constant $C_E$, a replay-weighted $L^2(\nu)$ distance between \emph{conditional} successor measures at expert states (\cref{thm:fbil-dm}(a)); without exactness it is the feature mismatch of \cref{thm:fbil-dm}(c), through a finite-rank model.
+Neither objective reduces to the other.
+With a start law that excludes the start state, \cref{ex:fbil-blind} shows that $\mathcal L=0$ does not imply $d^+_{\pi,H}=q_E$.
+With the implemented start law $\bar\rho_{\mathcal T_K}\ge\mu_0/\vn{const.n_starts}{41}$, \cref{thm:fbil-dm}(e) shows that a small \emph{true} DM objective does control the occupancy from $\mu_0$. Nothing transfers this to the model's estimate $\hat\ell$: even under exactness, $\hat\ell$ determines $\mathcal L_{DM}$ only up to the unknown constant $C_E$ and the estimation, truncation and Gram errors of \cref{prop:fbil-est}, and $\min_z\mathcal L_{DM}$ need not be small (for instance for a softmax policy with $\tau>0$ against a deterministic expert).
+\Cref{ex:fbil-er} shows that ER$_{\mathrm{FB}}$ is not distribution matching at all.
+Conversely, $d^+_{\pi,H}=q_E$ does not imply equal conditional successor measures at every expert state, because the marginal averages over the trajectory (FI24 p.~5 makes the same point about averaging over the start law).
+\end{remark}

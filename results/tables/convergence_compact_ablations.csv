@@ -1,0 +1,22 @@
+suite,env,layout,task,method_label,seed,axis,budget,first_reached,reached_at_last,js_last,success_last,js_max_nats,success_min,eval_job
+compact_ablations,finite,four_rooms,goal_5_5,f-PG[js],0,learner env steps,50000,30000,True,0.01212574771473231,0.9995123033108987,0.1,0.8,eval-fpg-finite-four_rooms-goal_5_5-js-s0-7ef6c60910
+compact_ablations,finite,four_rooms,goal_5_5,f-PG[js],1,learner env steps,50000,20000,True,0.02115174867648216,0.9999796127795486,0.1,0.8,eval-fpg-finite-four_rooms-goal_5_5-js-s1-cb29c733eb
+compact_ablations,finite,four_rooms,goal_5_5,f-PG[js],2,learner env steps,50000,20000,True,0.012159774761908625,0.9998654360358556,0.1,0.8,eval-fpg-finite-four_rooms-goal_5_5-js-s2-0353968562
+compact_ablations,finite,four_rooms,goal_5_5,f-PG[kl_dq],0,learner env steps,50000,30000,True,0.009571704230591997,0.9999990673112655,0.1,0.8,eval-fpg-finite-four_rooms-goal_5_5-kl_dq-s0-0b684f52e9
+compact_ablations,finite,four_rooms,goal_5_5,f-PG[kl_dq],1,learner env steps,50000,30000,True,0.016893682853504254,0.9998239959879106,0.1,0.8,eval-fpg-finite-four_rooms-goal_5_5-kl_dq-s1-e09b94f4c2
+compact_ablations,finite,four_rooms,goal_5_5,f-PG[kl_dq],2,learner env steps,50000,30000,True,0.00850043822381558,0.9980019163604646,0.1,0.8,eval-fpg-finite-four_rooms-goal_5_5-kl_dq-s2-c6380f61d4
+compact_ablations,finite,four_rooms,goal_5_5,f-PG[kl_qd],0,learner env steps,50000,40000,True,0.05702915353639764,0.9954222188857069,0.1,0.8,eval-fpg-finite-four_rooms-goal_5_5-kl_qd-s0-424a98070c
+compact_ablations,finite,four_rooms,goal_5_5,f-PG[kl_qd],1,learner env steps,50000,50000,True,0.07148329080701452,0.9976828736172257,0.1,0.8,eval-fpg-finite-four_rooms-goal_5_5-kl_qd-s1-478add8a3e
+compact_ablations,finite,four_rooms,goal_5_5,f-PG[kl_qd],2,learner env steps,50000,40000,True,0.05503663703845932,0.9998269315477244,0.1,0.8,eval-fpg-finite-four_rooms-goal_5_5-kl_qd-s2-e72a092158
+compact_ablations,finite,four_rooms,goal_5_5,DM_FB,0,FB pretraining updates,10000,,False,0.2442483612122904,0.9501578720842605,0.1,0.8,eval-adapt-finite-four_rooms-goal_5_5-s0-143a94e328
+compact_ablations,finite,four_rooms,goal_5_5,DM_FB,1,FB pretraining updates,10000,5000,False,0.5537762500448462,0.03073159648695403,0.1,0.8,eval-adapt-finite-four_rooms-goal_5_5-s1-4b789e1398
+compact_ablations,finite,four_rooms,goal_5_5,DM_FB,2,FB pretraining updates,10000,,False,0.6285326607907251,0.0005031404192633516,0.1,0.8,eval-adapt-finite-four_rooms-goal_5_5-s2-242b05d5e8
+compact_ablations,finite,four_rooms,goal_5_5,DM_FB/no_orth,0,FB pretraining updates,10000,,False,0.3890040321093847,0.6047065875516797,0.1,0.8,eval-adapt-finite-four_rooms-goal_5_5-no_orth-s0-24eff6a613
+compact_ablations,finite,four_rooms,goal_5_5,DM_FB/no_orth,1,FB pretraining updates,10000,,False,0.5023187427252576,0.39189457517885035,0.1,0.8,eval-adapt-finite-four_rooms-goal_5_5-no_orth-s1-9325b793b9
+compact_ablations,finite,four_rooms,goal_5_5,DM_FB/no_orth,2,FB pretraining updates,10000,,False,0.508334341920693,0.4326898317044303,0.1,0.8,eval-adapt-finite-four_rooms-goal_5_5-no_orth-s2-a72059fe2e
+compact_ablations,finite,four_rooms,goal_5_5,ER_FB,0,FB pretraining updates,10000,,False,0.2256054876751999,0.9984152670976111,0.1,0.8,eval-adapt-finite-four_rooms-goal_5_5-s0-143a94e328
+compact_ablations,finite,four_rooms,goal_5_5,ER_FB,1,FB pretraining updates,10000,,False,0.4353067298294451,0.6509933555902863,0.1,0.8,eval-adapt-finite-four_rooms-goal_5_5-s1-4b789e1398
+compact_ablations,finite,four_rooms,goal_5_5,ER_FB,2,FB pretraining updates,10000,,False,0.38188007233712157,0.6679212250587029,0.1,0.8,eval-adapt-finite-four_rooms-goal_5_5-s2-242b05d5e8
+compact_ablations,finite,four_rooms,goal_5_5,ER_FB/no_orth,0,FB pretraining updates,10000,,False,0.30763043625091063,0.9636052235255042,0.1,0.8,eval-adapt-finite-four_rooms-goal_5_5-no_orth-s0-24eff6a613
+compact_ablations,finite,four_rooms,goal_5_5,ER_FB/no_orth,1,FB pretraining updates,10000,,False,0.3873498410771203,0.9821192087059719,0.1,0.8,eval-adapt-finite-four_rooms-goal_5_5-no_orth-s1-9325b793b9
+compact_ablations,finite,four_rooms,goal_5_5,ER_FB/no_orth,2,FB pretraining updates,10000,,False,0.37951648701794,0.9488481136269377,0.1,0.8,eval-adapt-finite-four_rooms-goal_5_5-no_orth-s2-a72059fe2e

@@ -1,0 +1,494 @@
+% ---------------------------------------------------------------------------
+% Appendix C (from theory/03_fpg.tex)  --  claims FPG-1 ... FPG-8
+% ---------------------------------------------------------------------------
+\section{\texorpdfstring{$f$}{f}-policy gradient with a fixed expert target}\label{sec:fpg}
+
+\paragraph{Status and relation to the source.}
+FPG minimizes $J(\theta)=D_f(p_\theta\Vert p_g)$ for a Dirac goal target $p_g=\delta_g$ (FPG Eq.~4, p.~4; target p.~3).
+Its gradient is stated in Theorem~4.1 (p.~4; proof in App.~B.1, pp.~18--19), and its discounted variants appear in App.~B.2--B.3 (pp.~20--21).
+This section replaces $p_g$ by a \emph{fixed} expert target $q$, and replaces the paper's visitation by the finite-horizon next-state occupancy $d^+_{\pi,H}$.
+All results below are derived independently. Their labels are:
+\begin{itemize}[nosep]
+\item \textsf{D} (our adaptation) for FPG-1, FPG-2, FPG-5, FPG-6 and FPG-8;
+\item \textsf{I} (standard identities) for the baseline and Monte Carlo statements FPG-3 and FPG-4;
+\item \textsf{S+D} for FPG-7: parts (a)--(b) are FPG Lemma~5.1 (p.~6, proof p.~17) reproved in our normalization, and parts (c)--(d) are ours;
+\item \textsf{C} for FPG-C1, a comparison with the source's Dirac-target theorems from which no guarantee is drawn.
+\end{itemize}
+\Cref{sec:fpg-source} records exactly where the printed source formulas agree and where they do not; the full findings are \audit{F1--F10}.
+
+\subsection{Setting}
+
+\begin{assumption}[A-FPG]\label{ass:fpg}
+\Cref{ass:mdp} holds, together with the following.
+\begin{enumerate}[nosep,label=(\roman*)]
+\item \emph{Cells.} $\{B_1,\dots,B_n\}$ is a finite measurable partition of $\cS$.
+  If $\cS$ is finite the cells are the singletons; in the continuous maze they are histogram cells.
+  $b(s)$ denotes the index of the cell containing $s$, and $\nu(b):=\nu(B_b)$ for a measure $\nu$.
+\item \emph{Policies.} $\{\pi_\phi:\phi\in\Phi\}$ with $\Phi\subseteq\R^m$ open satisfies, for all $(s,a)$:
+  $\pi_\phi(a\mid s)>0$; $\phi\mapsto\pi_\phi(a\mid s)$ is $C^1$ with $\nabla_\phi\pi_\phi(a\mid s)$ jointly measurable;
+  and the score is locally uniformly bounded.
+  The last condition means that every $\phi_0\in\Phi$ has a neighbourhood $N$ and a constant $C$ with
+  $\sup_{\phi\in N,\,s\in\cS,\,a\in\cA}\|\nabla_\phi\log\pi_\phi(a\mid s)\|\le C$.
+\item \emph{Target.} $q$ is a fixed probability vector on the cells; it does not depend on $\phi$.
+\item \emph{Generator.} $f$ is convex and $C^1$ on $(0,\infty)$, with $f(1)=0$.
+\item \emph{Positivity.} $q(b)>0$ and $d_\phi(b)>0$ for every cell $b$ and every $\phi\in\Phi$, where
+  $d_\phi(b):=d^+_{\pi_\phi,H}(B_b)=Z_H^{-1}\sum_{t=0}^{H-1}\gamma^t\Prob_\phi(s_{t+1}\in B_b)$.
+\end{enumerate}
+\end{assumption}
+
+Item (v) holds, for example, when $q$ is a smoothed target $q_{E,\varepsilon}$ (\cref{prop:div-smooth}(a)) and every cell satisfies $\Prob^{\pi'}_{\mu_0}(s_{t+1}\in B_b)>0$ for some stationary policy $\pi'$ and some $t<H$.
+By \cref{lem:fpg-support}(a), every $\pi_\phi$ then reaches every cell, so $d_\phi>0$.
+The case of a target with zeros is treated in \cref{rem:fpg-zeros}.
+
+\begin{lemma}[tabular softmax]\label{lem:fpg-softmax}
+For $\pi_\phi(a\mid s)=e^{\phi_{s,a}}/\sum_be^{\phi_{s,b}}$ with $\phi\in\R^{\cS\times\cA}$,
+$\partial\log\pi_\phi(a\mid s)/\partial\phi_{s',b}=\ind[s'=s]\big(\ind[b=a]-\pi_\phi(b\mid s)\big)$.
+Consequently $\|\nabla\log\pi_\phi(a\mid s)\|_2\le\sqrt2$, and \cref{ass:fpg}(ii) holds on $\Phi=\R^{\cS\times\cA}$.
+\end{lemma}
+\begin{proof}
+Differentiate $\log\pi_\phi(a\mid s)=\phi_{s,a}-\log\sum_be^{\phi_{s,b}}$.
+The squared norm is $(1-\pi(a\mid s))^2+\sum_{b\ne a}\pi(b\mid s)^2\le1+1$.
+The map $\phi\mapsto\pi_\phi$ is $C^\infty$.
+\end{proof}
+
+\begin{remark}[continuous policy class]\label{rem:fpg-mlp}
+A categorical MLP policy $\pi_\phi(a\mid s)=\mathrm{softmax}_a\ell_\phi(s,a)$ satisfies \cref{ass:fpg}(ii) under the following conditions:
+the activation is $C^1$ (for example $\tanh$ or ELU);
+$\cS$ is bounded;
+$(\phi,s)\mapsto\nabla_\phi\ell_\phi(s,a)$ is continuous, so that it is bounded on $\bar N\times\bar\cS$ for a compact neighbourhood $\bar N$.
+The score $\nabla\ell(s,a)-\sum_b\pi(b\mid s)\nabla\ell(s,b)$ is then bounded.
+Only $C^1$ activations are covered by this remark; for other activations the results below are not claimed.
+The implemented MLP policy uses $\tanh$ hidden layers, which are $C^\infty$ \audit{U-12}.
+\end{remark}
+
+Notation for the rest of the section:
+\begin{itemize}[nosep]
+\item $\chi_k:=\nabla_\phi\log\pi_\phi(a_k\mid s_k)$ is the score at step $k$;
+\item $J(\phi):=D_f(d_\phi\Vert q)=\sum_bq(b)f(d_\phi(b)/q(b))$;
+\item $g_\phi(b):=f'(d_\phi(b)/q(b))$ is the \emph{$f$-PG signal}, extended to states by $g_\phi(s):=g_\phi(b(s))$;
+\item $G_k:=\sum_{t=k}^{H-1}\gamma^{t-k}g_\phi(s_{t+1})$ is the discounted signal-to-go.
+\end{itemize}
+The signal $g_\phi$ is evaluated at the current $\phi$ and is not differentiated.
+
+\subsection{Two lemmas: likelihood ratio and causality}
+
+\begin{lemma}[likelihood ratio]\label{lem:fpg-lr}
+Under \cref{ass:fpg}(ii), let $h$ be a bounded measurable function of $(s_0,a_0,\dots,a_{H-1},s_H)$ that does not depend on $\phi$.
+Then $\phi\mapsto\E_\phi h$ is $C^1$ and $\nabla\E_\phi h=\E_\phi\big[h\sum_{k=0}^{H-1}\chi_k\big]$.
+\end{lemma}
+\begin{proof}
+By the iterated-integral form of \eqref{eq:occ-traj},
+\[
+\E_\phi h=\sum_{a_0,\dots,a_{H-1}}\int\mu_0(\dd s_0)\prod_{k=0}^{H-1}P(\dd s_{k+1}\mid s_k,a_k)\;\Pi_\phi(a_{0:H-1},s_{0:H-1})\,h,
+\]
+where $\Pi_\phi:=\prod_{k=0}^{H-1}\pi_\phi(a_k\mid s_k)$.
+The measure $\mu_0\otimes\prod_kP$ does not depend on $\phi$.
+For fixed $(a_{0:H-1},s_{0:H})$ the integrand is $C^1$ in $\phi$, with
+$\nabla\Pi_\phi=\Pi_\phi\sum_k\nabla\log\pi_\phi(a_k\mid s_k)$ by the product rule (all factors are positive).
+Fix $\phi_0$ and let $N$, $C$ be as in \cref{ass:fpg}(ii). Shrinking $N$, we may take it to be an open ball around $\phi_0$, so it contains the segment between any two of its points.
+On $N$, $0<\Pi_\phi\le1$, so $\|\nabla_\phi(\Pi_\phi h)\|\le HC\|h\|_\infty$ uniformly in $\phi\in N$ and in the trajectory.
+By the mean value theorem along segments in $N$, the difference quotients of the integrand are bounded by the same constant.
+Dominated convergence, with respect to the finite measure $\mu_0\otimes\prod_kP$ times counting measure on actions, therefore allows differentiation under the integral.
+Continuity of $\phi\mapsto\nabla\E_\phi h$ follows from dominated convergence again, since $\nabla\pi_\phi$ is continuous in $\phi$.
+When $\cS$ is finite the integral is a finite sum and the argument is elementary.
+\end{proof}
+
+\begin{lemma}[zero-mean score; causality]\label{lem:fpg-causal}
+Under \cref{ass:fpg}(ii):
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $\sum_a\nabla_\phi\pi_\phi(a\mid s)=0$ for every $s$, and $\E_\phi[\chi_k\mid\cF_k]=0$.
+\item If $Y$ is bounded and $\cF_k$-measurable, then $\E_\phi[Y\chi_k]=0$.
+  In particular, $\E_\phi[\ind[s_{t+1}\in B]\,\chi_k]=0$ for $k\ge t+1$, and $\E_\phi[\beta_k\chi_k]=0$ for every bounded $\cF_k$-measurable baseline $\beta_k$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(a) Since $\sum_a\pi_\phi(a\mid s)=1$ for all $\phi$, differentiating the finite sum gives the first identity.
+Given $\cF_k$, $a_k$ has law $\pi_\phi(\cdot\mid s_k)$ by \eqref{eq:occ-traj}.
+Hence $\E[\chi_k\mid\cF_k]=\sum_a\pi_\phi(a\mid s_k)\nabla\log\pi_\phi(a\mid s_k)=\sum_a\nabla\pi_\phi(a\mid s_k)=0$.
+
+(b) By the tower property, $\E[Y\chi_k]=\E\big[Y\,\E[\chi_k\mid\cF_k]\big]=0$; integrability holds since $|Y\chi_k|\le\|Y\|_\infty C$.
+For $k\ge t+1$, $s_{t+1}$ is $\cF_k$-measurable.
+\end{proof}
+
+\subsection{The exact gradient}
+
+\begin{theorem}\claim{FPG-1}{D}\label{thm:fpg-grad}
+Under \cref{ass:fpg}, $d_\phi(b)$ and $J$ are $C^1$ on $\Phi$, and
+\begin{align}
+\nabla d_\phi(b)&=Z_H^{-1}\sum_{t=0}^{H-1}\gamma^t\,\E_\phi\Big[\ind[s_{t+1}\in B_b]\sum_{k=0}^{t}\chi_k\Big],\label{eq:fpg-dd}\\
+\nabla J(\phi)&=\sum_bg_\phi(b)\,\nabla d_\phi(b),\label{eq:fpg-chain}\\
+\nabla J(\phi)&=Z_H^{-1}\sum_{t=0}^{H-1}\gamma^t\,\E_\phi\Big[g_\phi(s_{t+1})\sum_{k=0}^{t}\chi_k\Big]
+           =Z_H^{-1}\,\E_\phi\Big[\Big(\sum_{k=0}^{H-1}\chi_k\Big)\Big(\sum_{t=0}^{H-1}\gamma^tg_\phi(s_{t+1})\Big)\Big].\label{eq:fpg-noncausal}
+\end{align}
+\end{theorem}
+\begin{proof}
+\emph{Step 1 ($\nabla d_\phi$).} Apply \cref{lem:fpg-lr} with $h=\ind[s_{t+1}\in B_b]$, which is bounded and $\phi$-free:
+$\nabla\Prob_\phi(s_{t+1}\in B_b)=\E_\phi[\ind[s_{t+1}\in B_b]\sum_{k=0}^{H-1}\chi_k]$.
+By \cref{lem:fpg-causal}(b), the terms $k\ge t+1$ vanish.
+Multiplying by $\gamma^t/Z_H$ and summing over the finitely many $t$ gives \eqref{eq:fpg-dd}.
+$d_\phi(b)$ is $C^1$ as a finite combination of $C^1$ functions.
+
+\emph{Step 2 (chain rule).} By \cref{ass:fpg}(v), $d_\phi(b)/q(b)\in(0,\infty)$ for every $\phi$.
+Each term $q(b)f(d_\phi(b)/q(b))$ is therefore a composition of $C^1$ maps, with gradient
+\[
+q(b)\,f'\big(d_\phi(b)/q(b)\big)\,\nabla d_\phi(b)/q(b)=g_\phi(b)\,\nabla d_\phi(b).
+\]
+Sum over $b$.
+
+\emph{Step 3 (trajectory form).} Substitute \eqref{eq:fpg-dd} into \eqref{eq:fpg-chain} and use linearity of expectation.
+Since $\sum_bg_\phi(b)\ind[s_{t+1}\in B_b]=g_\phi(s_{t+1})$, this gives the first expression in \eqref{eq:fpg-noncausal}.
+For the second, add the terms $k\ge t+1$.
+Each vanishes by \cref{lem:fpg-causal}(b), because $g_\phi(s_{t+1})$ is bounded (finitely many finite values) and $\cF_k$-measurable.
+\end{proof}
+
+\begin{theorem}[causal form and discount weights]\claim{FPG-2}{D}\label{thm:fpg-causal}
+Under \cref{ass:fpg},
+\begin{equation}\label{eq:fpg-causal}
+\nabla J(\phi)=Z_H^{-1}\,\E_\phi\Big[\sum_{k=0}^{H-1}\gamma^k\,\chi_k\,G_k\Big],\qquad
+G_k=\sum_{t=k}^{H-1}\gamma^{t-k}g_\phi(s_{t+1}).
+\end{equation}
+Equivalently, in policy-gradient form,
+\begin{equation}\label{eq:fpg-pg}
+\nabla J(\phi)=Z_H^{-1}\sum_{k=0}^{H-1}\gamma^k\,\E_\phi\big[\chi_k\,Q^g_k(s_k,a_k)\big].
+\end{equation}
+Here $Q^g_{H-1}(s,a)=\int P(\dd s'\mid s,a)g_\phi(s')$ and, for $k<H-1$,
+$Q^g_k(s,a)=\int P(\dd s'\mid s,a)\big[g_\phi(s')+\gamma\sum_{a'}\pi_\phi(a'\mid s')Q^g_{k+1}(s',a')\big]$.
+\end{theorem}
+\begin{proof}
+Start from the first expression in \eqref{eq:fpg-noncausal}.
+The index set $\{(t,k):0\le k\le t\le H-1\}$ can be enumerated either way, so $\sum_{t=0}^{H-1}\sum_{k=0}^t=\sum_{k=0}^{H-1}\sum_{t=k}^{H-1}$.
+Writing $\gamma^t=\gamma^k\gamma^{t-k}$ gives \eqref{eq:fpg-causal}.
+
+For \eqref{eq:fpg-pg}, condition on $(\cF_k,a_k)$.
+By the Markov structure \eqref{eq:occ-traj}, the conditional law of $(s_{k+1},a_{k+1},\dots)$ depends only on $(s_k,a_k)$.
+Since $G_k=g_\phi(s_{k+1})+\gamma G_{k+1}$ for $k<H-1$, and $G_{H-1}=g_\phi(s_H)$, backward induction gives $\E[G_k\mid\cF_k,a_k]=Q^g_k(s_k,a_k)$ with the stated recursion.
+Then use $\E[\chi_kG_k]=\E[\chi_k\,\E[G_k\mid\cF_k,a_k]]$, which holds because $\chi_k$ is $(\cF_k,a_k)$-measurable.
+\end{proof}
+
+\paragraph{Signs and weights (summary).}
+\begin{itemize}[nosep]
+\item The update is \emph{descent}: $\phi\leftarrow\phi-\eta\,\widehat{\nabla J}$. In REINFORCE terms the per-step ``reward'' is $-g_\phi(s_{t+1})$.
+\item Because $f'$ is nondecreasing (by convexity), $g_\phi$ is larger on cells where the learner over-visits relative to the target.
+  As a first-order heuristic, not a theorem, descent lowers the probability of actions whose signal-to-go is above the baseline.
+\item The score at step $k$ carries the weight $\gamma^k$, and the signal at $s_{t+1}$ carries $\gamma^{t-k}$ inside $G_k$. Equivalently, the signal carries the absolute weight $\gamma^t$ and the score carries none.
+\item Dropping $\gamma^k$, which is common practice for discounted policy gradients, does \emph{not} give $\nabla J$ in general; \texttt{check\_2A.py} exhibits a counterexample.
+\end{itemize}
+
+\begin{proposition}[baselines]\claim{FPG-3}{I}\label{prop:fpg-baseline}
+Under \cref{ass:fpg}:
+\begin{enumerate}[nosep,label=(\alph*)]
+\item For bounded $\cF_k$-measurable $\beta_k$, such as $\beta_k(s_k)$, time-dependent state values, or any function of the history up to $s_k$,
+  $\nabla J=Z_H^{-1}\E_\phi\big[\sum_k\gamma^k\chi_k(G_k-\beta_k)\big]$.
+\item Replacing $g_\phi$ by $g_\phi+c$ for a constant $c$ leaves $\nabla J$ unchanged.
+\item A ``baseline'' that depends on $a_k$ generally changes the gradient.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) Apply \cref{lem:fpg-causal}(b) to $Y=\gamma^k\beta_k$.
+
+(b) In \eqref{eq:fpg-chain}, $\sum_bc\nabla d_\phi(b)=c\nabla\sum_bd_\phi(b)=c\nabla1=0$.
+
+(c) For $\beta_k=\ind[a_k=a^\star]$, $\E[\chi_k\beta_k\mid\cF_k]=\nabla\pi_\phi(a^\star\mid s_k)$. For tabular softmax this is nonzero whenever $\pi_\phi(a^\star\mid s_k)\in(0,1)$, by \cref{lem:fpg-softmax}.
+\end{proof}
+
+\begin{proposition}[Monte Carlo estimator and descent]\claim{FPG-4}{I}\label{prop:fpg-mc}
+Assume \cref{ass:fpg} and let $\beta_k$ be as in \cref{prop:fpg-baseline}.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item With the \emph{exact} signal $g_\phi$, define
+  $\hat\nabla_N:=\frac1N\sum_{i=1}^NZ_H^{-1}\sum_k\gamma^k\chi^{(i)}_k\big(G^{(i)}_k-\beta^{(i)}_k\big)$ for $N$ i.i.d.\ trajectories from $\Prob_\phi$.
+  Then $\E\hat\nabla_N=\nabla J(\phi)$, $\mathrm{Cov}(\hat\nabla_N)=\mathrm{Cov}(\hat\nabla_1)/N$, and $\hat\nabla_N\to\nabla J(\phi)$ almost surely.
+\item If $\nabla J(\phi)\ne0$, then $J(\phi-\eta\nabla J(\phi))<J(\phi)$ for all sufficiently small $\eta>0$.
+  If $\nabla J$ is $L$-Lipschitz on the segment $[\phi,\phi-\eta\nabla J(\phi)]$, then $J(\phi-\eta\nabla J)\le J(\phi)-\eta(1-L\eta/2)\|\nabla J\|^2$.
+\end{enumerate}
+No statement is made about global convergence. No convexity of $J$ in $\phi$ is assumed or claimed, and the proposition says nothing about the stationary points that gradient descent may reach.
+\end{proposition}
+\begin{proof}
+(a) By \cref{prop:fpg-baseline}(a), the single-trajectory estimator has mean $\nabla J$.
+It is bounded: $\|\chi_k\|\le C$, $|G_k|\le\|g_\phi\|_\infty/(1-\gamma)$, and $\beta_k$ is bounded. Hence it has finite covariance.
+Independence gives the covariance identity, and the strong law of large numbers gives the almost sure limit.
+
+(b) Differentiability gives $J(\phi-\eta\nabla J)=J(\phi)-\eta\|\nabla J\|^2+o(\eta)$.
+Under the Lipschitz condition, put $v=-\eta\nabla J(\phi)$. Then
+$J(\phi+v)-J(\phi)=\int_0^1\nabla J(\phi+sv)\cdot v\dd s\le\nabla J(\phi)\cdot v+\int_0^1Ls\|v\|^2\dd s$.
+\end{proof}
+
+\subsection{Exact objective versus implemented approximations}\label{sec:fpg-approx}
+
+\begin{proposition}\claim{FPG-5}{D}\label{prop:fpg-approx}
+Assume \cref{ass:fpg}.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item \emph{Plug-in signal from independent data.} Let $\hat g$ be a random function on cells, independent of the trajectories entering the score sums. This is the case under sample splitting or cross-fitting.
+  Then $\E[\hat\nabla_N\mid\hat g]=\sum_b\hat g(b)\nabla d_\phi(b)$, and
+  \[
+  \Big\|\E[\hat\nabla_N\mid\hat g]-\nabla J(\phi)\Big\|\le\max_b|\hat g(b)-g_\phi(b)|\cdot C\kappa_H,\qquad
+  \kappa_H:=Z_H^{-1}\sum_{t=0}^{H-1}(t+1)\gamma^t.
+  \]
+\item \emph{Bias.} Even when $\hat d(b)$ is unbiased for $d_\phi(b)$, in general
+  \[
+  \E\hat g(b)=\E f'\big(\hat d(b)/\hat q(b)\big)\ne f'\big(d_\phi(b)/q(b)\big),
+  \]
+  because $f'$ is nonlinear: the plug-in \emph{signal} is biased.
+  Let $\mathrm{bias}(b):=\E\hat g(b)-g_\phi(b)$. With $\hat g$ independent of the score trajectories and integrable, (a) gives $\E\hat\nabla_N-\nabla J(\phi)=\sum_b\mathrm{bias}(b)\nabla d_\phi(b)$.
+  This vanishes when $\mathrm{bias}(\cdot)$ is constant across cells, because $\sum_b\nabla d_\phi(b)=0$; otherwise no unbiasedness of the \emph{gradient estimator} is claimed, and (a) bounds the conditional error.
+  If $\hat g$ is computed from the same trajectories as the score, the conditional factorization of (a) fails. \texttt{check\_2A.py} computes an exact example with $N=1$ whose bias is nonzero.
+\item \emph{Smoothing.} Assume the learner occupancy and the target are both smoothed as in \cref{prop:div-smooth}(b).
+  Then $J_\varepsilon(\phi)=\sum_bq_\varepsilon(b)f((d_\phi)_\varepsilon(b)/q_\varepsilon(b))$ satisfies \cref{thm:fpg-grad,thm:fpg-causal} and \cref{prop:fpg-baseline,prop:fpg-mc} verbatim, with the signal
+  \[
+  g^{(\varepsilon)}_\phi(b):=(1-\varepsilon)\,f'\big((d_\phi)_\varepsilon(b)/q_\varepsilon(b)\big).
+  \] No positivity assumption on $d_\phi$ is needed for this, only $q_\varepsilon>0$.
+  The minimized objective is then $J_\varepsilon$, not $J$ (\cref{rem:div-smooth}).
+\item \emph{Optional PPO surrogate.} Fix $\phi'$, compute $c_k:=\gamma^k(G_k-\beta_k)$ under $\phi'$, and let $\rho_k(\phi):=\pi_\phi(a_k\mid s_k)/\pi_{\phi'}(a_k\mid s_k)$.
+  Set
+  \begin{align*}
+  L(\phi)&:=Z_H^{-1}\E_{\phi'}\textstyle\sum_k\rho_k(\phi)c_k,\\
+  L^{\mathrm{clip}}(\phi)&:=Z_H^{-1}\E_{\phi'}\textstyle\sum_k\max\big(\rho_kc_k,\ \mathrm{clip}(\rho_k,1-\epsilon_{\mathrm c},1+\epsilon_{\mathrm c})c_k\big).
+  \end{align*}
+  Here $\beta_k$ is a bounded baseline as in \cref{prop:fpg-baseline}(a), and the clip parameter $\epsilon_{\mathrm c}\in(0,1)$ is unrelated to the smoothing weight $\varepsilon$.
+  Then $L$ and $L^{\mathrm{clip}}$ coincide on a neighbourhood of $\phi'$, $\nabla L(\phi')=\nabla L^{\mathrm{clip}}(\phi')=\nabla J(\phi')$, and $L^{\mathrm{clip}}\ge L$ everywhere.
+  Minimizing $L^{\mathrm{clip}}$ is the same as maximizing the standard PPO objective with advantage $-c_k$, since $-\max(x,y)=\min(-x,-y)$.
+  Away from $\phi'$ both surrogates ignore the change of state distribution, and their gradients are not $\nabla J$ in general.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) Conditionally on $\hat g$, the computation of \cref{thm:fpg-grad} Step~3 and \cref{thm:fpg-causal} applies with the fixed bounded function $\hat g$ in place of $g_\phi$.
+Steps 1 and 3 never used the definition of $g_\phi$, only that it is a bounded function on cells.
+This gives $\E[\hat\nabla_N\mid\hat g]=\sum_b\hat g(b)\nabla d_\phi(b)$.
+Subtract \eqref{eq:fpg-chain} and bound $\sum_b\|\nabla d_\phi(b)\|$ using \eqref{eq:fpg-dd}:
+$\|\nabla d_\phi(b)\|\le Z_H^{-1}\sum_t\gamma^t(t+1)C\,\Prob_\phi(s_{t+1}\in B_b)$; summing over $b$ gives $C\kappa_H$.
+
+(b) \emph{Signal bias.} Take $f'(u)=1+\log u$, which is strictly concave, and let $\hat d(b)$ be non-degenerate and unbiased with $\hat d(b)>0$. Jensen's inequality is then strict: $\E[1+\log(\hat d/q)]<1+\log(d/q)$.
+
+\emph{Gradient bias with an independent signal.} Taking expectations in the identity of (a), which is allowed since $\hat g$ is integrable and the score sums are bounded, gives $\E\hat\nabla_N=\sum_b\E[\hat g(b)]\nabla d_\phi(b)$.
+Subtracting \eqref{eq:fpg-chain} gives $\sum_b\mathrm{bias}(b)\nabla d_\phi(b)$.
+If $\mathrm{bias}(b)=c$ for all $b$, this equals $c\nabla\sum_bd_\phi(b)=c\nabla1=0$.
+
+\emph{Same batch: an analytic counterexample.}
+Let $\mu_0=\delta_x$ and $H=1$, so $Z_H=1$.
+Two actions $a^{(0)},a^{(1)}$ lead deterministically from $x$ to the states $0$ and $1$, which are the cells.
+Let $\pi_\phi(a^{(1)}\mid x)=p:=e^\phi/(1+e^\phi)$ (logits $(0,\phi)$), let the target be $q=(\frac12,\frac12)$, and take $\KL(d\Vert q)$, i.e.\ $f(u)=u\log u$.
+Then $d_\phi=(1-p,p)$ and $J(\phi)=(1-p)\log(2(1-p))+p\log(2p)$, so $\partial J/\partial p=\log\frac p{1-p}$.
+Since $\partial p/\partial\phi=p(1-p)$, the true gradient is $\nabla J=p(1-p)\log\frac p{1-p}$, which equals $\frac{3\log3}{16}>0$ at $p=\frac34$.
+Now let $N=1$ and estimate the occupancy from the same single trajectory, so $\hat d=\delta_{s_1}$.
+The signal is evaluated only at the sampled state, where it equals $f'(\hat d(s_1)/q(s_1))=f'(2)=1+\log2$, whichever state was sampled.
+With zero baseline the estimator is therefore $\chi_0(1+\log2)$, whose mean is $0$ by \cref{lem:fpg-causal}(a).
+Hence the same-batch estimator is biased.
+\texttt{check\_2A.py} verifies both numbers, and gives a second exact example with nonzero bias on a random three-state MDP for JS and $\KL(d\Vert q)$.
+
+(c) $J_\varepsilon$ has the form $\sum_b\Psi_b(d_\phi(b))$ with $\Psi_b(x)=q_\varepsilon(b)f\big(((1-\varepsilon)x+\varepsilon\upsilon(b))/q_\varepsilon(b)\big)$, where $\upsilon$ is the positive reference law of \cref{prop:div-smooth}.
+Each $\Psi_b$ is $C^1$ on a neighbourhood of $[0,1]$, because for $x\in[0,1]$ its argument stays in $[\varepsilon\upsilon_{\min},1/(\varepsilon\upsilon_{\min})]$, and $\Psi_b'(d_\phi(b))=g^{(\varepsilon)}_\phi(b)$.
+Steps 1 and 3 of the proof of \cref{thm:fpg-grad} use only \eqref{eq:fpg-dd}, which does not need positivity, and the boundedness of the signal.
+
+(d) The $c_k$ are computed once under $\phi'$ and do not depend on $\phi$; they are bounded, $|c_k|\le\|g_{\phi'}\|_\infty/(1-\gamma)+\sup|\beta_k|=:K$.
+Let $C$ and a neighbourhood of $\phi'$ be as in \cref{ass:fpg}(ii) for $\phi_0=\phi'$; shrink it to an open ball $U:=B(\phi',r_1)$, and enlarge $C$ if necessary so that $C>0$.
+For $\phi\in U$, the mean value theorem along the segment from $\phi'$ to $\phi$ gives $|\log\rho_k(\phi)|\le C\|\phi-\phi'\|<Cr_1$ for every trajectory and every $k$.
+Hence $\rho_k\le e^{Cr_1}$ and $\|\nabla\rho_k(\phi)\|=\rho_k(\phi)\|\nabla\log\pi_\phi(a_k\mid s_k)\|\le Ce^{Cr_1}$ on $U$.
+The integrand $\sum_k\rho_k(\phi)c_k$ is therefore $C^1$ on $U$ with gradient bounded by $HCe^{Cr_1}K$, uniformly in the trajectory.
+As in \cref{lem:fpg-lr}, dominated convergence allows differentiation under $\E_{\phi'}$:
+$\nabla L(\phi)=Z_H^{-1}\E_{\phi'}\sum_k\rho_k(\phi)\nabla\log\pi_\phi(a_k\mid s_k)c_k$.
+At $\phi=\phi'$, $\rho_k=1$, so $\nabla L(\phi')=Z_H^{-1}\E_{\phi'}\sum_k\chi_k\gamma^k(G_k-\beta_k)=\nabla J(\phi')$ by \cref{prop:fpg-baseline}(a), where $G_k$ uses the signal $g_{\phi'}$.
+
+For the clipped surrogate, let $r_0:=\min\{r_1,\ \log(1+\epsilon_{\mathrm c})/C,\ -\log(1-\epsilon_{\mathrm c})/C\}>0$.
+If $\|\phi-\phi'\|<r_0$, then $1-\epsilon_{\mathrm c}<e^{-C\|\phi-\phi'\|}\le\rho_k(\phi)\le e^{C\|\phi-\phi'\|}<1+\epsilon_{\mathrm c}$ for every trajectory and every $k$.
+On this ball $\mathrm{clip}(\rho_k,1-\epsilon_{\mathrm c},1+\epsilon_{\mathrm c})=\rho_k$, so both arguments of the max equal $\rho_kc_k$ and $L^{\mathrm{clip}}=L$.
+Hence the two surrogates have the same gradient at $\phi'$.
+$L^{\mathrm{clip}}\ge L$ is immediate from the max. The identity $-\max(x,y)=\min(-x,-y)$ gives the PPO equivalence.
+\end{proof}
+
+\begin{remark}[continuous states and kernel density estimates]\label{rem:fpg-kde}
+\Cref{thm:fpg-grad} is exact for any finite cell partition, in particular for the histogram used for diagnostics.
+The continuous implementation instead evaluates $\hat g(s)=f'(\hat d(s)/\hat q(s))$ with weighted Gaussian KDEs at the sampled points $s_{t+1}$.
+This is the plug-in version of the formal density gradient $\int f'(\delta_\phi/\delta_q)\nabla\delta_\phi\dd\lambda$, where $\delta_\phi$ and $\delta_q$ are Lebesgue densities.
+Making that formula exact would require further assumptions that we do not verify: existence of the densities, positivity of $\delta_q$, and domination allowing differentiation under $\int\dd\lambda$.
+The continuous $f$-PG update is therefore labelled a plug-in approximation (implementation approximation, not a theorem).
+The cell objective is a rigorous finite-partition analogue. These results do not establish that the KDE plug-in update is unbiased for the gradient of that cell objective.
+If the KDE objective is smoothed, the mixture uses the reference \emph{density} $\upsilon_\lambda$, not the cell masses $\upsilon_b$ (\cref{sec:notation}).
+No finite-horizon approximation is involved, since learner and target use the same $H$ (\cref{prop:occ-tail}).
+The optimizer (Adam), minibatching and any normalization of the signal further depart from exact gradient descent on $J$. Only \cref{prop:fpg-mc}(b) is claimed for exact gradient steps.
+\end{remark}
+
+\subsection{State--action extension (finite diagnostic)}\label{sec:fpg-sa}
+
+The following lemma holds under \cref{ass:mdp} alone; finiteness of $\cS$ is used only in part~(b).
+Part~(a) is also used for the continuous maze (after \cref{ass:fpg}).
+
+\begin{lemma}[support domination]\label{lem:fpg-support}
+Under \cref{ass:mdp}, let $\pi$ satisfy $\pi(a\mid s)>0$ for all $(s,a)$, and let $\pi'$ be any stationary policy, both started from $\mu_0$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $\law^{\pi'}_t\ll\law^\pi_t$ for every $t\ge0$. Consequently $d^+_{\pi',H}\ll d^+_{\pi,H}$, $d^{\pre}_{\pi',H}\ll d^{\pre}_{\pi,H}$ and $d^{\SA}_{\pi',H}\ll d^{\SA}_{\pi,H}$.
+  In particular, a cell charged by $d^+_{\pi',H}$ is charged by $d^+_{\pi,H}$, and two positive policies charge the same cells.
+\item If $\cS$ is finite, then $\supp d^{\SA}_{\pi,H}=R_H\times\cA$ with $R_H:=\bigcup_{t<H}\supp\law^\pi_t$, and $R_H$ is the same for every positive policy.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(a) Induction on $t$. For $t=0$ both marginals are $\mu_0$.
+Assume $\law^{\pi'}_t\ll\law^\pi_t$ and let $X$ satisfy $\law^\pi_{t+1}(X)=0$.
+By \cref{lem:occ-recursion}, $0=\int\law^\pi_t(\dd s)\sum_a\pi(a\mid s)P(X\mid s,a)$.
+The integrand is nonnegative, so it vanishes outside a $\law^\pi_t$-null set $N_X$.
+Since every $\pi(a\mid s)>0$, each $P(X\mid s,a)$ vanishes for $s\notin N_X$.
+By the induction hypothesis $\law^{\pi'}_t(N_X)=0$, so
+$\law^{\pi'}_{t+1}(X)=\int_{\cS\setminus N_X}\law^{\pi'}_t(\dd s)\sum_a\pi'(a\mid s)P(X\mid s,a)=0$.
+
+For the occupancies, $d^+_{\pi,H}(X)=0$ forces $\law^\pi_{t+1}(X)=0$ for every $t<H$, since all weights $\gamma^t/Z_H$ are positive; hence $\law^{\pi'}_{t+1}(X)=0$ and $d^+_{\pi',H}(X)=0$.
+The pre-action case is identical with $\law_t$.
+For the state--action case, let $Y\subseteq\cS\times\cA$ with $d^{\SA}_{\pi,H}(Y)=0$ and write $Y_a:=\{s:(s,a)\in Y\}$.
+Then $\int_{Y_a}\pi(a\mid s)\law^\pi_t(\dd s)=0$ for every $t<H$ and $a$, and positivity of $\pi(a\mid s)$ gives $\law^\pi_t(Y_a)=0$.
+Hence $\law^{\pi'}_t(Y_a)=0$, and $d^{\SA}_{\pi',H}(Y)=Z_H^{-1}\sum_{t<H}\gamma^t\sum_a\int_{Y_a}\pi'(a\mid s)\law^{\pi'}_t(\dd s)=0$.
+The statement about cells is the case $X=B_b$; applying it in both directions gives the last claim.
+
+(b) $d^{\SA}_{\pi,H}(s,a)=Z_H^{-1}\sum_{t<H}\gamma^t\law^\pi_t(s)\pi(a\mid s)$ is positive if and only if $\law^\pi_t(s)>0$ for some $t<H$.
+By (a) applied in both directions, $\supp\law^\pi_t$ is the same for all positive policies.
+\end{proof}
+
+For the rest of this subsection let $\cS$ and $\cA$ be finite, write $d^{\SA}_\phi:=d^{\SA}_{\pi_\phi,H}$, let $q^{\SA}$ be a fixed probability vector on $\cS\times\cA$, and set $J^{\SA}(\phi):=D_f(d^{\SA}_\phi\Vert q^{\SA})$.
+
+\begin{proposition}\claim{FPG-6}{D}\label{prop:fpg-sa}
+Assume \cref{ass:fpg}(ii),(iv). Let $\mathcal X\subseteq\cS\times\cA$ be the set of pairs on which the divergence is computed.
+Assume $\mathcal X\supseteq\supp d^{\SA}_\phi$ for every $\phi$ and $q^{\SA}(\mathcal X)=1$, so that both are probability vectors on $\mathcal X$, and that $q^{\SA}>0$ and $d^{\SA}_\phi>0$ on $\mathcal X$.
+For instance, $\mathcal X=R_H\times\cA$ with a smoothed target satisfies this by \cref{lem:fpg-support}(b).
+Let $g^{\SA}_\phi:=f'(d^{\SA}_\phi/q^{\SA})$. Then
+\[
+\nabla J^{\SA}(\phi)=Z_H^{-1}\,\E_\phi\Big[\sum_{k=0}^{H-1}\gamma^k\chi_kG^{\SA}_k\Big],\qquad
+G^{\SA}_k:=\sum_{t=k}^{H-1}\gamma^{t-k}g^{\SA}_\phi(s_t,a_t).
+\]
+The current-step term $g^{\SA}_\phi(s_k,a_k)$ is \emph{not} a baseline: in general $\E[\chi_kg^{\SA}_\phi(s_k,a_k)]\ne0$.
+\end{proposition}
+\begin{proof}
+\Cref{lem:fpg-lr} with $h=\ind[s_t=s,a_t=a]$ gives $\nabla\Prob(s_t=s,a_t=a)=\E[\ind[s_t=s,a_t=a]\sum_{k<H}\chi_k]$.
+For $k\ge t+1$, the indicator is $\cF_k$-measurable, because $\cF_k$ contains $a_t$ when $k>t$; those terms vanish by \cref{lem:fpg-causal}(b).
+The term $k=t$ is \emph{not} removed, because $\ind[a_t=a]$ is not $\cF_t$-measurable.
+Hence $\nabla d^{\SA}_\phi(s,a)=Z_H^{-1}\sum_t\gamma^t\E[\ind[s_t=s,a_t=a]\sum_{k\le t}\chi_k]$.
+The chain rule and the exchange of summation order proceed exactly as in \cref{thm:fpg-grad,thm:fpg-causal}.
+
+For the last claim, $\E[\chi_kg^{\SA}(s_k,a_k)\mid\cF_k]=\sum_a\nabla\pi_\phi(a\mid s_k)\,g^{\SA}(s_k,a)$.
+For tabular softmax, its $(s_k,a)$-component equals $\pi(a\mid s_k)\big(g^{\SA}(s_k,a)-\sum_b\pi(b\mid s_k)g^{\SA}(s_k,b)\big)$ by \cref{lem:fpg-softmax}. This is nonzero unless $g^{\SA}(s_k,\cdot)$ is constant.
+\end{proof}
+
+\begin{corollary}[finiteness with a deterministic expert target]\label{cor:fpg-sa-finite}
+Let $\pi_\phi>0$ and let $q^{\SA}_E=d^{\SA}_{\pi_E,H}$ for an expert $\pi_E$, unsmoothed.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $\JS(d^{\SA}_\phi,q^{\SA}_E)$ is finite.
+\item $\KL(q^{\SA}_E\Vert d^{\SA}_\phi)$ is finite, by \cref{lem:fpg-support}, because the learner covers the expert's support.
+\item $\KL(d^{\SA}_\phi\Vert q^{\SA}_E)=+\infty$ as soon as the learner puts mass outside the expert's support. This is always the case when $\pi_E$ is deterministic and $|\cA|\ge2$, because every non-expert action at every expert-visited state has positive learner mass.
+\item With \emph{both} arguments smoothed by a strictly positive reference law $\upsilon$ on $\mathcal X=R_H\times\cA$, both KL directions are finite (\cref{prop:div-smooth}(a)).
+  With only the target smoothed, $\KL(d^{\SA}_\phi\Vert q^{\SA}_{E,\varepsilon})$ is finite, and so is $\KL(q^{\SA}_{E,\varepsilon}\Vert d^{\SA}_\phi)$, because $d^{\SA}_\phi>0$ on $R_H\times\cA$ by \cref{lem:fpg-support}(b).
+\end{enumerate}
+For the \emph{state} occupancies $d_\phi$ and $q_E=d^+_{\pi_E,H}$, let $R'_H:=\bigcup_{1\le t\le H}\supp\law^{\pi_\phi}_t$.
+By \cref{lem:fpg-support}(a), $R'_H$ does not depend on $\phi$, $d_\phi>0$ exactly on $R'_H$, and $\supp q_E\subseteq R'_H$.
+Then (a) and (b) hold verbatim, and (d) holds with $\mathcal X$ replaced by $R'_H$.
+If a smoothed target charges a cell outside $R'_H$, then $\KL(q_{E,\varepsilon}\Vert d_\phi)=+\infty$ there; so smoothing over all cells needs every cell to lie in $R'_H$, as in the example after \cref{ass:fpg}.
+The analogue of (c) is \emph{not} automatic: a deterministic expert may visit every state of $R'_H$.
+It holds exactly when $R'_H\not\subseteq\supp q_E$; this case is \cref{prop:fpg-opt}(c).
+\end{corollary}
+\begin{proof}
+(a) is \cref{prop:div-generators}(c).
+(b) and (c) combine \cref{prop:div-generators}(c) with \cref{lem:fpg-support}.
+For the last sentence of (c), let $\pi_E(\cdot\mid s)=\delta_{a_E(s)}$ and let $s$ satisfy $\law^{\pi_E}_t(s)>0$ for some $t<H$; such an $s$ exists since $\law_0=\mu_0$.
+Then $q^{\SA}_E(s,a)=0$ for $a\ne a_E(s)$.
+By \cref{lem:fpg-support}(a), $\law^{\pi_\phi}_t(s)>0$, so $d^{\SA}_\phi(s,a)\ge Z_H^{-1}\gamma^t\law^{\pi_\phi}_t(s)\pi_\phi(a\mid s)>0$.
+(d) is \cref{prop:div-smooth}(a) for both arguments smoothed; for the target alone, use \cref{prop:div-generators}(c) with the stated supports.
+The state statements follow in the same way from \cref{lem:fpg-support}(a).
+\end{proof}
+
+\begin{remark}
+The state--action quantities are \emph{diagnostics} only.
+Learners never receive expert actions; they are stored only for this evaluation (\cref{sec:protocol}).
+The finite diagnostic is computed exactly by the oracle from $P$, which is legitimate because it is evaluation only.
+\end{remark}
+
+\subsection{State-MaxEnt identity}\label{sec:fpg-maxent}
+
+\begin{proposition}[FPG Lemma~5.1, p.~6; proof p.~17]\claim{FPG-7}{S+D}\label{prop:fpg-maxent}
+Let $d,q$ be probability vectors on a finite set with $\supp d\subseteq\supp q$. Then:
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $\KL(d\Vert q)=-\Ent(d)-\E_d[\log q]$. Minimizing $\KL(d^+_{\pi,H}\Vert q)$ over policies is therefore equivalent to maximizing $\Ent(d^+_{\pi,H})+\E_{d^+_{\pi,H}}[\log q]$. The \emph{state-occupancy entropy} enters the maximized objective with a plus sign.
+\item If $q(s)=e^{w(s)}/Z_w$ for a potential $w$, then $\KL(d\Vert q)=-\Ent(d)-\E_dw+\log Z_w$. By \cref{prop:occ-return}(a), $\E_{d^+_{\pi,H}}w=J^w_H(\pi)/Z_H$, so minimizing the KL means maximizing $J^w_H(\pi)/Z_H+\Ent(d^+_{\pi,H})$. This is FPG Eq.~(7), p.~7, with our normalization.
+\item The state entropy is not the action entropy. In general neither maximizes the other (\cref{ex:fpg-entropy}).
+\item In the gradient of \cref{thm:fpg-grad} for $f(u)=u\log u$, the signal is $g_\phi=1+\log(d_\phi/q)$. The constant $1$ does not contribute (\cref{prop:fpg-baseline}(b)), so the effective per-state signal is $\log(d_\phi/q)$. It depends on $\phi$ through $d_\phi$, so it is not a fixed reward.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) $\KL(d\Vert q)=\sum_{d>0}d\log d-\sum_{d>0}d\log q=-\Ent(d)-\E_d\log q$, where every $\log q$ term is finite because $\supp d\subseteq\supp q$.
+
+(b) Substitute $\log q=w-\log Z_w$.
+
+(c) and (d) are proved by the example below and by \cref{prop:fpg-baseline}(b).
+\end{proof}
+
+\begin{example}[action entropy versus state entropy]\label{ex:fpg-entropy}
+Let $\cS=\{x,y_1,y_2\}$, $\mu_0=\delta_x$ and $H=1$. Actions $a_1,a_2$ lead deterministically to $y_1$, and $a_3$ leads to $y_2$.
+The uniform policy maximizes the action entropy ($\log3$) and gives $d^+_{\pi,1}=(\frac23,\frac13)$ on $(y_1,y_2)$, with state entropy $\log3-\frac23\log2\approx\vn{const.ent.state}{0.637}$.
+The policy $(\frac14,\frac14,\frac12)$ has lower action entropy ($\approx\vn{const.ent.action}{1.040}<\log3$) but gives $d^+=(\frac12,\frac12)$ with the maximal state entropy $\log2\approx\vn{const.log2}{0.693}$.
+\end{example}
+
+\subsection{The fixed-target optimum and its attainability}\label{sec:fpg-opt}
+
+\begin{proposition}\claim{FPG-8}{D}\label{prop:fpg-opt}
+Let $\cS$ and $\cA$ be finite, let $\pi_\phi$ be tabular softmax, and let $f$ be one of the three generators.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $J(\phi)\ge0$, and $J(\phi)=0$ if and only if $d_\phi=q$.
+\item If $q=q_E:=d^+_{\pi_E,H}$ and $J(\phi)=0$, then $J^r_H(\pi_\phi)=J^r_H(\pi_E)$ for every bounded state reward $r$.
+\item Suppose $q=q_E$ is unsmoothed and some state of $R_H':=\bigcup_{1\le t\le H}\supp\law^{\pi_\phi}_t$ lies outside $\supp q_E$. Then $\KL(d_\phi\Vert q_E)=+\infty$ for \emph{every} $\phi$. This is the case when the expert goes straight to a goal while the learner can reach other states.
+\item For $\JS$ and $\KL(q_E\Vert d_\phi)$, $\inf_\phi J(\phi)=0$.
+\item The infimum need not be attained (\cref{ex:fpg-noattain}).
+\end{enumerate}
+No claim is made that gradient descent reaches the infimum, nor even a global minimizer of $J$ over the policy class.
+\end{proposition}
+\begin{proof}
+(a) is \cref{prop:div-nonneg} together with \cref{prop:div-generators}(b).
+
+(b) is \cref{prop:occ-return}(c).
+
+(c) By \cref{lem:fpg-support}(a), every $\phi$ gives $d_\phi>0$ on $R_H'$, and $R_H'$ is independent of $\phi$. Some such state has $q_E=0$, so \cref{prop:div-generators}(c) applies.
+
+(d) Choose logits $\phi^{(n)}_{s,a}:=\log\pi_E(a\mid s)$ if $\pi_E(a\mid s)>0$ and $\phi^{(n)}_{s,a}:=-n$ otherwise.
+Let $k_s$ be the number of actions with $\pi_E(a\mid s)=0$.
+Then $\pi_{\phi^{(n)}}(a\mid s)=\pi_E(a\mid s)/(1+k_se^{-n})$ on the support and $e^{-n}/(1+k_se^{-n})$ off it, so $\pi_{\phi^{(n)}}(\cdot\mid s)\to\pi_E(\cdot\mid s)$ for every $s$.
+This covers deterministic experts, partially supported stochastic experts, and (with $k_s=0$) fully supported ones, which are then represented exactly.
+$d_\phi$ is a polynomial in the policy entries (\cref{lem:occ-recursion}), so $d_{\phi^{(n)}}\to q_E$.
+JS is continuous (\cref{prop:div-generators}(c)), so $\JS(d_{\phi^{(n)}},q_E)\to0$.
+Also $\KL(q_E\Vert d_{\phi^{(n)}})=\sum_{q_E>0}q_E\log(q_E/d_{\phi^{(n)}})\to0$, because $d_{\phi^{(n)}}\to q_E>0$ on $\supp q_E$.
+Since $J\ge0$, the infimum is $0$.
+
+(e) See the example below.
+\end{proof}
+
+\begin{example}[non-attainment]\label{ex:fpg-noattain}
+Let $\cS=\{0,1\}$ and $\mu_0=\delta_0$. Action $a_{\mathrm{go}}$ moves $0\to1$, action $a_{\mathrm{stay}}$ keeps $0\to0$, and state $1$ is absorbing under both actions.
+The expert always plays $a_{\mathrm{go}}$, so $q_E=d^+_{\pi_E,H}=\delta_1$.
+For any softmax policy, $p:=\pi_\phi(a_{\mathrm{stay}}\mid0)>0$, so $\Prob(s_1=0)=p$ and $d_\phi(0)\ge p/Z_H>0$. Hence $d_\phi\ne q_E$ and $J(\phi)>0$ for every strictly convex $f$, while $J\to0$ along $p\to0$ for $\JS$ and $\KL(q_E\Vert d)$ (\cref{prop:fpg-opt}(d)).
+Since $d_\phi(0)>0=q_E(0)$, $\KL(d_\phi\Vert q_E)=+\infty$ for all $\phi$, which illustrates (c).
+\end{example}
+
+\subsection{Correspondence with the printed source formulas}\label{sec:fpg-source}
+
+\begin{remark}[re-indexing FPG App.~B.3]\label{rem:fpg-source}
+FPG's discounted visitation (B.3, p.~20) is $\eta_\tau(s)=\sum_{t=1}^T\gamma^t\ind[s_t=s]$.
+With $T=H$, $\sum_{t=1}^H\gamma^t\ind[s_t=s]=\gamma\sum_{t=0}^{H-1}\gamma^t\ind[s_{t+1}=s]$, so its normalization by $\gamma Z_H$ is exactly our $d_\phi$.
+Against this reference:
+\begin{itemize}[nosep]
+\item \eqref{eq:fpg-noncausal} is the structure of FPG Theorem~4.1 (Eq.~5, p.~4; Eq.~8, p.~18), corrected as follows.
+  Scores are indexed $k=0,\dots,H-1$; the source sums $t=1,\dots,T$ (F3).
+  The normalization is $Z_H^{-1}$; Eq.~5 omits $1/T$ (F2).
+  The signal carries the weights $\gamma^t$.
+\item FPG Eq.~(10) (p.~20), on-policy, with $s_{t'}$ in place of the printed $s_t$ inside the sum and normalized by $(\gamma Z_H)^{-1}$, equals \eqref{eq:fpg-causal}.
+  This identification also needs the score range $k=0,\dots,H-1$ (F3).
+  The printed range $t=1,\dots,T$ omits the $k=0$ term, which is not zero-mean in general, and includes $a_T$, which lies outside the trajectory.
+  The extra term $t'=k$ is $\gamma^kg_\phi(s_k)\chi_k$, a zero-mean baseline by \cref{lem:fpg-causal}(b).
+\item FPG Eq.~(12) (p.~21) also discounts the score, as $\sum_t\gamma^t\chi_t$, and Eq.~(13) uses $\gamma^k\gamma^{t'}$. In general neither equals \eqref{eq:fpg-noncausal}--\eqref{eq:fpg-causal}; the numerical check exhibits a nonzero difference.
+\item FPG's practical Eqs.~(6) and (11) are clipped surrogates written for maximization; \cref{prop:fpg-approx}(d) gives the minimization form.
+\end{itemize}
+\end{remark}
+
+\begin{remark}[the Dirac-target theorems]\claim{FPG-C1}{C}\label{rem:fpg-dirac}
+FPG Theorem~5.1 (p.~6; proof pp.~16--17) and Theorem~4.2 (p.~5; proof p.~20) use $D_f(p\Vert\delta_g)=f(p(g))+f'(\infty)(1-p(g))$, which depends on $p$ only through $p(g)$.
+The objective is then a monotone function of the goal visitation.
+For a non-degenerate expert target, $D_f(d\Vert q)$ depends on all of $d$, so this argument has no analogue.
+Moreover, Lemma~A.1 identifies the optimal policy for the \emph{discounted} return $H_g$ with the policy maximizing $p_\pi(g)$. This needs $p_\pi$ to carry the same time weights as the return, whereas FPG \S2 defines $p_\theta$ undiscounted.
+We use \cref{prop:fpg-opt} instead and make no optimality claim.
+\end{remark}
+
+\begin{remark}[target with zeros]\label{rem:fpg-zeros}
+If $q(b)=0$ for some cells and $f'(\infty)<\infty$ (JS: $\frac12\log2$; $\KL(q\Vert d)$: $0$), then the contribution of those cells is $f'(\infty)d_\phi(b)$, which is linear in $d_\phi$.
+\Cref{thm:fpg-grad,thm:fpg-causal} then hold with $g_\phi(b):=f'(\infty)$ on $\{q=0\}$, provided $d_\phi(b)>0$ on $\{q>0\}$.
+For $\KL(d\Vert q)$ the objective is $+\infty$ whenever $d_\phi$ charges $\{q=0\}$; by \cref{lem:fpg-support}(a) this then holds for every positive policy (\cref{prop:fpg-opt}(c)), so smoothing is required.
+\end{remark}

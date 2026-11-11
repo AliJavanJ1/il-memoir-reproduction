@@ -1,0 +1,84 @@
+\section{Introduction}\label{sec:intro}
+
+\subsection{Imitation without rewards}
+
+In imitation learning an agent learns a behaviour from demonstrations of an expert instead of from a hand-crafted reward.
+Behavioural cloning treats imitation as supervised learning from states to actions \citep{pomerleau1989alvinn}; it is simple, but its errors compound once the agent leaves the states the expert visited \citep{ross2011dagger}.
+Inverse reinforcement learning (IRL) instead recovers a reward that explains the expert \citep{ng2000algorithms,abbeel2004apprenticeship}, and the maximum-entropy principle resolves the ambiguity in the choice of a distribution over trajectories \citep{ziebart2008maximum}, although the reward itself is still not unique in general.
+A third view, which underlies both approaches studied here, describes a behaviour by the distribution of the states it visits.
+Two policies with the same discounted state-occupancy measure have the same return for every state reward (\cref{prop:m-return}), so matching the expert's occupancy measure imitates the expert as far as any state reward can tell.
+Adversarial and divergence-minimization methods make this view operational \citep{ho2016gail,fu2018airl,ghasemipour2020divergence}.
+
+The memoir compares two recent families built on this view, as asked by the assignment.
+\begin{itemize}[nosep]
+\item \textbf{$f$-divergence occupancy matching.} $f$-IRL \citep{ni2021firl} learns a state reward whose maximum-entropy policy matches the expert's state marginal under an $f$-divergence, with an analytic reward gradient. $f$-policy gradients \citep{agarwal2023fpg} differentiate an $f$-divergence between the agent's state visitation and a target directly with respect to the policy parameters.
+\item \textbf{Forward--backward (FB) representations.} \citet{touati2021fb} learn, without any reward, a factorization $F(s,a,z)^\top B(s')$ of the successor measures of a family of policies indexed by a task vector $z$. A reward $r$ is then optimized by the single vector $z_r=\E_\nu[rB]$, without planning. \citet{pirotta2024fast} use such a pretrained model for imitation: \ERFB{} reads $z$ off the demonstrations, and \DMFB{} fits $z$ by matching the successor measures of the expert.
+\end{itemize}
+Both families are reward-free during imitation and neither solves a Bellman optimality equation for the imitation task.
+They differ in what they learn, in what data they need, and in what their guarantees cover.
+$f$-PG needs fresh interaction with the environment for every task; FB imitation needs a task-blind pretraining phase once and then no interaction at all.
+
+\subsection{Research questions and where they are answered}
+
+The assignment asks five questions. \Cref{tab:questions} lists them with the sections that answer them; \cref{sec:conclusion} collects the answers.
+
+\begin{table}[ht]
+\centering\small
+\caption{The research questions of the assignment and where this memoir answers them.}\label{tab:questions}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.5cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{4.6cm}@{}}
+\toprule
+& Question (assignment, pp.~1--2) & Answered in\\
+\midrule
+Q1 & Mathematical principles of $f$-divergence occupancy matching and of the FB representation; own proofs; exact arguments separated from the approximations used to build the algorithms. & \Cref{sec:occupancy,sec:m-fpg,sec:m-firl,sec:m-fb,sec:m-fbil} (selected derivations); complete proofs in Appendices~\ref{sec:occ}--\ref{sec:env}\\
+Q2 & Similarities, differences and use cases of the two approaches. & \Cref{sec:compare}\\
+Q3 & Role of the hyperparameters, in particular the choice of $f$ in $f$-IRL and the algorithm used to learn the successor measure. & \Cref{sec:hyper}; ablations in \cref{sec:ablations}\\
+Q4 & Performance, numerical stability and sample requirements in a common finite scenario where planning is exact. & \Cref{sec:protocol,sec:results-finite,sec:costs}\\
+Q5 & Behaviour in a continuous state space with a DQN-style approximation. & \Cref{sec:results-continuous}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Scope and contributions}\label{sec:scope}
+
+\paragraph{What is implemented.}
+The experiments compare $f$-PG, adapted to a fixed expert distribution, with a pretrained FB model and \DMFB{} latent adaptation; \ERFB{} on the same model is a cheap baseline.
+$f$-IRL is treated theoretically only: its reward gradient is reproved and related to $f$-PG, but it is not implemented.
+The environments are small mazes with five discrete actions: two $7\times7$ finite mazes (an open room and four rooms), for which an exact oracle computes occupancies, optimal values and the error of a trained FB model, and a continuous four-rooms maze with positions in $[0,1]^2$.
+In the continuous maze the FB forward network $F(s,a,z)$ outputs one $d$-dimensional vector per action, as a DQN network outputs one value per action \citep{mnih2015dqn}; this is the DQN-style approximation of the state--action space asked for by Q5. The $f$-PG policy is a categorical network, not a DQN-style one.
+
+\paragraph{State versus state--action matching.}
+The assignment describes $f$-IRL and $f$-PG as matching the \emph{state--action} occupancy measure. The supplied papers match \emph{state} marginals: $f$-IRL's objective is a divergence between state marginals (FIRL Eq.~2, p.~3; Table~1, p.~2), $f$-PG's is a divergence between state visitations (FPG Eq.~4, p.~4), and FI24's successor measures are measures on next states (FI24 Eq.~1, p.~3).
+We therefore use state matching in the common experiments.
+We also define state--action occupancies, derive the state--action $f$-PG gradient (\cref{prop:m-fpg-sa}), and report the state--action divergence of every finite policy as a diagnostic.
+State-only matching does not identify the expert's actions (\cref{ex:occ-blocked}), and we never claim that it does.
+
+\paragraph{Interpretation of the assignment.}
+The assignment names the first family after $f$-IRL and describes it as direct matching of the state--action occupancy measure using policy-gradient ideas, citing both FIRL and FPG; it asks for both approaches to be implemented in a finite scenario and in a continuous one, the latter with a DQN-style approximation of the state--action space (assignment, pp.~1--2).
+This memoir reads it in three ways, described above: (i) the experiments match \emph{state} occupancies, as the supplied papers do, and report state--action divergences as diagnostics; (ii) $f$-PG is the implemented direct-matching method of the first family, while $f$-IRL is analysed theoretically and related to $f$-PG but not run; (iii) in the continuous experiment the DQN-style approximation is FB's forward network, and the $f$-PG policy is a categorical neural network, not a DQN-style one.
+These are the project's interpretations of the assignment; written confirmation of them by the supervisor is still outstanding.
+
+\paragraph{Contributions.}
+\begin{enumerate}[nosep,label=(\roman*)]
+\item One notation for occupancies, successor measures, divergences and the three different expert distributions used by the methods (\cref{sec:notation}), with the source discrepancies that it resolves (\cref{app:audit}).
+\item Complete proofs, under explicit assumptions, of the results that justify the algorithms, in Appendices~\ref{sec:occ}--\ref{sec:env} (the main text gives selected derivations): occupancy and successor identities, the fixed-target $f$-PG gradient with its discount weights, baselines and estimator, the $f$-IRL covariance gradient, FB's reward-to-task theorem, its softmax replacement, an approximation bound, the pretraining loss, and the \DMFB{} expansion. Each result is labelled as a source result, our adaptation, an identity, or a comparison (\cref{app:proofs-intro}).
+\item A derivation of every implemented update, with the point at which each exact guarantee stops applying: plug-in densities, cross-fitting, smoothing, finite rank, finite buffers, target networks, truncation and projection (\cref{tab:fpg-ledger,tab:fbil-ledger}).
+\item A controlled comparison with three seeds, an exact finite oracle, predeclared thresholds, every seed reported and a cost accounting that separates task-blind pretraining from per-task learning (\cref{sec:protocol,sec:results-finite,sec:results-continuous,sec:ablations,sec:costs}).
+\end{enumerate}
+
+\paragraph{What is not claimed.}
+No result here proves that neural-network training converges, that a trained FB model is optimal, or that an imitation method recovers the expert.
+Where a source theorem assumes exactness, we state where the assumption provably fails (the finite mazes) and that it is not established elsewhere.
+Three seeds support statements about these runs, not broad claims of superiority.
+
+\subsection{How to read this memoir}
+
+\Cref{sec:notation,sec:occupancy} fix the notation and the exact occupancy identities.
+\Cref{sec:m-fpg,sec:m-firl} treat $f$-divergence matching, \cref{sec:m-fb,sec:m-fbil} the FB representation and FB imitation.
+\Cref{sec:compare,sec:hyper} compare the approaches and discuss their hyperparameters.
+\Cref{sec:protocol,sec:results-finite,sec:results-continuous,sec:ablations,sec:costs} describe the experiments and their results, and \cref{sec:discussion,sec:conclusion} discuss them and answer the research questions.
+The main text presents the methods and selected derivations; Appendices~\ref{sec:occ}--\ref{sec:env} contain the complete proofs of the central results, and the remaining appendices the map from each implemented update to its equation and code, the source audit, the reproduction record and the per-seed results (\cref{app:proofs-intro}).
+
+Each result carries a tag such as \claim{FPG-2}{D}.
+The type is \textsf{S} for a source result reproved under its own assumptions, \textsf{D} for our derived adaptation, \textsf{I} for an identity, and \textsf{C} for a source result cited for comparison only, from which no guarantee is drawn; \textsf{S+D} marks a result with both a source part and our part.
+Sources are cited as FIRL \citep{ni2021firl}, FPG \citep{agarwal2023fpg}, FB21 \citep{touati2021fb} and FI24 \citep{pirotta2024fast}, with the equation, theorem and page of the supplied PDFs.
+A reference such as \audit{R1} points to an entry of the source audit in \cref{app:audit}.

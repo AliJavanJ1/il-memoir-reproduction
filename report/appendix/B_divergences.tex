@@ -1,0 +1,221 @@
+% ---------------------------------------------------------------------------
+% Appendix B (from theory/02_divergences.tex)  --  claims DIV-1 ... DIV-3
+% ---------------------------------------------------------------------------
+\section{\texorpdfstring{$f$}{f}-divergences: convention, orientation and smoothing}\label{sec:div}
+
+\paragraph{Status and sources.}
+We fix the convention $D_f(p\Vert q)=\sum q\,f(p/q)$.
+This is the convention used in FPG Table~1 and in its proofs (FPG pp.~3, 16 and 19), and in FIRL Eq.~(18) (p.~12).
+FPG Eq.~(3) (p.~3) prints the opposite orientation \audit{D1}.
+The JS generator printed in FPG Table~1 and FIRL Table~2 (p.~4) is twice the half-weight generator used here \audit{D3}.
+All statements in this section concern a \emph{finite} set $\mathcal X$: the free cells of the finite maze, or the histogram cells of the continuous maze.
+Continuous plug-in density estimates are treated as approximations in \cref{sec:fpg-approx}.
+
+\subsection{Definition and nonnegativity}
+
+Let $f:(0,\infty)\to\R$ be convex with $f(1)=0$.
+
+\begin{lemma}[boundary values]\label{lem:div-boundary}
+The limits $f(0):=\lim_{u\downarrow0}f(u)\in(-\infty,+\infty]$ and $f'(\infty):=\lim_{u\to\infty}f(u)/u\in(-\infty,+\infty]$ exist.
+The extension of $f$ to $[0,\infty)$ by $f(0)$ is convex.
+If $f$ is differentiable, $\lim_{u\to\infty}f'(u)$ exists and equals $f'(\infty)$.
+For $0\le a<b$, every secant slope satisfies $\frac{f(b)-f(a)}{b-a}\le f'(\infty)$.
+\end{lemma}
+\begin{proof}
+Convexity makes the secant slope $\sigma(u):=\frac{f(1)-f(u)}{1-u}$ nondecreasing in $u\in(0,1)$.
+So $\sigma(u)$ has a limit $L\in[-\infty,+\infty)$ as $u\downarrow0$, and $f(u)=f(1)-(1-u)\sigma(u)\to-L\in(-\infty,+\infty]$.
+
+Similarly, $\tau(u):=\frac{f(u)-f(1)}{u-1}$ is nondecreasing in $u>1$, with a limit $L'\in(-\infty,+\infty]$.
+Since $f(u)/u=\frac{f(1)}u+\frac{u-1}u\tau(u)$, we get $f(u)/u\to L'$.
+
+Convexity of the extension follows by letting the endpoint tend to $0$ in the convexity inequality.
+
+If $f$ is differentiable, $f'$ is nondecreasing, so $\lim f'=:L''\in(-\infty,\infty]$ exists.
+Convex functions are absolutely continuous on compact subintervals, so $f(u)=f(1)+\int_1^uf'(v)\dd v$.
+Hence $f(u)/u$ is, up to an $O(1/u)$ term, a Ces\`aro mean of the monotone function $f'$, and it converges to $L''$; so $L''=f'(\infty)$.
+
+For the secant bound: by convexity, for every $w>b$, $\frac{f(b)-f(a)}{b-a}\le\frac{f(w)-f(b)}{w-b}=\frac{w}{w-b}\big(\frac{f(w)}w-\frac{f(b)}w\big)$, and the right-hand side tends to $f'(\infty)$ as $w\to\infty$.
+\end{proof}
+
+\begin{definition}\label{def:div}
+For probability vectors $p,q$ on $\mathcal X$, let $\mathcal X_+:=\{q>0\}$ and $m_0:=p(\{q=0\})$, and define
+\[
+D_f(p\Vert q):=\sum_{x\in\mathcal X_+}q(x)\,f\!\Big(\frac{p(x)}{q(x)}\Big)+f'(\infty)\,m_0 .
+\]
+Conventions: $f(0)$ from \cref{lem:div-boundary} is used where $p(x)=0<q(x)$; terms of the form $\infty\cdot0$ are $0$; $D_f\in(-\infty,+\infty]$.
+In our objectives the learner is always the first argument (\cref{sec:notation}).
+\end{definition}
+
+\begin{proposition}\claim{DIV-2}{I}\label{prop:div-nonneg}
+\leavevmode
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $D_f(p\Vert q)\ge0$.
+\item Suppose $f$ is \emph{strictly convex at $1$}: there is $c\in\partial f(1)$ with $f(u)>c(u-1)$ for every $u\in(0,\infty)\setminus\{1\}$. Then $D_f(p\Vert q)=0$ if and only if $p=q$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) If $D_f=+\infty$ there is nothing to prove. Otherwise, the weights $q(x)$, $x\in\mathcal X_+$, sum to $1$.
+Jensen's inequality for the convex extension of $f$ to $[0,\infty)$ (\cref{lem:div-boundary}) gives
+$\sum_{\mathcal X_+}q\,f(p/q)\ge f\big(\sum_{\mathcal X_+}p\big)=f(1-m_0)$.
+If $m_0=0$ we are done, since $f(1)=0$.
+If $m_0>0$, the secant bound of \cref{lem:div-boundary} gives $f(1)-f(1-m_0)\le m_0 f'(\infty)$.
+Hence $D_f\ge f(1-m_0)+m_0f'(\infty)\ge f(1)=0$.
+
+(b) Let $g(u):=f(u)-c(u-1)$. Then $g$ is convex, $g(1)=0$, and $g>0$ on $(0,\infty)\setminus\{1\}$.
+Also $g(0)>0$, because $g(\tfrac12)\le\tfrac12g(0)+\tfrac12g(1)$.
+Moreover $g'(\infty)=f'(\infty)-c>0$: the secant slope of $g$ over $[1,2]$ equals $g(2)>0$ and bounds $g'(\infty)$ from below.
+Substituting $f=g+c(u-1)$ gives
+\[
+D_f(p\Vert q)=\sum_{\mathcal X_+}q\,g(p/q)+c\big(p(\mathcal X_+)-1\big)+f'(\infty)m_0
+=\sum_{\mathcal X_+}q\,g(p/q)+m_0\big(f'(\infty)-c\big).
+\]
+Both terms are nonnegative.
+The sum is $0$ if and only if $p=q$ on $\mathcal X_+$; the second term is $0$ if and only if $m_0=0$.
+Together these mean $p=q$.
+\end{proof}
+
+\begin{proposition}[the three generators used]\claim{DIV-2}{I}\label{prop:div-generators}
+Let $\bar m:=\frac12(p+q)$. With the usual conventions $0\log0=0$ and $a\log(a/0)=+\infty$ for $a>0$:
+\begin{center}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+name (learner $p$ first) & $f(u)$ & $f'(u)$ & $f(0)$ & $f'(\infty)$\\
+\midrule
+$\KL(p\Vert q)$ & $u\log u$ & $1+\log u$ & $0$ & $+\infty$\\
+$\KL(q\Vert p)$ & $-\log u$ & $-1/u$ & $+\infty$ & $0$\\
+$\JS(p,q)$ & $f_{\JS}(u)=\tfrac12\big[u\log u-(1+u)\log\tfrac{1+u}2\big]$ & $\tfrac12\log\tfrac{2u}{1+u}$ & $\tfrac12\log2$ & $\tfrac12\log2$\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{enumerate}[nosep,label=(\alph*)]
+\item With these generators, $D_f(p\Vert q)$ equals, respectively:
+  $\KL(p\Vert q)=\sum_{p>0}p\log\frac pq$;
+  $\KL(q\Vert p)=\sum_{q>0}q\log\frac qp$;
+  and $\JS(p,q)=\frac12\KL(p\Vert\bar m)+\frac12\KL(q\Vert\bar m)=\Ent(\bar m)-\frac12\Ent(p)-\frac12\Ent(q)$, where $\Ent(p)=-\sum p\log p$.
+\item All three generators are strictly convex ($f''>0$), so \cref{prop:div-nonneg}(b) applies.
+\item $0\le\JS(p,q)\le\log2$, and $\JS$ is jointly continuous on (simplex)$\times$(simplex).
+  $\KL(p\Vert q)<\infty$ if and only if $\supp p\subseteq\supp q$; $\KL(q\Vert p)<\infty$ if and only if $\supp q\subseteq\supp p$.
+\item The generator printed in FPG Table~1 and FIRL Table~2 is $2f_{\JS}$ and yields $2\JS$. FIRL's $h_{\JS}=-\log(1+u)$ equals $h_{2f_{\JS}}-\log2$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) For $u\log u$: on $\{q>0\}$, $q\cdot\frac pq\log\frac pq=p\log\frac pq$. Points with $p=0<q$ contribute $q f(0)=0$. Points with $q=0<p$ contribute $f'(\infty)p=+\infty$, matching the KL convention.
+
+For $-\log u$: on $\{q>0\}$, $q(-\log\frac pq)=q\log\frac qp$. If $p=0<q$, the term is $qf(0)=+\infty$. The $q=0$ points contribute $f'(\infty)m_0=0$.
+
+For $f_{\JS}$, a point with $p,q>0$ contributes
+$q f_{\JS}(p/q)=\frac12\big[p\log\frac pq-(p+q)\log\frac{p+q}{2q}\big]=\frac12\big[p\log\frac{2p}{p+q}+q\log\frac{2q}{p+q}\big]$.
+This is the pointwise JS term.
+A point with $p=0<q$ contributes $qf_{\JS}(0)=\frac q2\log2$, and the JS term is $\frac12q\log\frac{2q}q$, the same.
+A point with $q=0<p$ contributes $f'_{\JS}(\infty)p=\frac p2\log 2$, and the JS term is $\frac12p\log\frac{2p}p$, the same.
+
+The entropy form follows from $\frac12\sum p\log\frac p{\bar m}+\frac12\sum q\log\frac q{\bar m}=-\frac12\Ent(p)-\frac12\Ent(q)-\sum\bar m\log\bar m$, where the last step uses $\frac12(p+q)=\bar m$.
+The derivatives and limits are direct computations; $f_{\JS}'(\infty)=\lim\frac12\log\frac{2u}{1+u}=\frac12\log2$.
+
+(b) The second derivatives are $f''=1/u$, $1/u^2$ and $\frac12(\frac1u-\frac1{1+u})=\frac1{2u(1+u)}$, all positive.
+For $f\in C^2$ with $f''>0$, $f(u)-f(1)-f'(1)(u-1)=\int_1^u(u-v)f''(v)\dd v>0$ for $u\ne1$.
+
+(c) Nonnegativity is \cref{prop:div-nonneg}. For the upper bound, $\KL(p\Vert\bar m)=\sum_{p>0}p\log\frac{2p}{p+q}\le\sum p\log2=\log2$, since $p\le p+q$; similarly for $\KL(q\Vert\bar m)$.
+Continuity follows from the entropy form, because $x\mapsto x\log x$ is continuous on $[0,1]$.
+The KL statements are read off the formulas in (a).
+
+(d) This is a direct computation: $2f_{\JS}(u)-u\cdot2f'_{\JS}(u)=-\log(1+u)+\log 2$.
+\end{proof}
+
+\subsection{Orientation: the perspective map}\label{sec:div-perspective}
+
+\begin{proposition}\claim{DIV-1}{D}\label{prop:div-perspective}
+Let $f^\circ(u):=u\,f(1/u)$ for $u>0$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $f^\circ$ is convex with $f^\circ(1)=0$; moreover $f^\circ(0)=f'(\infty)$, $(f^\circ)'(\infty)=f(0)$ and $(f^\circ)^\circ=f$.
+\item $D_f(p\Vert q)=D_{f^\circ}(q\Vert p)$ for all probability vectors $p,q$ on $\mathcal X$, including when they have zeros.
+\item $(u\log u)^\circ=-\log u$ and $f_{\JS}^\circ=f_{\JS}$. Hence $\KL(p\Vert q)=D_{-\log}(q\Vert p)$, and JS is symmetric.
+\item If $f$ is differentiable, $(f^\circ)'(v)=f(1/v)-\frac1vf'(1/v)=h_f(1/v)$, where $h_f(u):=f(u)-uf'(u)$ is FIRL's weight (Thm~4.1, p.~3).
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) Let $u=\lambda u_1+(1-\lambda)u_2$ with $u_1,u_2>0$ and $\lambda\in[0,1]$.
+Then $\frac1u=\frac{\lambda u_1}{u}\cdot\frac1{u_1}+\frac{(1-\lambda)u_2}{u}\cdot\frac1{u_2}$, a convex combination since the two weights sum to $1$.
+Convexity of $f$ gives $f(1/u)\le\frac{\lambda u_1}uf(1/u_1)+\frac{(1-\lambda)u_2}uf(1/u_2)$; multiplying by $u$ gives $f^\circ(u)\le\lambda f^\circ(u_1)+(1-\lambda)f^\circ(u_2)$.
+Next, $f^\circ(1)=f(1)=0$.
+With $v=1/u$, $f^\circ(0)=\lim_{u\downarrow0}uf(1/u)=\lim_{v\to\infty}f(v)/v=f'(\infty)$.
+Also $(f^\circ)'(\infty)=\lim_{u\to\infty}f^\circ(u)/u=\lim f(1/u)=f(0)$.
+Finally $(f^\circ)^\circ(u)=u\cdot\frac1uf(u)=f(u)$.
+
+(b) Partition $\mathcal X$ into $A=\{p>0,q>0\}$, $B=\{p=0<q\}$, $C=\{q=0<p\}$ and $\{p=q=0\}$; the last set contributes nothing to either side. Then
+\begin{align*}
+D_f(p\Vert q)&=\textstyle\sum_Aq\,f(p/q)+f(0)\,q(B)+f'(\infty)\,p(C),\\
+D_{f^\circ}(q\Vert p)&=\textstyle\sum_Ap\,f^\circ(q/p)+f^\circ(0)\,p(C)+(f^\circ)'(\infty)\,q(B).
+\end{align*}
+On $A$, $p\,f^\circ(q/p)=p\cdot\frac qp f(p/q)=q f(p/q)$.
+The boundary terms match by (a), including when they are $+\infty$.
+
+(c) $(u\log u)^\circ=u\cdot\frac1u\log\frac1u=-\log u$. For JS,
+$f_{\JS}^\circ(u)=\frac u2\big[\frac1u\log\frac1u-(1+\frac1u)\log\frac{1+1/u}2\big]
+=\frac12\big[-\log u-(1+u)\log\frac{1+u}{2u}\big]
+=\frac12\big[u\log u-(1+u)\log\frac{1+u}2\big]$.
+
+(d) Differentiate $vf(1/v)$ by the product and chain rules.
+\end{proof}
+
+\begin{corollary}[orientation dictionary]\label{cor:div-dictionary}
+FIRL minimizes $D_f(\rho_E\Vert\rho_\theta)$, with the expert first (FIRL Eq.~2, p.~3). By \cref{prop:div-perspective}(b) this equals $D_{f^\circ}(\rho_\theta\Vert\rho_E)$ in our learner-first convention.
+FIRL's ``FKL'' ($f=u\log u$) is therefore our $\KL(q\Vert d)$ with generator $-\log u$; FIRL's ``RKL'' ($f=-\log u$) is our $\KL(d\Vert q)$ with generator $u\log u$.
+FPG's ``fkl'' is $\KL(d\Vert q)$ and ``rkl'' is $\KL(q\Vert d)$ (FPG Table~1).
+The two papers' names are thus opposite \audit{D2}. Our text names both directions by their arguments.
+\end{corollary}
+
+\subsection{Mixture smoothing}\label{sec:div-smoothing}
+
+Let $\upsilon$ be a fixed \emph{strictly positive} reference law on $\mathcal X$, and $\upsilon_{\min}:=\min_x\upsilon(x)>0$.
+In the finite maze $\upsilon$ is uniform on the free cells, so $\upsilon_{\min}=1/n$ with $n:=|\mathcal X|$.
+In the continuous maze it is uniform on free space projected to the histogram cells, i.e.\ proportional to the free area of each cell (\cref{sec:notation}).
+This requires every cell of $\mathcal X$ to have positive free area; the retained cells of the implemented histogram have this property, and the implemented kernel has no clipping (\cref{prop:env-cells,prop:env-cont}).
+Here $\upsilon(b)$ is a probability \emph{mass}. A KDE objective works with densities instead, and must be mixed with the reference density $\upsilon_\lambda=\ind_{\cS}/A_{\mathrm{free}}$ (\cref{sec:notation}); this section covers only the finite case.
+For $\varepsilon\in(0,1]$ write $p_\varepsilon:=(1-\varepsilon)p+\varepsilon\upsilon$.
+The letter $u$ is reserved for the argument of $f$.
+
+\begin{proposition}\claim{DIV-3}{D}\label{prop:div-smooth}
+Let $f$ be convex, $C^1$ on $(0,\infty)$, with $f(1)=0$; for example any of the three generators above.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $p_\varepsilon$ and $q_\varepsilon$ are probability vectors with all entries at least $\varepsilon\upsilon_{\min}$.
+  Every ratio $p_\varepsilon(x)/q_\varepsilon(x)$ lies in $[\varepsilon\upsilon_{\min},\,1/(\varepsilon\upsilon_{\min})]$, so $D_f(p_\varepsilon\Vert q_\varepsilon)$ is finite.
+\item (both arguments smoothed) Let $\phi\mapsto d_\phi$ be $C^1$ into the simplex and let $q$ be fixed. Then $J_\varepsilon(\phi):=D_f((d_\phi)_\varepsilon\Vert q_\varepsilon)$ is $C^1$, and
+\[
+\nabla_\phi J_\varepsilon=(1-\varepsilon)\sum_{x}f'\!\Big(\frac{(d_\phi)_\varepsilon(x)}{q_\varepsilon(x)}\Big)\nabla_\phi d_\phi(x).
+\]
+\item (target only smoothed) If $d_\phi(x)>0$ for all $x$, then $\tilde J_\varepsilon(\phi):=D_f(d_\phi\Vert q_\varepsilon)$ is finite and $C^1$, with $\nabla\tilde J_\varepsilon=\sum_xf'(d_\phi(x)/q_\varepsilon(x))\nabla d_\phi(x)$.
+  Without that positivity, $\KL(q_\varepsilon\Vert d_\phi)=+\infty$ as soon as $d_\phi$ has a zero, whereas $\KL(d_\phi\Vert q_\varepsilon)$ and $\JS$ remain finite.
+\item (comparison with the unsmoothed objective) If $p,q>0$ entrywise, then $D_f(p_\varepsilon\Vert q_\varepsilon)\le(1-\varepsilon)D_f(p\Vert q)$, and $D_f(p_\varepsilon\Vert q_\varepsilon)\to D_f(p\Vert q)$ as $\varepsilon\downarrow0$.
+  For JS both statements hold for all $p,q$, with or without zeros.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) Each entry is $(1-\varepsilon)p(x)+\varepsilon\upsilon(x)\ge\varepsilon\upsilon_{\min}$, and the entries sum to $1$.
+ Entries are at most $1$, so each ratio lies between $\varepsilon\upsilon_{\min}/1$ and $1/(\varepsilon\upsilon_{\min})$.
+ $f$ is continuous on this compact subinterval of $(0,\infty)$, so every term is bounded.
+
+(b) $\partial_\phi(d_\phi)_\varepsilon(x)=(1-\varepsilon)\partial_\phi d_\phi(x)$.
+Each term $q_\varepsilon(x)f\big((d_\phi)_\varepsilon(x)/q_\varepsilon(x)\big)$ is a composition of $C^1$ maps, because its argument stays in $(0,\infty)$.
+The chain rule gives $q_\varepsilon f'(\cdot)\cdot\frac{(1-\varepsilon)\nabla d_\phi}{q_\varepsilon}$. Summing over the finitely many $x$ gives the formula.
+
+(c) Since $q_\varepsilon>0$, every term is $q_\varepsilon f(d_\phi/q_\varepsilon)$, with argument in $(0,\infty)$ when $d_\phi>0$; the chain rule gives the formula.
+For the finiteness statements, use \cref{prop:div-generators}(c) with $\supp q_\varepsilon=\mathcal X$.
+
+(d) The perspective $g(a,b):=b\,f(a/b)$ is jointly convex on $(0,\infty)^2$.
+To see this, let $(a,b)=\lambda(a_1,b_1)+(1-\lambda)(a_2,b_2)$.
+Then $\frac ab=\frac{\lambda b_1}b\frac{a_1}{b_1}+\frac{(1-\lambda)b_2}{b}\frac{a_2}{b_2}$, a convex combination; apply convexity of $f$ and multiply by $b$.
+Hence $D_f(p_\varepsilon\Vert q_\varepsilon)=\sum_xg\big((1-\varepsilon)(p(x),q(x))+\varepsilon(\upsilon(x),\upsilon(x))\big)\le(1-\varepsilon)D_f(p\Vert q)+\varepsilon D_f(\upsilon\Vert\upsilon)$, and $D_f(\upsilon\Vert\upsilon)=0$.
+For convergence, every term $q_\varepsilon f(p_\varepsilon/q_\varepsilon)$ is continuous in $\varepsilon$ at $0$ when $p,q>0$.
+
+For JS with zeros, apply the positive case to $p^{(k)}:=p_{1/k}$ and $q^{(k)}:=q_{1/k}$, for which $\JS(p^{(k)}_\varepsilon,q^{(k)}_\varepsilon)\le(1-\varepsilon)\JS(p^{(k)},q^{(k)})$.
+As $k\to\infty$, $p^{(k)}\to p$ and $p^{(k)}_\varepsilon\to p_\varepsilon$, and likewise for $q$; JS is continuous (\cref{prop:div-generators}(c)), so the inequality passes to the limit.
+The convergence as $\varepsilon\downarrow0$ is again continuity.
+\end{proof}
+
+\begin{remark}[what smoothing changes]\label{rem:div-smooth}
+Smoothing changes the objective.
+The minimizers of $J_\varepsilon$ need not be those of the unsmoothed divergence, so no claim is made that they coincide.
+Smoothing is used to make $\KL(d\Vert q)$ finite when the expert target has zeros (FPG-8 below), and to keep $f'$ finite.
+Reported evaluation divergences are the unsmoothed exact finite JS, or the common held-out estimator in the continuous case. The value of $\varepsilon$ is reported with every result.
+\end{remark}

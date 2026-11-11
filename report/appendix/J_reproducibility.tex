@@ -1,0 +1,63 @@
+\section{Reproducibility and verification record}\label{app:repro}
+
+\subsection{What ran, where, and from which code}
+
+\begin{itemize}[nosep]
+\item \textbf{Machine.} The author's laptop: Windows (platform string \texttt{\vn{aJ.platform}{Windows-10-10.0.26200}}), \vn{aJ.cpus}{12} logical CPUs, \vn{aJ.ram}{15.35}~GiB of RAM, an RTX~\vn{aJ.gpu}{3060} Laptop GPU that the final runs did not use. Python \vn{s10.python}{3.11.16}, PyTorch \vn{s10.torch}{2.14.1} (CUDA~\vn{aJ.cuda_build}{13.2} build), NumPy \vn{aJ.numpy}{2.4.6}, SciPy \vn{aJ.scipy}{1.17.1} (\texttt{runs/environment\_laptop.json}, \texttt{requirements-laptop.txt}).
+\item \textbf{Device.} The CPU with \vn{s10.threads}{4} PyTorch threads (NumPy and BLAS thread counts were neither set nor recorded), one job at a time. The choice was made by measurement before the final runs: on timing workloads the projected training time of the core suite was \vn{aJ.bench.cpu}{827}\,s on the CPU against \vn{aJ.bench.cuda}{2163}\,s on CUDA (\texttt{runs/benchmark.json}).
+\item \textbf{Code.} Both suites were launched from commit \texttt{\vn{aJ.commit}{db2e6d6}} (``freeze core and compact ablation configurations''). The launch record marks the working tree as \emph{dirty}, i.e.\ it contained uncommitted files; the package hash of the code that ran, \texttt{\vn{aJ.package}{d5fb4a98}\ldots}, equals the one recorded in the frozen run plan, and the audit checks that every job's code hash matches its result and the current code. Which files were uncommitted was not recorded, and the package hash does not cover the command-line scripts in \texttt{scripts/}; neither can be reconstructed afterwards. Checksums written when the deliverables were packaged describe the submitted files, not the tree at launch.
+\item \textbf{Configurations.} Resolved suite hashes \texttt{\vn{aJ.cfg.core}{acabfe8d}\ldots} (core, \vn{s10.core.jobs}{144} jobs) and \texttt{\vn{aJ.cfg.abl}{45499164}\ldots} (compact ablations, \vn{aJ.abl.jobs}{39} jobs of which \vn{s10.abl.new}{21} new), equal to the frozen plan; seed manifest \texttt{\vn{aJ.seedman}{619a8560}\ldots}; reference seed \vn{aJ.refseed}{314159} for the continuous evaluation references.
+\item \textbf{Data.} \texttt{data/final-v1}: \vn{aJ.data_items}{39} items (demonstrations, replay buffers, continuous references), each with its generation seed and content hash, generated once and shared by all methods.
+\item \textbf{Timeline.} Core suite \vn{time.core.date_iso}{2026-10-05}, \vn{time.core.start}{21:46:55}--\vn{time.core.end}{22:02:35} UTC; ablations \vn{time.abl.start}{22:20:00}--\vn{time.abl.end}{22:22:55} UTC; analysis and audit at \vn{time.audit}{22:23} UTC. All \vn{s10.jobs_first_attempt}{165} jobs completed at their first attempt; no job failed and none was removed.
+\end{itemize}
+
+\subsection{Commands}
+
+From the project root (Windows PowerShell, the project's virtual environment):
+{\footnotesize
+\begin{verbatim}
+python -m pytest -q
+python scripts/prepare_data.py --config configs/core.yaml --check
+python scripts/run_suite.py --config configs/core.yaml --device cpu --resume
+python scripts/run_suite.py --config configs/compact_ablations.yaml --device cpu --resume
+python scripts/analyze.py --runs runs --out results
+python scripts/audit_results.py --runs runs --results results
+\end{verbatim}
+}
+The test run on the frozen tree is saved in \texttt{audit/prompt4/pytest\_laptop\_frozen.txt}: \vn{aJ.pytest.passed}{366} tests passed and \vn{aJ.pytest.skipped}{1} was skipped, in \vn{aJ.pytest.seconds}{155}\,s; the skipped test sends a real interrupt signal to a child process and runs on POSIX systems only.
+The report's own scripts (run from the project root) are:
+{\small
+\begin{verbatim}
+python report/verify/verify_results.py   # recompute, compare, tables, claims
+python report/figures/make_figures.py    # the PDF figures of the main text
+python scripts/build.py --target report  # report/report.pdf, build.log
+\end{verbatim}
+}
+
+\subsection{Provenance audit and a second implementation}
+
+Every job directory records the job's configuration identity, the hashes of its code scope, data inputs and parent outputs, the device, the wall time of each phase and the hashes of its outputs.
+The project's provenance audit (\texttt{scripts/audit\_results.py}) ran \vn{aJ.audit.kinds}{62} kinds of checks, \vn{aJ.audit.checks}{31{,}749} checks in all, on the two final suites and the generated results, with no error and no warning (\texttt{results/audit\_report.json}): among them, that no planned seed was dropped, that no failed attempt was deleted, that every cited job is intact, that code and dependencies are not mixed across jobs, and that every table row traces back to a job.
+
+The numbers in this memoir were then recomputed by \nolinkurl{report/verify/verify_results.py}, a second implementation that uses the Python standard library only and none of the project's analysis code; it was written in the same project as the analysis code, so it is not an independent check.
+It reads the suite manifests, every job's status, result and evaluation records, and the \DMFB{} latent logs, and it recomputes the final rows (last $f$-PG checkpoint; \ERFB{} and \DMFB{} at the final FB snapshot and the last latent step), means and sample standard deviations, the thresholds, the costs and the FB diagnostics.
+It compares them with the project's generated tables (\texttt{results/tables/*.csv}), records every mismatch, and exits with an error status if there is one.
+It then writes every table of \cref{sec:protocol,sec:results-finite,sec:results-continuous,sec:ablations,sec:costs} and \cref{app:results}.
+One of its inputs is not a run file: the coverage of the continuous replay buffers on the evaluation histogram (\cref{sec:results-continuous}) is counted from the stored buffers by \nolinkurl{report/verify/replay_hist_coverage.py}, which uses the project's histogram code, and read from its output. The cost conventions of \cref{sec:costs} and the quantities derived with them are written to \nolinkurl{report/verify/costs_closeout.json}.
+
+The numbers in the text are tied to these checks as follows.
+Every number of the text and captions that is computed from the runs, from the environment and audit check reports or from a closed-form expression is typeset through a macro that takes a claim identifier and the printed literal.
+\texttt{report/verify/claims.py} registers each identifier with its literal and with the value it is recomputed from, and the verifier checks three things: that each registered literal equals the recomputed value at the printed precision; that every occurrence of the macro in the TeX sources names a registered claim and prints exactly its registered literal; and that every claim registered as printed occurs in the text.
+Configuration settings (such as $\gamma$, $H$, the budgets and the learning rates) are registered as facts and checked against the frozen configuration, but most of their occurrences in the text are not tied to these facts.
+The numeric tokens of the sources that are typeset without the macro are listed in \texttt{report/verify/claims\_coverage.txt} for review by hand.
+The log of the verifier is \texttt{report/verify/verification\_log.txt}.
+
+\subsection{Data-access rules}
+
+The rules of \cref{app:methodmap} were tested before the runs (static and behavioural leakage tests) and hold for the code that ran.
+In the runs, learners received the demonstration states, the simulator and, for FB, the task-blind replay buffer; evaluation used separate random streams and files; and every evaluation transition is counted separately from the training transitions (\cref{sec:costs}).
+
+\subsection{What is not reproducible bit for bit}
+
+Results are bitwise reproducible on the same machine and software (resuming a job reproduces the uninterrupted run on the CPU, which the tests check).
+Another operating system, another PyTorch build or a GPU can change the last bits of floating-point results and hence sampled actions; the run plan therefore copies \texttt{data/final-v1} instead of regenerating it on another system.

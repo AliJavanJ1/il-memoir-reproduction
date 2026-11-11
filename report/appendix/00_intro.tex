@@ -1,0 +1,18 @@
+\section{About the appendices}\label{app:proofs-intro}
+
+\paragraph{Contents.}
+\Cref{sec:occ,sec:div,sec:fpg,sec:firl,sec:fb,sec:fbil,sec:env} contain the complete statements and proofs of every result used in the main text, in the same notation: occupancy measures and the finite oracle; $f$-divergences, their orientation and smoothing; the fixed-target $f$-PG gradient, its estimator and approximations; the $f$-IRL reward gradient (theory only); forward--backward representations; \ERFB{} and \DMFB; and the implemented environments, estimators, experts and replay law.
+They were written before the experiments, as the project's proof compendium, and are reproduced with only editorial changes (cross-references, and the pilot outcome where a remark anticipated it).
+The main-text statements name the appendix result they summarize.
+\Cref{app:methodmap} maps every implemented update to its result, equation and code; \cref{app:audit} lists the discrepancies found in the sources and the design decisions that resolve them; \cref{app:repro} records how the results were produced and checked; \cref{app:results} gives every seed of every run.
+
+\paragraph{Claim tags.}
+Each result carries an identifier and a type, for example \claim{FPG-2}{D}: \textsf{S} for a source result reproved under its own assumptions, \textsf{D} for our derived adaptation, \textsf{I} for an identity or definition-level fact, and \textsf{C} for a source result cited for comparison only, from which nothing is concluded; combined types such as \textsf{S+D} mark a source part extended by our part.
+A tag says where a statement comes from, not that it holds for the trained models: every result is stated with its hypotheses, and where a hypothesis fails for the trained models (exactness of FB, the Gibbs hypothesis of $f$-IRL, exact occupancies), the text says so.
+
+\paragraph{Standard results used without proof.}
+The Ionescu--Tulcea and Kolmogorov extension theorems; Dynkin's $\pi$--$\lambda$ theorem; monotone and dominated convergence; Tonelli and Fubini; Banach's and Brouwer's fixed-point theorems; the mean value theorem; the Radon--Nikodym theorem with the Hahn and Lebesgue decompositions; Cramer's rule; the strong law of large numbers; and the data-processing inequality for $f$-divergences \citep{csiszar1967information}.
+
+\paragraph{What the appendices do not contain.}
+No statement concerns the convergence of stochastic-gradient training, of Adam, or of target-network iterations, and none asserts that a trained network is exact or optimal.
+The numerical checks of the proof compendium (tiny random MDPs in \texttt{theory/checks/}) test the mathematics, not the experiments.

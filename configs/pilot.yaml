@@ -1,0 +1,94 @@
+# Pilot (PROJECT_SPEC section 7; INTERFACE command 4), written in Prompt 3C (2026-10-05).
+#
+# SELF-CONTAINED SINCE PROMPT 4 (2026-10-05).  The pilot ran on 2026-10-05 with `base: core.yaml` and
+# the 3B starting values of core.yaml.  When Prompt 4 froze core.yaml, those inherited values were
+# copied here verbatim and `base:` was removed, so this file still resolves to exactly the
+# configuration that ran: suite SHA-256 941048cf6bb0a73b1457da3c42d77c67414837f11e4d229c2bc1a3461c0a713e
+# (runs/suites/pilot/manifest.json) and the same 34 job identifiers.  Rerunning the benchmark
+# therefore reuses the completed pilot jobs, and the audit of the pilot suite stays valid.
+#
+# scripts/benchmark.py runs, in this order:
+#   1. the short timing workloads of `pilot.timing` on the CPU and, where available, on CUDA
+#      (spec: finite 2,000 transitions / 500 FB updates, continuous 5,000 / 1,000, a small f-PG
+#      run in each; DM and evaluation included); they check execution and speed, not learning;
+#   2. the device choice by measured projected time (or your explicit --device);
+#   3. the representative learning pilot below, on the chosen device, with the pilot seed 999,
+#      the core budgets and a declared grid of at most 3 learning-rate / scale choices:
+#        f-PG learning rate: 3 values per policy class; continuous KDE versus histogram (U-15);
+#        FB temperature tau: 0.1, 0.3, 1.0 at radius R = 4 (U-2: tau and R are coupled, SOURCE_AUDIT T2);
+#   4. the ETA of the suites in `pilot.eta_suites` from the measured per-unit times, with
+#      `overhead` (at least 50%) added, written to runs/PILOT.md and runs/benchmark.json.
+# Every pilot job is kept in runs/jobs/ (suite `pilot`).  Prompt 4 read them; nothing here is a
+# final result, and pilot outcomes never use the final seeds.
+schema: il_memoir/suite-v1
+suite: pilot
+kind: pilot
+description: >-
+  Representative learning pilot (seed 999): finite four rooms and continuous maze, goal (5,5),
+  core budgets, declared grid over f-PG learning rate, continuous density estimator and FB temperature.
+environment_config: configs/environment.yaml
+seeds: pilot
+data:
+  id: pilot-v1                         # separate data (seed 999 and the pilot reference seed)
+  n_demos: 4
+  replay:
+    finite: {n_transitions: 50000, segment_length: 50}
+    continuous: {n_transitions: 100000, segment_length: 50}
+  reference:
+    continuous: {n_trajectories: 2000}
+grid:
+  - {env: finite, layout: four_rooms, tasks: [goal_5_5]}
+  - {env: continuous, layout: four_rooms, tasks: [goal_5_5]}
+methods:
+  fpg:
+    divergences: [js]
+    finite:                            # 3B starting values (the core's values when the pilot ran)
+      settings: {n_traj: 20, n_folds: 2, baseline: time, lr: 0.1, ppo_epochs: 0, entropy_coef: 0.0}
+      budget_transitions: 50000
+      eval_every_iterations: 5
+    continuous:
+      settings: {n_traj: 20, n_folds: 2, baseline: time, lr: 0.001, density: kde, ppo_epochs: 0, entropy_coef: 0.0}
+      budget_transitions: 100000
+      eval_every_iterations: 5
+    variants:
+      lr_low: {finite: {settings: {lr: 0.03}}, continuous: {settings: {lr: 0.0003}}}
+      base: {}
+      lr_high: {finite: {settings: {lr: 0.3}}, continuous: {settings: {lr: 0.003}}}
+      histogram: {envs: [continuous], continuous: {settings: {density: histogram}}}
+  fb:
+    finite:
+      settings: {d: 16, hidden: 64, n_hidden_layers: 2, activation: silu, first_layer_norm: true, tau: 0.1,
+                 batch_size: 128, target_batch_size: 128, lr: 0.0003, orth_coef: 1.0, target_momentum: 0.99,
+                 n_updates: 10000}
+      snapshot_every: 2500
+      log_every_updates: 100
+    continuous:
+      settings: {d: 16, hidden: 64, n_hidden_layers: 2, activation: silu, first_layer_norm: true, tau: 0.1,
+                 batch_size: 128, target_batch_size: 128, lr: 0.0003, orth_coef: 1.0, target_momentum: 0.99,
+                 n_updates: 20000}
+      snapshot_every: 5000
+      log_every_updates: 100
+    variants:
+      base: {}                         # tau = 0.1 (3B starting value)
+      tau_0p3: {all: {settings: {tau: 0.3}}}
+      tau_1: {all: {settings: {tau: 1.0}}}
+  adaptation:
+    dm: {K: 60, include_t0: true, steps: 300, lr: 0.05, project: true}
+    dm_snapshot_steps: [0, 50, 100, 150, 200, 250, 300]
+    fb_snapshots: all
+evaluation:
+  device: cpu
+  finite: {mc_rollouts: 200}
+  continuous: {rollouts: 500}
+  convergence: {js_max_nats: 0.10, success_min: 0.80}
+runner:
+  cpu_threads: 4
+  checkpoint_every_updates: 1000
+  checkpoint_every_seconds: 120
+pilot:
+  timing:
+    finite: {replay_transitions: 2000, fb_updates: 500, fpg_iterations: 5, dm_steps: 300, eval_rollouts: 200}
+    continuous: {replay_transitions: 5000, fb_updates: 1000, fpg_iterations: 5, dm_steps: 300, eval_rollouts: 500}
+    repeats: 1
+  eta_suites: [configs/core.yaml, configs/compact_ablations.yaml, configs/reduced.yaml]
+  overhead: 0.5                        # proposed total = measured extrapolation x (1 + overhead), overhead >= 0.5

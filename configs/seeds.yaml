@@ -1,0 +1,15 @@
+# Frozen seed manifest (Prompt 3C, 2026-10-05).  Read by il_memoir.experiment.load_seed_manifest().
+#
+# Every suite takes its seeds from here by kind (a suite declares `seeds: final`, `pilot` or
+# `smoke`; an explicit list is rejected).  All values must be distinct.  Each job derives
+# independent random streams from its seed with il_memoir.common.make_rng(seed, *labels); the
+# labels are listed in il_memoir/experiment.py and recorded per job in
+# runs/suites/<suite>/seed_manifest.json.
+schema: il_memoir/seeds-v1
+final_seeds: [0, 1, 2]        # PROJECT_SPEC section 7: three final seeds for every core condition
+pilot_seed: 999               # PROJECT_SPEC section 7: pilot seed, separate from the final seeds
+smoke_seed: 4242              # TEST FIXTURE: smoke runs only; never analysed as results
+reference_seeds:              # held-out expert reference rollouts (continuous evaluation target), per suite kind
+  final: 314159
+  pilot: 271828
+  smoke: 4243

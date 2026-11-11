@@ -1,0 +1,27 @@
+# TEST FIXTURE: a tiny pilot used by tests/test_pipeline.py to exercise scripts/benchmark.py.
+# Inherits the tiny budgets of configs/smoke.yaml; never used for a real pilot (configs/pilot.yaml).
+schema: il_memoir/suite-v1
+base: ../../configs/smoke.yaml
+suite: pilot_fixture
+kind: pilot
+description: >-
+  TEST FIXTURE: tiny pilot (smoke budgets) for the benchmark tests; not a pilot result.
+seeds: pilot
+data:
+  id: pilot-fixture
+methods:
+  fpg:
+    variants:
+      base: {}
+      lr_high: {finite: {settings: {lr: 0.3}}, continuous: {settings: {lr: 0.003}}}
+      histogram: {envs: [continuous], continuous: {settings: {density: histogram}}}
+  fb:
+    variants:
+      base: {}
+      tau_1: {all: {settings: {tau: 1.0}}}
+pilot:
+  timing:
+    finite: {replay_transitions: 200, fb_updates: 5, fpg_iterations: 2, dm_steps: 5, eval_rollouts: 8}
+    continuous: {replay_transitions: 200, fb_updates: 5, fpg_iterations: 2, dm_steps: 5, eval_rollouts: 8}
+  eta_suites: [configs/core.yaml, configs/compact_ablations.yaml, configs/reduced.yaml]
+  overhead: 0.5

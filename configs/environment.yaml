@@ -1,0 +1,84 @@
+# Environment, task and density settings, frozen in Prompt 3A (2026-10-05).
+#
+# Loaded by il_memoir.config.load_environment_config().  Every quantity is a
+# study choice recorded here, not a source result.  Geometry is given in cell
+# units of the 7x7 lattice; the continuous maze is the same lattice rescaled to
+# [0,1]^2, so one cell has side L = 1/7.
+#
+# Data-access rule (METHOD_MAP section 1): the goal cells (grid.goals) and the
+# evaluation reward and success rule (the "task" block) are read only by
+# il_memoir.tasks, il_memoir.expert, the oracle tests and (later)
+# il_memoir.evaluation.  Learners receive EnvironmentConfig.learner_dict(),
+# which omits them together with the transition parameters (finite slip,
+# continuous step, noise and redraw cap), and never receive the finite
+# transition matrix P; tests/test_no_leakage.py enforces this statically.
+schema: il_memoir/environment-v1
+
+gamma: 0.95
+horizon: 100                     # H; rollouts and demonstrations have H transitions
+
+grid:
+  size: 7                        # cell (x, y): x = column (left to right), y = row (bottom to top)
+  start: [1, 1]                  # finite mu_0 = delta_(1,1); continuous s_0 = centre of cell (1,1)
+  goals:                         # task name -> goal cell
+    goal_5_1: [5, 1]
+    goal_5_5: [5, 5]
+    goal_1_5: [1, 5]
+  layouts:
+    open: []                     # no blocked cell: 49 free cells
+    four_rooms:                  # walls x=3 except y=1,5 and y=3 except x=1,5; (3,3) blocked; 40 free cells
+      - [3, 0]
+      - [3, 2]
+      - [3, 3]
+      - [3, 4]
+      - [3, 6]
+      - [0, 3]
+      - [2, 3]
+      - [4, 3]
+      - [6, 3]
+
+actions:                         # fixed order; greedy ties are broken by the lowest index
+  - {name: stay,  dx: 0,  dy: 0}
+  - {name: right, dx: 1,  dy: 0}
+  - {name: up,    dx: 0,  dy: 1}
+  - {name: left,  dx: -1, dy: 0}
+  - {name: down,  dx: 0,  dy: -1}
+
+finite:
+  # U-10.  With probability slip_prob the executed action is drawn uniformly
+  # from all five actions (it can coincide with the chosen one); otherwise the
+  # chosen action is executed.  A move into a wall or out of the grid stays.
+  slip_prob: 0.1
+
+continuous:
+  # U-5.  Kernel of theory section 7 (ENV-2):
+  #  1. deterministic part: m = s + step * (dx, dy); if the closed segment [s, m]
+  #     meets a closed wall square or leaves the open square (0,1)^2, the move
+  #     is blocked and the base point is b = s ("stay"); otherwise b = m;
+  #  2. noise: s' = b + xi, xi ~ N(0, noise_std^2 I_2), redrawn until the closed
+  #     segment [b, s'] avoids every closed wall square and stays in (0,1)^2.
+  #  No clipping and no "undo" atom.  noise_std is a standard deviation.
+  #  If max_noise_redraws + 1 draws all fail, the step raises an error instead of
+  #  returning a point, so every completed step has exactly this law.
+  layout: four_rooms
+  step_cells: 1.0                # movement length 1 cell = 1/7
+  noise_std: 0.01
+  max_noise_redraws: 1000        # cap on redraws (error if reached); acceptance probability >= ~1/4 (ENV-2)
+
+task:
+  # Evaluation reward r_g(x) = exp(-|x - g|^2 / (2 w^2)) in (0, 1], with g the
+  # centre of the goal cell and x the position (cell centre in the finite maze).
+  # Reward is read at the next state: J_H = sum_{t<H} gamma^t r_g(s_{t+1}).
+  reward: gaussian
+  reward_width_cells: 0.5        # w = 0.5 cell = 1/14
+  goal_radius_cells: 0.5         # goal region: |x - g| <= 1/14 (finite: the goal cell only)
+  success: hit                   # success iff some s_t with t in 1..H lies in the goal region
+
+density:
+  kde_bandwidth: 0.05            # isotropic Gaussian, truncated to free space and renormalized per kernel
+  histogram_bins: 20             # 20 x 20 bins on [0,1]^2; bins with zero free area are dropped
+  smoothing_eps: 0.01            # mixture with the uniform free-space reference law (must be > 0)
+
+oracle:
+  value_iteration_tol: 1.0e-12   # stop when |T V - V|_inf <= tol (residual reported)
+  tie_tol: 1.0e-10               # first maximizer among actions within tie_tol of the max

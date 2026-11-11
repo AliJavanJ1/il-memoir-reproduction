@@ -1,0 +1,49 @@
+% Front matter: title, abstract, note on tools, contents.
+% The title page resets the page counter; no hyperref page anchor is written for it, so that printed page 1 has the
+% only anchor page.1 (closeout, AUDIT.md L15).
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+\centering
+\vspace*{2.5cm}
+{\Large Memoir --- Approaches for Imitation Learning\par}
+\vspace{1.2cm}
+{\LARGE\bfseries Imitation by state-occupancy matching and by\\[2pt] forward--backward representations\par}
+\vspace{0.5cm}
+{\large Proofs, approximations and a controlled comparison of $f$-policy gradients\\ and forward--backward imitation\par}
+\vspace{1.5cm}
+{\large Ali Javani\par}
+\vspace{0.4cm}
+{Supervisor: Olivier Cappé\par}
+\vspace{0.4cm}
+{Academic year 2025--2026 \quad$\cdot$\quad October 2026\par}
+\vfill
+\begin{minipage}{0.86\textwidth}
+\small
+\textbf{Abstract.}
+This memoir studies two reward-free approaches to imitation learning.
+The first matches state-occupancy measures with $f$-divergences: $f$-IRL learns a reward through a maximum-entropy inner loop, and $f$-policy gradients ($f$-PG) differentiate the divergence directly with respect to the policy.
+The second learns, without rewards, a forward--backward (FB) representation of successor measures once, and imitates by choosing a task vector: \ERFB{} reads it off the demonstrations and \DMFB{} fits it by matching successor measures.
+We write both families in one notation, prove their central results under explicit assumptions, and separate the exact statements from the approximations that the algorithms add: plug-in density estimates, finite rank, sampling, truncation and smoothing.
+We adapt $f$-PG to a fixed expert distribution and derive its gradient, estimator and baselines; we show that for softmax policies the FB optimality theorem is replaced by a temperature bound, and that the \DMFB{} loss expansion holds without greedy policies.
+We then compare $f$-PG with FB imitation in two $7\times7$ finite mazes, where an exact oracle evaluates every policy, and in a continuous four-rooms maze, with three seeds and a protocol frozen before the final runs.
+In the finite mazes, all \vn{abs.fpg.n}{18} $f$-PG runs reach the predeclared thresholds (held-out occupancy Jensen--Shannon divergence at most $0.10$ nats and success at least $0.80$), first at the $\vn{abs.fpg.first.lo}{20{,}000}$- or $\vn{abs.fpg.first.hi}{30{,}000}$-transition evaluation checkpoint (checkpoints every $\vn{fpg.interval.f}{10{,}000}$ transitions), whereas at the end of the budget \ERFB{} meets them in \vn{abs.er.last}{2} of \vn{n.runs.finite}{18} runs and \DMFB{} in \vn{abs.dm.last}{none}.
+\DMFB{}'s model objective decreased in all \vn{abs.dm.loss_down}{27} adaptations, while the held-out occupancy divergence increased in \vn{abs.dm.js_up}{20} of them (in \vn{abs.dm.js_up_finite}{16} of the \vn{abs.dm.n_finite}{18} finite ones, where it is computed exactly).
+In the continuous maze no method reaches the thresholds within its budget; $f$-PG ends closest (divergence $\vn{abs.cont.fpg.js.lo}{0.24}$--$\vn{abs.cont.fpg.js.hi}{0.41}$ nats, success $\vn{abs.cont.fpg.succ.lo}{0.92}$--$\vn{abs.cont.fpg.succ.hi}{0.99}$), but it reaches the goal without staying: only $\vn{s12.fpg.fig_pct.lo}{6}$--$\vn{s12.fpg.fig_pct.hi}{14}\%$ of its rollouts end there, against $\vn{s12.exp.fig_pct.lo}{72}$--$\vn{s12.exp.fig_pct.hi}{76}\%$ for the expert.
+In the finite mazes the FB models are provably approximate, because the rank of the transition kernel exceeds the representation rank, and their measured successor-measure errors are large.
+We report every seed, the cost of every phase, and the limits of three-seed evidence.
+\end{minipage}
+\vspace{1.2cm}
+\end{titlepage}
+\hypersetup{pageanchor=true}
+
+\paragraph{Note on tools and on the evidence.}
+The source code, frozen configurations, and reproduction instructions for this memoir are publicly available at \url{https://github.com/AliJavanJ1/il-memoir-reproduction}.
+The code, the proof compendium and this text were drafted with the help of an AI assistant (Claude, Anthropic) under the author's direction.
+The tables of the results sections are generated from the saved run files by \texttt{report/verify/make\_tables.py}.
+Every number of the text that is computed from the runs, from the environment and audit checks or from a closed-form expression is typeset through a macro that names a registered claim, and \texttt{report/verify/verify\_results.py} checks that the printed literal is the registered one and that it equals the value recomputed from the saved files at the printed precision.
+Configuration settings quoted in the text are checked against the frozen configuration, but most of their occurrences are not tied to these checks (\cref{app:repro}).
+No theorem in this memoir is a statement about the convergence of neural-network training or about the optimality of an approximate model.
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+\clearpage

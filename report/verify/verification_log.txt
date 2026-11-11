@@ -1,0 +1,15 @@
+suites: {'core': 144, 'compact_ablations': 39}; unique jobs 165
+final_summary_core.csv: 36 rows, 273 metric means/SDs compared
+final_runs_core.csv: 108 rows, 576 values compared
+final_summary_compact_ablations.csv: 8 rows, 65 metric means/SDs compared
+final_runs_compact_ablations.csv: 24 rows, 144 values compared
+convergence_core.csv: 81 rows compared
+convergence_compact_ablations.csv: 21 rows compared
+costs_core.csv: 81 rows compared
+costs_compact_ablations.csv: 21 rows compared
+fb_diagnostics_core.csv: 27 rows compared
+fb_diagnostics_compact_ablations.csv: 6 rows compared
+registered claims: 503 claim ids, 538 comparisons with recomputed values
+TeX binding: 565 \vn occurrences in 23 files name 408 claim ids; 408 claims are registered as printed (each must occur), 95 as not tied to the text; 0 binding errors
+LaTeX tables written: tab_finite.tex, tab_continuous.tex, tab_convergence.tex, tab_ablation.tex, tab_costs.tex, tab_cost_components.tex, tab_fbdiag.tex, tab_seeds.tex, tab_pilot.tex
+RESULT: PASS (0 mismatches)

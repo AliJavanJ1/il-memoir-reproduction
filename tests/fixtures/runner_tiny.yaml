@@ -1,0 +1,13 @@
+# TEST FIXTURE: the smoke budgets restricted to the finite four-rooms maze (6 jobs).  Used by
+# tests/test_runner.py for the runner mechanics (cache, stale code, failures, interruption).
+schema: il_memoir/suite-v1
+base: ../../configs/smoke.yaml
+suite: runner_fixture
+kind: smoke
+description: >-
+  TEST FIXTURE: runner mechanics on the finite four-rooms maze with smoke budgets (not a result).
+seeds: smoke
+data:
+  id: runner-fixture
+grid:
+  - {env: finite, layout: four_rooms, tasks: [goal_5_5]}

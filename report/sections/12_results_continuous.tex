@@ -1,0 +1,49 @@
+\section{Results in the continuous maze}\label{sec:results-continuous}
+
+This section answers Q5.
+In the continuous four-rooms maze the state is a position in $[0,1]^2$ and the actions are the same five moves.
+FB uses the DQN-style approximation of the state--action space: the forward network maps a raw position and a latent to one $d$-dimensional vector per action, as a DQN maps a state to one value per action, and the policy is a softmax over the five scores $F(s,a,z)^\top z$. $f$-PG uses a categorical MLP policy and a kernel density estimate of the occupancies.
+No exact oracle exists here: every number is a Monte Carlo estimate from 500 fresh rollouts per checkpoint, and the occupancy divergence is the plug-in histogram estimate of \cref{sec:protocol}.
+
+\subsection{Final performance}
+
+\begin{table}[ht]
+\centering\small
+\caption{Continuous four-rooms maze, core suite, last checkpoint (mean $\pm$ sample SD over 3 seeds; 500 evaluation rollouts each). JS is the plug-in histogram divergence against $2{,}000$ reference expert rollouts; ``final in goal'' is the fraction of rollouts whose state $s_H$ lies in the goal region. The expert rows measure the estimator's floor.}\label{tab:continuous}
+\input{generated/tab_continuous}
+\end{table}
+
+\Cref{tab:continuous} and \cref{fig:final-core} give the final policies.
+\textbf{No method meets the operational thresholds in the continuous maze, at any checkpoint of any run} (\cref{tab:convergence}).
+The expert rows show that this is not an artefact of the estimator: the expert's own divergence is $\vn{s12.floor.lo}{0.0005}$ to $\vn{s12.floor.hi}{0.0013}$ nats, \vn{s12.orders}{two} orders of magnitude below the learners'.
+
+\paragraph{$f$-PG} ends closest to the expert, with a divergence of $\vn{s12.fpg.js.lo}{0.24}$ to $\vn{s12.fpg.js.hi}{0.41}$ nats, and reaches the goal in $\vn{s12.fpg.succ_pct.lo}{92}$ to $\vn{s12.fpg.succ_pct.hi}{99}\%$ of the rollouts in all \vn{n.runs.cont.word}{nine} runs.
+But it does not imitate the expert's behaviour at the goal: only $\vn{s12.fpg.fig_pct.lo}{6}$ to $\vn{s12.fpg.fig_pct.hi}{14}\%$ of its rollouts end in the goal region, against $\vn{s12.exp.fig_pct.lo}{72}$ to $\vn{s12.exp.fig_pct.hi}{76}\%$ for the expert, and after the first hit it spends $\vn{s12.fpg.post_pct.lo}{10}$ to $\vn{s12.fpg.post_pct.hi}{18}\%$ of the remaining steps there, against $\vn{s12.exp.post_pct.lo}{77}$ to $\vn{s12.exp.post_pct.hi}{79}\%$.
+Its policy remains very stochastic (mean entropy $\vn{s12.fpg.ent.lo}{1.04}$ to $\vn{s12.fpg.ent.hi}{1.47}$ nats on visited states, against $\log5\approx\vn{const.log5}{1.61}$ for the uniform policy), and its divergence was still decreasing at the end of the budget: over the last $\vn{fpg.interval.c}{10{,}000}$ learner transitions it fell by $\vn{s12.fpg.dec.lo}{0.003}$ to $\vn{s12.fpg.dec.hi}{0.039}$ nats ($\vn{s12.fpg.dec_mean}{0.025}$ on average).
+Together with a learning rate at the edge of the tested grid (\cref{sec:m-pilot}), this suggests that the budget, not an obstacle we can identify, limited $f$-PG here; the runs do not show where it would have stopped.
+
+\paragraph{\ERFB} reaches the goal in $\vn{s12.er.succ_pct.lo}{12}$ to $\vn{s12.er.succ_pct.hi}{99}\%$ of the rollouts (at least $80\%$ in \vn{s12.er.n08}{4} of the \vn{n.runs.cont}{9} runs) but almost never stays: at most $\vn{s12.er.fig_max_pct}{0.4}\%$ of its rollouts end in the goal region. Its divergence is $\vn{s12.er.js.lo}{0.48}$ to $\vn{s12.er.js.hi}{0.66}$ nats.
+
+\paragraph{\DMFB} has divergences of $\vn{s12.dm.js.lo}{0.35}$ to $\vn{s12.dm.js.hi}{0.69}$ nats and success $\vn{s12.dm.succ.lo}{0}$ to $\vn{s12.dm.succ.hi}{0.88}$ (at least $0.80$ in \vn{s12.dm.n08}{2} runs). Its largest divergence, $\vn{s12.dm.max}{0.693}$ nats, is essentially the maximum $\log2$ of $\JS$, reached when the learner's rollouts and the expert's occupy disjoint histogram cells.
+Paired with \ERFB{} by goal and seed, \DMFB{} has a larger divergence in \vn{s12.pair.js}{4} of the \vn{s12.pair.n}{9} runs and a lower success in \vn{s12.pair.succ}{7}; its latent steps increased the divergence in \vn{s12.dmpath.js}{4} of the \vn{abs.dm.n_cont}{9} adaptations (\cref{fig:dm-path}).
+
+\subsection{Learning curves}
+
+$f$-PG starts from a nearly uniform policy at $\vn{s12.fpg.js0.lo}{0.57}$--$\vn{s12.fpg.js0.hi}{0.59}$ nats. Averaged over the \vn{n.runs.cont.word}{nine} runs, its success rises from $\vn{s12.fpg.succ0}{0.29}$ at the start to $\vn{s12.fpg.succ20k}{0.81}$ after $\vn{s12.fpg.x20k}{20{,}000}$ transitions and $\vn{s12.fpg.succ_end}{0.97}$ at the end, while its mean divergence decreases at every checkpoint (\cref{fig:fpg-curves}, right).
+\ERFB{} and \DMFB{} change little with pretraining: at every snapshot, their mean divergence over the \vn{n.runs.cont.word}{nine} runs lies between $\vn{s12.fbil.snapmean.lo}{0.51}$ and $\vn{s12.fbil.snapmean.hi}{0.56}$ nats (\cref{fig:fbil-snapshots}, right). Between consecutive snapshots the divergence of a run changes by up to $\vn{s12.swing}{0.31}$ nats, and \vn{s12.lost}{5} of the \vn{s12.curves}{18} curves reach a success of $0.80$ at an earlier snapshot but not at the last.
+
+\subsection{The FB model with a DQN-style forward network}
+
+The replay data contained every pair of a free maze-lattice cell (side $1/7$) and an action at least \vn{s12.cover}{423} times.
+At the resolution of the \vn{env.hist_cells}{356} cells of the evaluation histogram, coverage is incomplete near walls: the smallest number of visits of a pair of a histogram cell and an action is \vn{s12.hcov.min.s0}{0}, \vn{s12.hcov.min.s1}{1} and \vn{s12.hcov.min.s2}{2} in the buffers of seeds 0, 1 and 2, and \vn{s12.hcov.low.lo}{29} to \vn{s12.hcov.low.hi}{34} pairs per buffer have fewer than \vn{s12.hcov.low_threshold}{10} visits, all in histogram cells of which walls leave only $\vn{s12.hcov.free_pct}{14}\%$ free (counts from the stored buffers by \nolinkurl{report/verify/replay_hist_coverage.py}).
+Neither count rules out coverage problems of the continuous state space at finer scales.
+The learned backward representation is nearly degenerate (\cref{tab:fbdiag}): the smallest eigenvalue of its Gram matrix under the replay measure is $\vn{s12.lmin.lo}{1.7\times10^{-5}}$ to $\vn{s12.lmin.hi}{4.2\times10^{-5}}$, against $\vn{s11.lmin.lo}{0.93}$ to $\vn{s11.lmin.hi}{0.96}$ in the finite mazes, while the largest is $\vn{s12.lmax.lo}{2.0}$ to $\vn{s12.lmax.hi}{2.2}$ and $\lVert\hat G_B-I\rVert_F$ is about $\vn{s12.dev}{3.4}$.
+For the eigenvector $u$ of $\lambda_{\min}$, $\int(u^\top B)^2\dd\hat\nu=\lambda_{\min}$: at least one direction of $B$ is almost zero on the replay data, despite the orthonormality penalty that pushes $\hat G_B$ towards the identity. The diagnostics record only the smallest and the largest eigenvalue, so this report does not say how many directions are poorly excited.
+The pilot had already shown this ($\lambda_{\min}\approx\vn{s10.pilot.lmin}{2\times10^{-5}}$ at all three temperatures); the protocol was frozen and the settings were not changed in response.
+We could not compute the model error exactly here, so we cannot say how much of the failure comes from the representation and how much from the latent step.
+Plausible causes that these runs do not test are the raw $(x,y)$ inputs to $B$ (FB21 used radial-basis features in its continuous maze), the budget of $\vn{fb.updates.c}{20{,}000}$ updates, and the rank $d=16$.
+
+\paragraph{Answer for Q5, in short.}
+With a DQN-style forward network, FB pretraining on $\vn{replay.c}{100{,}000}$ task-blind transitions produced a backward representation with a nearly singular Gram matrix, and neither \ERFB{} nor \DMFB{} imitated the expert: both sometimes reach the goal but neither stays.
+$f$-PG with a KDE signal and an MLP policy made steady progress but did not reach the thresholds within $\vn{budget.fpg.c}{100{,}000}$ learner transitions.
+These are statements about this maze, these budgets and three seeds.

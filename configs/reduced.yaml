@@ -1,0 +1,20 @@
+# Reduced documented core (PROJECT_SPEC section 7, WORKFLOW section 6), written in Prompt 3C.
+#
+# NOT SELECTED in Prompt 4 (2026-10-05): the measured core fits the budget (RUN_PLAN.md).  Kept as the
+# documented fallback; no value of this file changed.  Used only if the core cannot run.  Inherits every
+# setting of core.yaml and keeps both finite difficulty levels and the continuous experiment:
+# one easy finite goal (open layout), two hard finite goals (four rooms: two doorways and one
+# doorway) and one continuous goal, with all three final seeds.  Its jobs are a subset of the
+# core's (same identifiers), so a later full core run reuses them.
+schema: il_memoir/suite-v1
+base: core.yaml
+suite: reduced
+kind: final
+description: >-
+  Reduced core: finite open goal (5,5), finite four-rooms goals (5,5) and (5,1), continuous goal (5,5),
+  f-PG (JS) versus FB with DM_FB and ER_FB, final seeds 0, 1, 2.
+seeds: final
+grid:
+  - {env: finite, layout: open, tasks: [goal_5_5]}
+  - {env: finite, layout: four_rooms, tasks: [goal_5_5, goal_5_1]}
+  - {env: continuous, layout: four_rooms, tasks: [goal_5_5]}

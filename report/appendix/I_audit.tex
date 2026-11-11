@@ -1,0 +1,115 @@
+\section{Source discrepancies and design decisions}\label{app:audit}
+
+This appendix condenses the source audit (\texttt{SOURCE\_AUDIT.md}), which was made from the supplied PDFs before any code was written.
+The PDFs were read in full from text extraction, and every ambiguous page was rendered and read visually; page numbers are PDF page indices, which coincide with the printed ones.
+No later paper version and no author code was consulted.
+A reference \audit{X} in the text points to item X below.
+A paper is evidence for its own claims only: nothing here, or in the memoir, says that our code reproduces a paper's results.
+
+\begin{table}[ht]
+\centering\small
+\caption{The supplied sources.}\label{tab:sources}
+\begin{tabularx}{\textwidth}{@{}lX>{\raggedright\arraybackslash}p{3.4cm}@{}}
+\toprule
+ID & work and version evidence & role here\\
+\midrule
+A & O.~Capp\'e, memoir proposal ``Approaches for Imitation Learning'', July 2025, 2~pp. & research questions\\
+FIRL & \citet{ni2021firl}, CoRL 2020, 23~pp. & theory only\\
+FPG & \citet{agarwal2023fpg}, arXiv:2310.06794v1, NeurIPS 2023, 24~pp. & adapted to a fixed target\\
+FB21 & \citet{touati2021fb}, arXiv:2103.07945v3, 45~pp. & FB theory and pretraining\\
+FI24 & \citet{pirotta2024fast}, ICLR 2024, 40~pp. & \ERFB, \DMFB\\
+\bottomrule
+\end{tabularx}
+\end{table}
+\FloatBarrier
+
+\subsection{Divergence conventions}
+
+\begin{description}[style=nextline,leftmargin=1.2cm,font=\normalfont\sffamily]
+\item[D1] FPG Eq.~(3), p.~3, writes $\int_{P>0}Pf(Q/P)$, which swaps the arguments relative to FPG's own Table~1 and proofs (Lemma~A.2, p.~16; B.1, p.~19) and flips the sign of the $f'(\infty)$ term. We follow the table and the proofs: $D_f(p\Vert q)=\sum_xq(x)f(p(x)/q(x))$, learner first.
+\item[D2] FPG's ``fkl'' is $\KL(\text{learner}\Vert\text{target})$, which FIRL calls ``RKL'' when the expert is the target. We never write ``forward'' or ``reverse'' KL; both directions are named by their arguments.
+\item[D3] FPG Table~1 and FIRL Table~2 print $\JS$ with the factor $\frac12$, but their generator $u\log u-(1+u)\log\frac{1+u}2$ gives twice that value. We use the half-weight generator, $0\le\JS\le\log2$; FIRL's $h_{\JS}=-\log(1+u)$ corresponds to the doubled generator and drops a constant that a covariance ignores.
+\item[D4] FPG Table~1 lists $\chi^2$ with $f=\frac12(u-1)^2$ and $f'(u)=u$; the derivative is $u-1$. Not used.
+\item[D5] Perspective map: $D_f(p\Vert q)=D_{f^\circ}(q\Vert p)$ with $f^\circ(u)=uf(1/u)$ (\cref{prop:div-perspective}); FIRL's expert-first objective is a learner-first divergence with generator $f^\circ$.
+\end{description}
+
+\subsection{\texorpdfstring{$f$}{f}-PG}
+
+\begin{description}[style=nextline,leftmargin=1.2cm,font=\normalfont\sffamily]
+\item[F1] The sign of FPG's update is consistent: descent with weight $f'(p_\theta/p_g)$ lowers the probability of over-visited states (p.~7).
+\item[F2] Thm~4.1 (Eq.~5, p.~4) lacks the factor $1/T$ of the appendix version (Eq.~8, p.~18): a step-size change only.
+\item[F3] Index ranges: the trajectory is $(s_0,a_0,\dots,s_T)$, but the score sums run over $t=1..T$, including $a_T$ and omitting $a_0$. In the next-state convention the scores are at $k=0..H-1$ and the signal at $s_{t+1}$.
+\item[F4] The proof of B.1 (pp.~18--19) treats $\pi_\theta(s_t)$ as a state weight and drops a term without stating that the score has mean zero; we use an independent derivation (\cref{thm:fpg-grad}).
+\item[F5] Discount weights: FPG Eq.~(12), p.~21, discounts score and signal separately, and Eq.~(13) discounts twice; neither is the gradient of the discounted-visitation objective. Eq.~(10), re-indexed to $s_{t'}$ and used on-policy, is exact. B.3 calls Eq.~(10) ``biased''; by our derivation its on-policy form is unbiased with the true occupancy, and bias enters through off-policy ratios, the old occupancy inside $f'$, and plug-in estimates. Dropping the $\gamma^k$ score weight does not give the gradient (\cref{thm:fpg-causal}).
+\item[F6] The PPO surrogate of Eqs.~(6) and (11) is written for maximization while $J$ is minimized; for descent the pessimistic clipping is a maximum. PPO is not used in the runs.
+\item[F7] The Dirac-target results (Thm~4.2, Thm~5.1, Lemmas~A.1--A.3) rely on $D_f(p\Vert\delta_g)$ depending on $p(g)$ only, which is false for a non-degenerate expert target. Their replacements are \cref{prop:div-generators}, \cref{prop:occ-return} and \cref{prop:fpg-opt}; no convergence claim is made.
+\item[F8] Lemma~5.1 (state-MaxEnt identity, p.~6) is correct and transfers to a fixed positive target (\cref{prop:fpg-maxent}); the inference of Lemma~A.4 (p.~17), from an upper bound to the bounded quantity, is invalid and not used.
+\item[F9] FPG clips zero target probabilities at $\varepsilon$; we use the renormalized mixture $(1-\varepsilon)q+\varepsilon\upsilon$, which changes the objective but keeps exact derivatives (\cref{prop:div-smooth}).
+\item[F10] FPG fits densities by KDE inside the update loop; a plug-in density inside the nonlinear $f'$ biases the gradient estimator (\cref{prop:fpg-approx}).
+\end{description}
+
+\subsection{FB21 and the transfer to our design}
+
+\begin{description}[style=nextline,leftmargin=1.2cm,font=\normalfont\sffamily]
+\item[T1] Softmax policies in the pretraining targets are source-supported (FB21 Algorithm~1, line~18, $\tau=200$); using the same softmax family in imitation and evaluation is our adaptation, to which FB21 Thm~2 and the optimality parts of Thms~8--9 do not apply.
+\item[T2] Under exactness for the softmax family, $V^\star_r-V^\pi_r\le\tau\log\lvert\cA\rvert/(1-\gamma)$, and $\tau$ and the scale of $z$ are coupled (\cref{prop:fb-softmax}).
+\item[T3] Finite exact realizability for our family is possible with $d\ge\#\cS$ (one-hot $B$, softmax fixed points by Brouwer; a sufficient condition) and requires $d\ge\operatorname{rank}\tilde P$ (\cref{prop:fb-exist}(c); a necessary condition), which equals $\#\cS$ in our finite mazes; with $d=16<\vn{env.rank.4r}{40}$ the finite-maze models are approximate by construction (\cref{prop:fb-exist,rem:fb-rank16}); for the continuous maze no such statement is proved.
+\item[T4] The policy-evaluation step of the proof of FB21 Thm~8 (Eqs.~102--103, p.~29) does not use greediness and applies to our models (\cref{thm:fb-approx}(a)).
+\item[T5] FB21 feeds $21\times21$ radial-basis features to $B$ in its continuous maze; we use raw $(x,y)$ (decision U-11).
+\item[T6] FB21 (Eq.~35, p.~22) and FI24 (p.~3) both define ``$\mathrm{Cov}\,B$'' uncentred; so do we (\cref{prop:fb-gram}).
+\end{description}
+
+\subsection{Timing and successor conventions}
+
+\begin{description}[style=nextline,leftmargin=1.2cm,font=\normalfont\sffamily]
+\item[R1] FI24 p.~3 defines $Q^\pi_r(s_0,a_0)=\sum_t\gamma^t\E[r(s_t)]$ while its successor measure (Eq.~1) is on $s_{t+1}$ and the same page says that the reward depends on $s_{t+1}$; its Proposition~1 holds with $r(s_{t+1})$, which we use throughout (\cref{sec:occ-conv}).
+\item[R2] The stationary optimal policy need not be optimal for the $H$-step return; the oracle therefore also computes the $H$-step optimum by backward induction, and every gap is measured against $V^\star_H$ (\cref{prop:occ-hstep}).
+\end{description}
+
+\subsection{FI24: the assumptions of the \texorpdfstring{\DMFB}{DM-FB} expansion and \texorpdfstring{\ERFB}{ER-FB}}
+
+\begin{description}[style=nextline,leftmargin=1.2cm,font=\normalfont\sffamily]
+\item[A1] Exact FB for the policies attached to every $z$ used. Fails here (rank 16); the implemented loss is the model's, not the true one.
+\item[A2] $F(s,z)$ averages over the same $\pi_z$ as in A1: by design, one network copy for both.
+\item[A3] $\mathrm{Cov}\,B$ under the same reference $\nu$ as in A1: enforced, one $\hat\nu$ for the loss, $\hat G_B$ and $z_r$.
+\item[A4] The expert is a stationary Markov policy of the observed state: the finite expert is; the continuous expert was built as a state-feedback controller for this reason.
+\item[A5] Infinite continuation after each expert state: fails with $H=100$; resolved by truncation at $K=60$ with a bias bound (decisions D4--D5 below).
+\item[A6] Square-integrable density of the expert successor measure with respect to $\nu$: holds in the finite mazes with full coverage; under exactness it is automatic.
+\item[A7] Greedy $\pi_z$: \emph{not} needed by FI24 Thm~3, so the \DMFB{} expansion holds for our softmax family (\cref{thm:fbil-dm}); \ERFB's optimality reading does need it.
+\item[E1] FI24 Eq.~(8) weights expert states uniformly over $s_1..s_H$ with equal trajectory weights; the $f$-PG target uses $\gamma^t/Z_H$ weights. The two are different distributions and are never mixed.
+\item[E2] Reading $z_{ER}$ as $z_{r}$ for $r=\rho_e/\nu$ requires $\rho_e\ll\nu$; in the continuous maze the empirical $\rho_e$ is atomic and the reading is formal.
+\item[E3] Even under exact greedy FB, \ERFB{} maximizes a reward; it carries no matching guarantee (\cref{ex:fbil-er}).
+\item[E4] With softmax policies and an exact model, the norm of $z$ acts as an inverse temperature (for a trained network, which also depends on $z$, this is not guaranteed), so any projection of $z_{ER}$ changes the problem and is stated.
+\end{description}
+
+\subsection{Design decisions}
+
+The design decisions of the theory stage are numbered separately from the divergence items D1--D5 above; the text refers to them as ``decision D1'' and so on.
+\begin{description}[style=nextline,leftmargin=1.2cm,font=\normalfont\sffamily]
+\item[decision D1] After pretraining, the online network copy defines $F$, $B$, $\pi_{z,\tau}$, $\hat G_B$, $z_{ER}$, the \DMFB{} objective and evaluation; target copies appear only in the pretraining target (\cref{rem:fb-design}).
+\item[decision D2] Latents on the sphere of radius $R=\sqrt d=4$, sampled uniformly in pretraining, with \ERFB{} and \DMFB{} outputs projected onto it; $\tau$ is reported with $\lVert z_{ER}\rVert$.
+\item[decision D3] Polyak target networks with momentum $0.99$ after every update.
+\item[decision D4] \DMFB{} start times $\{0,\dots,H-K\}$ with truncation $K=60$; the model bootstrap of the tail was rejected (\cref{rem:fbil-u4}).
+\item[decision D5] The \DMFB{} start law includes $t=0$, which gives occupancy control from $\mu_0$ (\cref{thm:fbil-dm}(e)); \ERFB{} keeps FI24's $s_1..s_H$.
+\end{description}
+
+\subsection{Items decided during the project}
+
+\begin{description}[style=nextline,leftmargin=1.2cm,font=\normalfont\sffamily]
+\item[U-1] Supervisor approval of the environments and of state-only matching: no new requirement was received.
+\item[U-2] Latent domain and temperature: the sphere of radius 4 and $\tau=1$, chosen in the pilot (\cref{sec:m-pilot}).
+\item[U-3] Network copy after pretraining: decision D1.
+\item[U-4] \DMFB{} tail treatment: decisions D4--D5.
+\item[U-5] Continuous kernel: no clipping (moves are segment-checked), a blocked move becomes ``stay'', and the noise is redrawn until its segment is free; the kernel has no atom and a bounded density (\cref{prop:env-cont}); the replay law dominates Lebesgue measure with $n_{\min}\approx\vn{const.n_min}{1.2\times10^{-3}}$ (\cref{prop:env-replay}).
+\item[U-6] $f$-PG signal: cross-fitting with two folds (\cref{prop:env-crossfit}).
+\item[U-7] The Gibbs hypothesis \eqref{eq:m-gibbs} of FIRL is kept as a hypothesis on the law of the learner's state sequences. The source does not show that an exact maximum-entropy policy realizes this law under stochastic dynamics, and no policy in this memoir is claimed to satisfy it.
+\item[U-8] The softmax bound and the existence of softmax fixed points are proved (\cref{prop:fb-softmax,prop:fb-softmax-exist}); uniqueness is not claimed.
+\item[U-9] Our reading of FPG B.3's ``biased'' remark is the one of F5.
+\item[U-10] Finite slip $0.1$ with the executed action uniform over all five actions; $\operatorname{rank}\tilde P=\#\cS$ (\cref{prop:env-finite}).
+\item[U-11] Raw $(x,y)$ inputs to FB in the continuous maze, kept after the pilot without an alternative being tested.
+\item[U-12] $\tanh$ activations in the $f$-PG MLP, so that the gradient results cover it.
+\item[U-13] The \vn{env.hist_cells}{356} histogram cells of positive free area partition the free space and are all reachable within $H$ steps (\cref{prop:env-cells}); the target is smoothed.
+\item[U-14] LayerNorm and $\tanh$ in the first FB layer, then SiLU, so that the gradient results cover the networks.
+\item[U-15] KDE with $h=0.05$ kept after the pilot; its wall effects are quantified in \cref{rem:env-kde}.
+\item[U-16] Success means a hit of the goal region within $H$ steps; final-state and post-hit goal fractions are reported beside it; the thresholds $\JS\le0.10$ nats and success $\ge0.80$ were frozen as declared.
+\end{description}

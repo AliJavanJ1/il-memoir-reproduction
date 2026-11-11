@@ -1,0 +1,177 @@
+% ---------------------------------------------------------------------------
+% Appendix D (from theory/04_firl.tex)  --  claims FIRL-1 ... FIRL-3 (theory only)
+% ---------------------------------------------------------------------------
+\section{\texorpdfstring{$f$}{f}-IRL: the analytic reward gradient (theory only)}\label{sec:firl}
+
+\paragraph{Status and sources.}
+$f$-IRL is not implemented in this study.
+We reprove its central result, the covariance form of the reward gradient (FIRL Theorem~4.1, p.~3; proof App.~A.1--A.2, pp.~11--13), under its exact MaxEnt hypothesis, and we relate it to $f$-PG.
+FIRL's setting differs from ours in four respects:
+\begin{itemize}[nosep]
+\item its horizon $T$ is finite and undiscounted;
+\item its marginal counts the states $s_1,\dots,s_T$, excluding $s_0$ (A.1, p.~11);
+\item its objective puts the expert first, $D_f(\rho_E\Vert\rho_\theta)$ (Eq.~2, p.~3);
+\item its parameters $\theta$ parameterize the \emph{reward}.
+\end{itemize}
+
+\subsection{Setting and the exact MaxEnt hypothesis}
+
+\begin{assumption}[A-FIRL]\label{ass:firl}
+\leavevmode
+\begin{enumerate}[nosep,label=(\roman*)]
+\item $\cS$ is finite, $T\in\N$ with $T\ge1$, and $\cT:=\cS^{T+1}$ is the set of state sequences $\tau=(s_0,\dots,s_T)$.
+\item \emph{(Gibbs hypothesis.)} There is a weight $\bar p:\cT\to[0,\infty)$ that does not depend on $\theta$ such that the agent's law over state sequences is
+\[
+\rho_\theta(\tau)=\frac{\bar p(\tau)\exp\big(R_\theta(\tau)/\alpha\big)}{Z(\theta)},\qquad
+R_\theta(\tau):=\sum_{t=1}^Tr_\theta(s_t),\qquad
+Z(\theta):=\sum_{\tau}\bar p(\tau)e^{R_\theta(\tau)/\alpha},
+\]
+with temperature $\alpha>0$.
+\item For each $s$, $\theta\mapsto r_\theta(s)$ is $C^1$ on an open set $\Theta\subseteq\R^m$.
+\item \emph{(Visitability.)} For every $s\in\cS$ there is $\tau$ with $\bar p(\tau)>0$ and $\eta_\tau(s)>0$, where $\eta_\tau(s):=\sum_{t=1}^T\ind[s_t=s]$.
+\item $f$ is convex and $C^1$ on $(0,\infty)$ with $f(1)=0$; $\rho_E$ is a probability vector on $\cS$.
+  If $\rho_E$ has zeros, also assume that $f(0)$ is finite and $\lim_{u\downarrow0}uf'(u)=0$, and set $h_f(0):=f(0)$. These conditions hold for $u\log u$ and $f_{\JS}$.
+  The proof uses only the finiteness of $f(0)$. The limit condition is used only to make $h_f(0):=f(0)$ the continuous extension, since then $h_f(u)=f(u)-uf'(u)\to f(0)$ as $u\downarrow0$; it plays no other role.
+\end{enumerate}
+\end{assumption}
+
+\begin{remark}[what the hypothesis does and does not say]\label{rem:firl-gibbs}
+FIRL writes the base weight as $p(\tau)=\rho_0(s_0)\prod_tp(s_{t+1}\mid s_t,a_t)$ (p.~3 and Eq.~7, p.~11), although $\tau$ contains no actions; the action weighting is left implicit.
+\Cref{ass:firl}(ii) states the property the proof actually uses: the agent's state-trajectory law is an exponential tilt of a fixed base weight by the cumulative state reward.
+We do not claim that any policy produced by MaxEnt RL realizes this law. In particular we make no claim about soft-$Q$ or SAC policies under stochastic dynamics, nor about approximately trained ones.
+The theorem below is a statement about the Gibbs family. When the agent's law is only approximately Gibbs, the formula is only an approximation of the gradient \audit{U-7}.
+The objective of FIRL's preliminaries, $\sum_t\E[r(s_t,a_t)+\alpha\Ent(\cdot\mid s_t)]$ with \emph{action} entropy (p.~3), is a different object. The paper links it to the Gibbs form by citing Ziebart [28]; that link is not used here.
+\end{remark}
+
+Define the agent marginal $\rho_\theta(s):=\frac1T\sum_\tau\rho_\theta(\tau)\eta_\tau(s)$ and the loss
+$L_f(\theta):=D_f(\rho_E\Vert\rho_\theta)=\sum_s\rho_\theta(s)f\big(\rho_E(s)/\rho_\theta(s)\big)$, where the second form uses $\rho_\theta>0$, proved next.
+Let $u_\theta(s):=\rho_E(s)/\rho_\theta(s)$ and $h_f(u):=f(u)-uf'(u)$.
+
+\begin{lemma}\label{lem:firl-basic}
+Under \cref{ass:firl}:
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $\rho_\theta(\cdot)$ is a probability vector with $\rho_\theta(s)>0$ for every $s$ and every $\theta$;
+\item $\nabla_\theta\rho_\theta(\tau)=\frac1\alpha\rho_\theta(\tau)\big(\nabla R_\theta(\tau)-\E_{\rho_\theta}\nabla R_\theta\big)$;
+\item $\nabla_\theta\rho_\theta(s)=\frac1{\alpha T}\Cov_{\tau\sim\rho_\theta}\big(\eta_\tau(s),\nabla R_\theta(\tau)\big)$, where $\nabla R_\theta(\tau)=\sum_{t=1}^T\nabla r_\theta(s_t)$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(a) $\sum_s\eta_\tau(s)=T$ for every $\tau$, so $\sum_s\rho_\theta(s)=\frac1T\sum_\tau\rho_\theta(\tau)T=1$.
+Positivity: by (iv) some $\tau$ with $\eta_\tau(s)>0$ has $\bar p(\tau)>0$, hence $\rho_\theta(\tau)>0$, because the exponential factor is positive and $Z(\theta)\in(0,\infty)$ is a finite sum.
+
+(b) $\log\rho_\theta(\tau)=\log\bar p(\tau)+R_\theta(\tau)/\alpha-\log Z(\theta)$ wherever $\bar p(\tau)>0$, and $\rho_\theta(\tau)=0$ for all $\theta$ otherwise.
+Moreover $\nabla\log Z=Z^{-1}\sum_\tau\bar p\,e^{R/\alpha}\nabla R/\alpha=\E_{\rho_\theta}[\nabla R]/\alpha$.
+All sums are finite, so differentiation is termwise.
+
+(c) Differentiate the finite sum defining $\rho_\theta(s)$ and insert (b):
+$\nabla\rho_\theta(s)=\frac1{\alpha T}\E_{\rho_\theta}\big[\eta_\tau(s)(\nabla R-\E\nabla R)\big]$, which is the stated covariance.
+\end{proof}
+
+\begin{theorem}[FIRL Theorem~4.1, p.~3]\claim{FIRL-1}{S}\label{thm:firl}
+Under \cref{ass:firl}, $L_f$ is $C^1$ on $\Theta$ and
+\[
+\nabla_\theta L_f(\theta)=\frac1{\alpha T}\,\Cov_{\tau\sim\rho_\theta}\Big(\sum_{t=1}^Th_f\big(u_\theta(s_t)\big),\ \sum_{t=1}^T\nabla_\theta r_\theta(s_t)\Big).
+\]
+\end{theorem}
+\begin{proof}
+\emph{Step 1 (derivative through the marginal).}
+Fix $s$ with $\rho_E(s)>0$. The term $\rho_\theta(s)f(u_\theta(s))$ is $C^1$ in $\theta$, because $\rho_\theta(s)>0$ is $C^1$ (\cref{lem:firl-basic}) and $f$ is $C^1$ on $(0,\infty)$. Its gradient is
+\[
+\nabla\rho_\theta(s)\,f(u)+\rho_\theta(s)f'(u)\cdot\Big(-\frac{\rho_E(s)}{\rho_\theta(s)^2}\Big)\nabla\rho_\theta(s)
+=\big(f(u)-uf'(u)\big)\nabla\rho_\theta(s)=h_f(u_\theta(s))\,\nabla\rho_\theta(s).
+\]
+This is FIRL Eq.~(20), p.~12.
+If $\rho_E(s)=0$, the term is $\rho_\theta(s)f(0)$, with gradient $f(0)\nabla\rho_\theta(s)=h_f(0)\nabla\rho_\theta(s)$ under the convention of \cref{ass:firl}(v).
+Summing over the finitely many $s$ gives $\nabla L_f=\sum_sh_f(u_\theta(s))\nabla\rho_\theta(s)$.
+
+\emph{Step 2 (Gibbs covariance).} By \cref{lem:firl-basic}(c) and bilinearity of the covariance over the finite sum,
+\[
+\nabla L_f=\frac1{\alpha T}\sum_sh_f(u_\theta(s))\Cov\big(\eta_\tau(s),\nabla R_\theta\big)
+=\frac1{\alpha T}\Cov\Big(\sum_sh_f(u_\theta(s))\eta_\tau(s),\ \nabla R_\theta\Big).
+\]
+
+\emph{Step 3 (counting identity).} $\sum_sh_f(u_\theta(s))\eta_\tau(s)=\sum_{t=1}^Th_f(u_\theta(s_t))$, by the definition of $\eta_\tau$.
+\end{proof}
+
+\begin{remark}[sign and update direction]\label{rem:firl-sign}
+FIRL performs descent, $\theta\leftarrow\theta-\lambda\hat\nabla L_f$ (Algorithm~1, p.~4).
+Take tabular rewards $r_\theta(s)=\theta_s$. Then $\nabla R_\theta(\tau)=\eta_\tau$, and the $s'$-component of the gradient is $\frac1{\alpha T}\Cov(\sum_th_f(u(s_t)),\eta_\tau(s'))$.
+For a tabular reward, if a state's visit count has negative covariance with the trajectory signal $\sum_th_f(u(s_t))$, gradient descent increases that state's reward.
+Co-occurrence alone does not guarantee this sign.
+Since $h_f$ is nonincreasing (\cref{prop:firl-h}), trajectories along which the expert/agent ratio is large have a small $\sum_th_f$. FIRL's reading on p.~4, that states visited by such trajectories gain reward, is therefore a heuristic about the typical sign of this covariance, not a consequence of the formula.
+Adding a constant to $h_f$ does not change a covariance; this is why FIRL's $h_{\JS}=-\log(1+u)$ may drop $\log2$ \audit{D3}.
+\end{remark}
+
+\subsection{Properties of \texorpdfstring{$h_f$}{h\_f} and the orientation dictionary}
+
+\begin{proposition}\claim{FIRL-2}{S+D}\label{prop:firl-h}
+Let $f$ be $C^2$ and convex on $(0,\infty)$.
+Part (a) and the left half of the table are FIRL's (p.~4; Table~2, p.~4); part (b) and the learner-first half of the table are ours.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $h_f'(u)=-uf''(u)\le0$, so $h_f$ is nonincreasing (FIRL p.~4).
+\item $h_f(u)=(f^\circ)'(1/u)$, where $f^\circ$ is the perspective of \cref{prop:div-perspective}.
+\item In both orientations:
+\begin{center}
+\begin{tabular}{@{}llllll@{}}
+\toprule
+\multicolumn{3}{@{}l}{FIRL (expert first), $u=\rho_E/\rho_\theta$} & \multicolumn{3}{l@{}}{ours (learner first), $v=\rho_\theta/\rho_E$}\\
+\cmidrule(r){1-3}\cmidrule(l){4-6}
+name & $f$ & $h_f(u)$ & divergence & $f^\circ$ & $(f^\circ)'(v)$\\
+\midrule
+FKL & $u\log u$ & $-u$ & $\KL(q\Vert d)$ & $-\log v$ & $-1/v$\\
+RKL & $-\log u$ & $1-\log u$ & $\KL(d\Vert q)$ & $v\log v$ & $1+\log v$\\
+JS & $f_{\JS}$ & $\tfrac12\log\tfrac2{1+u}$ & $\JS$ & $f_{\JS}$ & $\tfrac12\log\tfrac{2v}{1+v}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+In each row, $h_f(u)=(f^\circ)'(1/u)$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) $h_f'=f'-f'-uf''$.
+
+(b) This is \cref{prop:div-perspective}(d).
+
+(c) Direct computation from $h_f=f-uf'$:
+\begin{itemize}[nosep]
+\item $u\log u-u(1+\log u)=-u$;
+\item $-\log u-u(-1/u)=1-\log u$;
+\item $f_{\JS}(u)-u\cdot\frac12\log\frac{2u}{1+u}=\frac12\big[u\log u-(1+u)\log(1+u)+(1+u)\log2-u\log2-u\log u+u\log(1+u)\big]=\frac12\log\frac2{1+u}$.
+\end{itemize}
+The right-hand column is \cref{prop:div-perspective}(c) together with the derivatives of \cref{prop:div-generators}.
+Evaluating at $v=1/u$ reproduces each $h_f$; for example $1+\log(1/u)=1-\log u$, and $\frac12\log\frac{2/u}{1+1/u}=\frac12\log\frac2{u+1}$.
+\end{proof}
+
+\subsection{Comparison with \texorpdfstring{$f$}{f}-PG}\label{sec:firl-compare}
+
+\begin{proposition}[common structure]\claim{FIRL-3}{D}\label{prop:firl-compare}
+Let $\vartheta\mapsto m_\vartheta$ be any $C^1$ parameterization of a learner marginal on a finite set, with $m_\vartheta>0$, and let $q>0$ be a fixed expert marginal.
+For convex $C^1$ $f$,
+\[
+\nabla_\vartheta D_f(q\Vert m_\vartheta)=\nabla_\vartheta D_{f^\circ}(m_\vartheta\Vert q)=\sum_xh_f\Big(\frac{q(x)}{m_\vartheta(x)}\Big)\nabla m_\vartheta(x)=\sum_x(f^\circ)'\Big(\frac{m_\vartheta(x)}{q(x)}\Big)\nabla m_\vartheta(x).
+\]
+Hence the two methods weight each state by the \emph{same} function of the ratio, namely the derivative of the learner-first generator. They differ in three respects:
+\begin{enumerate}[nosep,label=(\roman*)]
+\item \emph{how $\nabla m$ is computed}: $f$-IRL uses the Gibbs covariance over reward parameters (\cref{lem:firl-basic}(c)); $f$-PG uses the likelihood ratio over policy parameters (\cref{thm:fpg-grad});
+\item \emph{which marginal is matched}: $f$-IRL matches the undiscounted uniform marginal over $s_1,\dots,s_T$; our $f$-PG matches the discounted next-state occupancy $d^+_{\pi,H}$;
+\item \emph{what is learned}: $f$-IRL learns a reward and needs a MaxEnt RL inner loop after every reward update (FIRL Algorithm~1, p.~4); $f$-PG updates the policy directly.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+The first equality is \cref{prop:div-perspective}(b).
+For the second, apply \cref{thm:firl} Step~1 to $D_f(q\Vert m)=\sum m\,f(q/m)$.
+The third is \cref{prop:firl-h}(b), or \cref{thm:fpg-grad} Step~2 applied to $\sum q\,f^\circ(m/q)$.
+The three differences are read off \cref{thm:firl,thm:fpg-grad} and the cited algorithm.
+\end{proof}
+
+\begin{remark}[exact versus approximate in $f$-IRL, and reward recovery]\label{rem:firl-approx}
+The covariance formula is exact only under \cref{ass:firl}. The implemented $f$-IRL departs from it in several ways:
+\begin{itemize}[nosep]
+\item the agent is an approximately trained SAC policy, so its trajectory law is not exactly Gibbs;
+\item $\rho_\theta$ is estimated by KDE (FIRL App.~C.1, p.~18);
+\item the covariance is estimated from samples;
+\item the practical Eq.~(6), p.~5, mixes in expert trajectories, which biases the gradient (the paper says so, p.~5).
+\end{itemize}
+FIRL's claim that a state-only reward is recovered up to a constant (\S4.3, p.~4; App.~A.4, p.~13) rests on AIRL Theorem~5.1, which is external to the supplied PDFs and not reproved here. The report presents it as the source's claim, with that dependence stated.
+Since $f$-IRL is not implemented, none of these approximations affects our experiments.
+\end{remark}

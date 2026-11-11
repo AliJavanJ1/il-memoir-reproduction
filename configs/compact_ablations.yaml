@@ -1,0 +1,28 @@
+# Priority-2 compact finite ablations (PROJECT_SPEC section 7), written in Prompt 3C (2026-10-05).
+#
+# FROZEN in Prompt 4 (2026-10-05) together with core.yaml (RUN_PLAN.md): no value of this file changed.
+# Inherits every setting of the frozen core.yaml (f-PG lr 0.3 finite, FB tau 1.0 with R = 4, ...) and
+# restricts the grid to one declared hard goal: four rooms, goal (5,5), behind two doorways.
+# The KL runs use the learning rate selected for JS on the pilot (no separate KL tuning; RUN_PLAN.md).
+#   * f-PG: KL(d_phi || q_E) (kl_dq) and KL(q_E || d_phi) (kl_qd) versus JS: 6 extra runs;
+#   * FB: orthonormality penalty disabled (orth_coef = 0) versus the base learner: 3 extra
+#     pretraining runs, with their ER/DM adaptations and evaluations for this goal.
+# The JS f-PG runs, the base FB runs and their adaptations have the same job identifiers as in
+# the core suite, so they are reused, not retrained (run the core first).
+schema: il_memoir/suite-v1
+base: core.yaml
+suite: compact_ablations
+kind: final
+description: >-
+  Compact finite ablations on four rooms, goal (5,5): f-PG divergence direction (JS, KL(d||q_E),
+  KL(q_E||d)) and the FB orthonormality penalty (on versus off), final seeds 0, 1, 2.
+seeds: final
+grid:
+  - {env: finite, layout: four_rooms, tasks: [goal_5_5]}
+methods:
+  fpg:
+    divergences: [js, kl_dq, kl_qd]
+  fb:
+    variants:
+      base: {}
+      no_orth: {envs: [finite], all: {settings: {orth_coef: 0.0}}}

@@ -1,0 +1,373 @@
+% ---------------------------------------------------------------------------
+% Appendix G (from theory/07_environment.tex)  --  claims ENV-1 ... ENV-6 and FPG-9
+% ---------------------------------------------------------------------------
+\section{The implemented environments, kernels and estimators}\label{sec:env}
+
+\providecommand{\cW}{\mathcal W}
+\providecommand{\cB}{\mathcal B}
+\providecommand{\Leb}{\lambda}
+
+\paragraph{Status.}
+This appendix fixes the environment items \audit{U-5}, \audit{U-10} and \audit{U-13} for the implemented code, and proves the properties of that code on which the other appendices rely.
+Nothing here is a source result.
+The environments are study choices (\cref{sec:protocol}, \texttt{configs/environment.yaml}).
+They differ deliberately from FB21 D.1 (p.~35), whose discrete maze is deterministic and whose continuous maze clips positions at the boundary and undoes wall-crossing moves.
+Our continuous kernel \eqref{eq:env-cont-kernel} has neither clipping nor an atom, and the implemented sampler raises an error rather than return an atom (\cref{prop:env-cont}(e)).
+Type labels: ENV-1 \textsf{I+D}, ENV-2 \textsf{D}, ENV-3 \textsf{D}, ENV-4 \textsf{I}, ENV-5 \textsf{I+D}.
+\Cref{sec:env-replay} proves the domination property of the task-blind replay law used by FB pretraining (ENV-6, \textsf{D}), which \cref{prop:env-cont}(f) left open.
+Implementation: \texttt{il\_memoir/env\_tabular.py}, \texttt{env\_continuous.py}, \texttt{density.py}, \texttt{expert.py}, \texttt{tasks.py}; numerical checks in \texttt{tests/}, \texttt{scripts/check\_environments.py} and \texttt{audit/prompt3A/}. \Cref{sec:env-crossfit} proves the cross-fitting statement FPG-9 used by the implemented $f$-PG learner.
+Throughout, $L:=1/7$, $\Phi$ is the standard normal distribution function and $\varphi_\sigma$ the density of $\mathcal N(0,\sigma^2I_2)$.
+
+\subsection{Finite mazes}\label{sec:env-finite}
+
+\begin{definition}[finite mazes]\label{def:env-finite}
+The lattice is $G:=\{0,\dots,6\}^2$, with cell $(x,y)$ in column $x$ and row $y$.
+The blocked sets are $\cW_{\mathrm{open}}:=\emptyset$ and
+\[
+\cW_{\mathrm{4R}}:=\{(3,y):y\notin\{1,5\}\}\cup\{(x,3):x\notin\{1,5\}\},
+\]
+which contains $(3,3)$ and has \vn{env.walls}{9} cells, so $\cS:=G\setminus\cW$ has $\vn{env.cells.open}{49}$ or $\vn{env.cells.4r}{40}$ states.
+The actions, in the fixed order used for tie-breaking, are stay, right, up, left and down, with displacements $\delta_a\in\{(0,0),(1,0),(0,1),(-1,0),(0,-1)\}$.
+Let $\mathrm{nx}(s,a):=s+\delta_a$ if $s+\delta_a\in\cS$ and $\mathrm{nx}(s,a):=s$ otherwise.
+With slip probability $p_{\mathrm{slip}}:=0.1$ \audit{U-10},
+\begin{equation}\label{eq:env-finite-kernel}
+P(\cdot\mid s,a):=(1-p_{\mathrm{slip}})\,\delta_{\mathrm{nx}(s,a)}+\frac{p_{\mathrm{slip}}}{5}\sum_{a'\in\cA}\delta_{\mathrm{nx}(s,a')} .
+\end{equation}
+Equivalently, the executed action is drawn uniformly from all five actions with probability $p_{\mathrm{slip}}$ and is the chosen one otherwise.
+The start law is $\mu_0:=\delta_{(1,1)}$ and the goals are $(5,1)$, $(5,5)$ and $(1,5)$.
+With the cell centres $\bar s:=(s+\frac12)L\in(0,1)^2$ and the width $w:=L/2$, the evaluation reward of goal $g$ is $r_g(s):=\exp(-\lvert\bar s-\bar g\rvert^2/(2w^2))$.
+It is read at the next state, as everywhere in this compendium.
+\end{definition}
+
+\begin{proposition}\claim{ENV-1}{I+D}\label{prop:env-finite}
+\leavevmode
+\begin{enumerate}[nosep,label=(\alph*)]
+\item \eqref{eq:env-finite-kernel} defines a Markov kernel on $\cS$.
+\item For both layouts and every $p_{\mathrm{slip}}\in[0,\frac12)$, in particular $p_{\mathrm{slip}}=0.1$, $\operatorname{rank}\tilde P=\#\cS$ (\vn{env.cells.open}{49} or \vn{env.cells.4r}{40}).
+  Hence no exact FB representation of rank $d=16$ exists, for any policy family (\cref{rem:fb-rank16}).
+\item $0<r_g\le1$, with $r_g(s)=1$ if and only if $s=g$.
+  Every non-goal cell has $r_g(s)\le e^{-2}$, since distinct cell centres are at least $L=2w$ apart.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) Each row is a convex combination of Dirac masses on $\cS$.
+
+(b) $\mathrm{nx}(s,\mathrm{stay})=s$, so the stay rows form the matrix $(1-p_{\mathrm{slip}})I+p_{\mathrm{slip}}U$ with $U:=\frac15\sum_{a'}N_{a'}$, where $N_{a'}$ is the 0--1 matrix of $s\mapsto\mathrm{nx}(s,a')$.
+$U$ is row-stochastic. \Cref{prop:fb-exist}(c) shows that such a matrix is nonsingular when $p_{\mathrm{slip}}<\frac12$.
+Its $\#\cS$ rows are rows of $\tilde P$, so $\operatorname{rank}\tilde P\ge\#\cS$; $\tilde P$ has $\#\cS$ columns, so equality holds.
+Both $\vn{env.cells.open}{49}$ and $\vn{env.cells.4r}{40}$ exceed $16$.
+
+(c) The exponent is $0$ only at $\bar s=\bar g$. For $s\ne g$, $\lvert\bar s-\bar g\rvert\ge L$, so the exponent is at most $-L^2/(2w^2)=-2$.
+\end{proof}
+
+\noindent\texttt{oracle.transition\_rank} computes $\operatorname{rank}\tilde P$ numerically: \vn{env.rank.4r}{40} and \vn{env.rank.open}{49}, with smallest singular value about $\vn{env.sv}{2.01}$ at $p_{\mathrm{slip}}=0.1$ and $\sqrt5$ at $p_{\mathrm{slip}}=0$. \texttt{tests/test\_oracle.py} checks the rank and a smallest singular value above $0.1$ for both slip values.
+
+\subsection{The continuous kernel}\label{sec:env-continuous}
+
+\begin{definition}[continuous maze; \audit{U-5}]\label{def:env-cont}
+For a lattice cell $c$ let $\bar C_c:=[c_xL,(c_x+1)L]\times[c_yL,(c_y+1)L]$ (closed) and $C^\circ_c$ its interior.
+The free space is the open set
+\[
+\cS:=(0,1)^2\setminus\textstyle\bigcup_{c\in\cW_{\mathrm{4R}}}\bar C_c ,\qquad \Leb(\cS)=1-9L^2=\tfrac{40}{49},
+\]
+where $\Leb$ is Lebesgue measure.
+For $p,q\in\R^2$, $[p,q]$ is the closed segment, $\mathcal O:=\{(y,x)\in\R^2\times\R^2:[y,x]\subseteq\cS\}$, and $V(y):=\{x:(y,x)\in\mathcal O\}$ is the set of points visible from $y$.
+Fix the step $\ell:=L$ and the noise level $\sigma=0.01$.
+For $s\in\cS$ and an action $a$, let $m:=s+\ell\delta_a$ and define the \emph{base point} $b(s,a):=m$ if $[s,m]\subseteq\cS$, and $b(s,a):=s$ otherwise (a blocked move becomes ``stay'').
+With $\alpha(y):=\mathcal N(y,\sigma^2I)(V(y))$, the kernel is
+\begin{equation}\label{eq:env-cont-kernel}
+P(X\mid s,a):=\frac{\mathcal N(b,\sigma^2I)\big(X\cap V(b)\big)}{\alpha(b)},\qquad b=b(s,a).
+\end{equation}
+The start is the centre $s_0:=(1.5L,1.5L)$ of cell $(1,1)$.
+Reward, goal region and success use the positions themselves: $r_g(x)=\exp(-\lvert x-\bar g\rvert^2/(2w^2))$; the goal region is $\{\lvert x-\bar g\rvert\le\rho\}$ with $\rho:=L/2$; success means that some $s_t$ with $1\le t\le H$ lies in the goal region.
+\end{definition}
+
+\noindent The implementation (\texttt{ContinuousMaze.step}) draws $\xi\sim\mathcal N(0,\sigma^2I)$ until $b+\xi\in V(b)$, at most $K_{\mathrm{cap}}+1$ times with $K_{\mathrm{cap}}=\vn{env.kcap}{1000}$, and raises an error if every draw fails.
+Visibility is decided by a slab test of the closed segment against every closed wall square, together with a strict end-point test for the open unit square, which suffices because the square is convex.
+The test is exact in real arithmetic. In floating point it can misclassify a segment within rounding distance of a wall boundary, an event of negligible probability that the proofs below do not cover.
+
+\begin{proposition}\claim{ENV-2}{D}\label{prop:env-cont}
+Let $s\in\cS$, $a\in\cA$, $b:=b(s,a)$, and $\alpha_\star:=(\Phi(L/(2\sigma))-\frac12)^2$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $b\in\cS$, the sets $\mathcal O$ and $V(b)$ are open, and $\alpha(b)\ge\alpha_\star$. For $\sigma=0.01$, $\alpha_\star=\frac14-\vn{const.alpha_gap}{4.6\times10^{-13}}$.
+\item Uncapped rejection sampling returns exactly the law \eqref{eq:env-cont-kernel}, after a geometric number of draws with mean $1/\alpha(b)\le1/\alpha_\star$, and its output is independent of the number of draws.
+\item $P(\cdot\mid s,a)$ is concentrated on $\cS$ and has the Lebesgue density
+  \[
+  p(x\mid s,a)=\frac{\varphi_\sigma(x-b)\,\ind_{V(b)}(x)}{\alpha(b)}\le p_{\max}:=\frac1{2\pi\sigma^2\alpha_\star}\approx\vn{const.p_max}{6366} .
+  \]
+  In particular it has no atom and charges no Lebesgue-null set.
+\item (No tunnelling.) For every outcome $s'$, the path $s\to b\to s'$ lies in $\cS$: $[s,b]\subseteq\cS$ and $[b,s']\subseteq\cS$. This holds for any step length $\ell$, not only $\ell\le L$.
+\item (Implemented sampler.) The capped sampler fails, and raises, with probability $p_b:=(1-\alpha(b))^{K_{\mathrm{cap}}+1}\le(1-\alpha_\star)^{K_{\mathrm{cap}}+1}<\vn{const.cap_lt}{10^{-125}}$. Given that it does not fail, its output has exactly the law \eqref{eq:env-cont-kernel}; it never returns an atom.
+\item (Consequence for FB-11.) If a reference measure $\nu$ satisfies $\nu\ge n_{\min}\Leb$ on $\cS$ for some $n_{\min}>0$, then for every stationary $\pi$ and every $(s,a)$, $M^{\pi,+}(s,a,\cdot)\ll\nu$ with density at most $p_{\max}/(n_{\min}(1-\gamma))$ (\cref{prop:fb-dom}(b)). The replay law of FB pretraining has such a density (\cref{prop:env-replay}); an atomic $\nu$ never has one (\cref{rem:env-atoms}).
+\item (Measurability.) $s\mapsto b(s,a)$ is Borel on $\cS$, $(s,x)\mapsto p(x\mid s,a)$ is Borel on $\cS\times\R^2$, and $s\mapsto P(X\mid s,a)$ is Borel for every Borel $X$. Hence \eqref{eq:env-cont-kernel} is a Markov kernel, as \cref{ass:mdp}(ii) and \cref{prop:fb-dom}(b) require.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) If $[s,m]\subseteq\cS$ then $b=m\in\cS$; otherwise $b=s\in\cS$.
+
+For openness of $\mathcal O$, let $(y,x)\in\mathcal O$. The compact set $[y,x]$ lies in the open set $\cS$, so it has a positive distance $r_0$ from the closed set $\R^2\setminus\cS$.
+If $\lvert y'-y\rvert<r_0$ and $\lvert x'-x\rvert<r_0$, then for $t\in[0,1]$, $\lvert(1-t)y'+tx'-((1-t)y+tx)\rvert<r_0$, so $[y',x']\subseteq\cS$.
+Hence $\mathcal O$ is open, and so is each section $V(b)$.
+
+For the bound, the closed lattice squares cover $[0,1]^2$, so $b\in\bar C_c$ for some $c$.
+This $c$ is free, because $b$ lies in no closed wall square.
+In each coordinate $k$, at least one of the two sides of $\bar C_c$ orthogonal to $e_k$ is at distance at least $L/2$ from $b_k$; let $\varsigma_k\in\{-1,+1\}$ point towards it.
+Then the open rectangle $R:=\{b+(\varsigma_1u_1,\varsigma_2u_2):u\in(0,L/2)^2\}$ lies in $C^\circ_c$.
+$C^\circ_c$ is contained in $(0,1)^2$ and meets no closed wall square, since distinct closed lattice squares meet only on their boundaries; so $C^\circ_c\subseteq\cS$.
+For $x=b+(\varsigma_1u_1,\varsigma_2u_2)\in R$ and $t\in(0,1]$, $b+t(x-b)=b+(\varsigma_1tu_1,\varsigma_2tu_2)\in R$; together with $b\in\cS$ this gives $[b,x]\subseteq\cS$.
+Hence $R\subseteq V(b)$, and since the coordinates of $\xi\sim\mathcal N(0,\sigma^2I)$ are independent,
+$\alpha(b)\ge\Prob(\varsigma_1\xi_1\in(0,\tfrac L2))\,\Prob(\varsigma_2\xi_2\in(0,\tfrac L2))=\alpha_\star$.
+The numerical value uses $L/(2\sigma)=\vn{const.L2sigma}{7.14}$.
+
+(b) Let $\xi^{(1)},\xi^{(2)},\dots$ be i.i.d.\ $\mathcal N(0,\sigma^2I)$ and $J$ the first index with $b+\xi^{(J)}\in V(b)$; $V(b)$ is open, hence Borel.
+For $k\ge1$ and Borel $X$, independence gives
+$\Prob(J=k,\ b+\xi^{(k)}\in X)=(1-\alpha)^{k-1}\,\mathcal N(b,\sigma^2I)(X\cap V(b))$ with $\alpha=\alpha(b)>0$.
+This factorizes as $\Prob(J=k)\,P(X\mid s,a)$, so the output $b+\xi^{(J)}$ is independent of $J$.
+Summing over $k$ gives its law \eqref{eq:env-cont-kernel}. $J$ is geometric with mean $1/\alpha$.
+
+(c) The density follows from (b). For $x\in V(b)$, $x\in[b,x]\subseteq\cS$, so $V(b)\subseteq\cS$. The bound uses $\varphi_\sigma\le1/(2\pi\sigma^2)$ and (a).
+
+(d) By construction, $b=m$ only if $[s,m]\subseteq\cS$; if $b=s$, then $[s,b]=\{s\}\subseteq\cS$. The output satisfies $s'\in V(b)$, i.e.\ $[b,s']\subseteq\cS$. The argument never uses the step length.
+
+(e) The capped sampler fails exactly on $\{J>K_{\mathrm{cap}}+1\}$, of probability $(1-\alpha(b))^{K_{\mathrm{cap}}+1}\le(1-\alpha_\star)^{K_{\mathrm{cap}}+1}$ by (a). On its complement it returns $b+\xi^{(J)}$, whose law given $\{J\le K_{\mathrm{cap}}+1\}$ is \eqref{eq:env-cont-kernel} by the independence in (b).
+Numerically, $\vn{env.cap}{1001}\log_{10}(1-\alpha_\star)\approx\vn{const.cap_log10}{-125.06}$.
+
+(f) Apply \cref{prop:fb-dom}(b) with $\Leb$ restricted to $\cS$, the bound of (c), and the measurability in (g).
+
+(g) $A_a:=\{s\in\cS:(s,s+\ell\delta_a)\in\mathcal O\}$ is open, being the preimage of the open set $\mathcal O$ under a continuous map. So $b(s,a)=s+\ell\delta_a\ind_{A_a}(s)$ is Borel.
+$\alpha(y)=\int\varphi_\sigma(x-y)\ind_{\mathcal O}(y,x)\dd x$ is Borel in $y$ by Tonelli's theorem, because the integrand is jointly Borel; and $\alpha\ge\alpha_\star>0$ on $\cS$ by (a).
+Hence $p(x\mid s,a)=\varphi_\sigma(x-b(s,a))\ind_{\mathcal O}(b(s,a),x)/\alpha(b(s,a))$ is a composition of Borel maps, and $P(X\mid s,a)=\int_Xp(x\mid s,a)\dd x$ is Borel in $s$, again by Tonelli.
+\end{proof}
+
+\begin{remark}[atoms and domination for this kernel]\label{rem:env-atoms}
+The kernel \eqref{eq:env-cont-kernel} has no atom, no clipping and no other part singular to $\Leb$.
+Hence \cref{prop:fb-dom}(a) cannot be triggered through $P$ for a reference measure with $\Leb|_\cS\ll\nu$, for instance $\nu\ge n_{\min}\Leb$ on $\cS$ (\cref{prop:env-cont}(f)).
+It is triggered at every $(s,a)$ by any atomic $\nu$, in particular by the empirical buffer law $\hat\nu$: $P(\cS\setminus\supp\hat\nu\mid s,a)=1$ while $\hat\nu(\cS\setminus\supp\hat\nu)=0$ (\cref{rem:fb-approx}(2)).
+Atoms appear elsewhere:
+\begin{itemize}[nosep]
+\item the atom of $\mu_0=\delta_{s_0}$ appears in $d^{\pre}=(1-\gamma)\mu_0+\gamma d^+$ (\cref{prop:occ-shift}(b)), and the conditioning state appears as $\delta_s$ in $M_{21}(s,a,\cdot\times\cA)$ (\cref{prop:occ-conv}(a)); neither appears in $d^+$ or $M^{\pi,+}$;
+\item DM$_{\mathrm{FB}}$'s start law $\bar\rho_{\mathcal T_K}$ is atomic, but it is a start law, not a successor measure;
+\item empirical measures (demonstrations, a replay buffer and its $\hat\nu$) are atomic (FBIL-1).
+\end{itemize}
+The implemented sampler never returns an atom. The tests and the recorded checks in \texttt{audit/prompt3A/env\_check\_*} completed, so the redraw cap was never reached in them.
+The bound of \cref{prop:env-cont}(a) is essentially attained: near a $90^\circ$ corner of $\cS$ (the inside corner of a room, or a corner of the unit square) the visible set is, at the noise scale, a quadrant, so $\alpha(b)\approx\frac14$.
+At the reflex corner of a doorway, $\alpha(b)\approx\frac58$.
+\texttt{tests/test\_env\_continuous.py} measures acceptance rates $\frac14$, $\frac12$ and $\frac58$ at a room corner, a straight wall face and a doorway corner; an end-point-only check would give $\frac34$ at the doorway corner.
+\end{remark}
+
+\subsection{Positivity of histogram cells}\label{sec:env-cells}
+
+Let $\cB_{ij}:=[\frac i{20},\frac{i+1}{20})\times[\frac j{20},\frac{j+1}{20})$, and let the \emph{retained} cells be those with $\Leb(\cB_{ij}\cap\cS)>0$.
+For the four-rooms free space of \cref{def:env-cont} there are \vn{env.hist_cells}{356} of them; the \vn{env.hist_dropped}{44} dropped bins lie inside walls.
+(For the open layout, $\cS=(0,1)^2$ and all \vn{env.hist_total}{400} bins are retained.)
+
+\begin{proposition}\claim{ENV-3}{D}\label{prop:env-cells}
+\leavevmode
+\begin{enumerate}[nosep,label=(\alph*)]
+\item The sets $\cB_{ij}\cap\cS$ of the retained cells partition $\cS$: a dropped bin contains no point of $\cS$.
+\item Let $\pi$ be a stationary policy with $\pi(\mathrm{stay}\mid x)>0$ for every $x\in\cS$, for example any softmax policy. Let $D$ be the largest breadth-first-search distance from the start cell $(1,1)$ in the free-cell graph of the four-rooms lattice; $D=\vn{env.D}{10}$. Then every retained cell $\cB$ satisfies $\Prob^\pi(s_{t+1}\in\cB)>0$ for some $t\le D$. Hence $d^+_{\pi,H}(\cB)>0$ for every $H\ge D+1$, in particular $H=100$.
+\item Consequently \cref{ass:fpg}(v) holds on the retained cells for the learner occupancy of every policy as in (b). An empirical expert target can have empty cells, so the target side needs the smoothing of \cref{prop:div-smooth}. With both arguments smoothed, positivity holds trivially (\cref{prop:fpg-approx}(c)).
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) Suppose $x\in\cB_{ij}\cap\cS$. Since $\cS$ is open, it contains an open disc around $x$.
+The half-open square $\cB_{ij}$ contains $x$, so the disc meets $\cB_{ij}$ in a set containing a small square with corner $x$, which has positive area. Hence $\Leb(\cB_{ij}\cap\cS)>0$ and the bin is retained.
+The bins partition $[0,1)^2\supseteq\cS$.
+
+(b) \emph{One step between adjacent free cells.}
+Let $c,c'$ be 4-adjacent free cells and $x\in C^\circ_c$.
+The open rectangle $R_{cc'}:=\mathrm{int}(\bar C_c\cup\bar C_{c'})$ is convex and lies in $(0,1)^2$.
+Its points off the shared edge lie in $C^\circ_c\cup C^\circ_{c'}\subseteq\cS$.
+The interior points of the shared edge lie in no closed lattice square other than $\bar C_c$ and $\bar C_{c'}$, hence in no wall square.
+So $R_{cc'}\subseteq\cS$, and for $y\in C^\circ_{c'}$, $[x,y]\subseteq R_{cc'}$, i.e.\ $C^\circ_{c'}\subseteq V(x)$.
+With $a=\mathrm{stay}$ we have $b=x$, and by \cref{prop:env-cont}(c),
+\[
+P(C^\circ_{c'}\mid x,\mathrm{stay})=\mathcal N(x,\sigma^2I)(C^\circ_{c'})/\alpha(x)>0 .
+\]
+In the same way, $P(U\mid x,\mathrm{stay})>0$ for every nonempty open $U\subseteq C^\circ_c$, because $C^\circ_c$ is convex and contains $x$, so $C^\circ_c\subseteq V(x)$.
+
+\emph{Chain.} Let $\cB$ be retained. $\cB\cap\cS$ has positive area and the cell boundaries are null, so some free cell $c$ has $\Leb(\cB\cap C^\circ_c)>0$. Then $U:=\mathrm{int}(\cB)\cap C^\circ_c$ is open and nonempty.
+Let $c_0=(1,1),c_1,\dots,c_k=c$ be a shortest path in the free-cell graph, so $k\le D$.
+Let $E_i:=\{a_j=\mathrm{stay},\ s_{j+1}\in C^\circ_{c_{j+1}}\text{ for }j<i\}$, with $E_0$ the sure event; note $s_0\in C^\circ_{c_0}$.
+By the Markov property, $\Prob(E_{i+1})=\E[\ind_{E_i}\,g_i(s_i)]$ with $g_i(x):=\pi(\mathrm{stay}\mid x)\,P(C^\circ_{c_{i+1}}\mid x,\mathrm{stay})$. This $g_i$ is Borel, by \cref{prop:env-cont}(g) and the measurability of $\pi$, and strictly positive on $C^\circ_{c_i}$.
+On $E_i$, $s_i\in C^\circ_{c_i}$. So $\Prob(E_i)>0$ implies $\Prob(E_{i+1})>0$, and by induction $\Prob(E_k)>0$.
+One more stay step gives $\Prob(E_k,\ a_k=\mathrm{stay},\ s_{k+1}\in U)=\E[\ind_{E_k}\pi(\mathrm{stay}\mid s_k)P(U\mid s_k,\mathrm{stay})]>0$, since $s_k\in C^\circ_c$ on $E_k$.
+As $U\subseteq\cB$, $\Prob(s_{k+1}\in\cB)>0$ with $t=k\le D$, and $d^+_{\pi,H}(\cB)\ge Z_H^{-1}\gamma^k\Prob(s_{k+1}\in\cB)>0$.
+$D=\vn{env.D}{10}$ is the breadth-first-search distance from $(1,1)$ to $(6,6)$. It is at least the Manhattan distance $10$, and the path $(1,1)\to(5,1)\to(5,5)\to(6,5)\to(6,6)$ through the doorways $(3,1)$ and $(5,3)$ has length $10$.
+That no free cell is farther is computed by \texttt{GridLayout.bfs\_distances} and reported by \texttt{scripts/check\_environments.py}.
+
+(c) is (b) together with \cref{prop:div-smooth}(a).
+\end{proof}
+
+\noindent The empirical coverage diagnostic of \texttt{scripts/check\_environments.py} (a uniform random policy, $\vn{env.unif_traj}{2000}$ trajectories) is a sanity check, not a proof: a finite sample can miss a cell of positive probability.
+
+\subsection{Estimators}\label{sec:env-estimators}
+
+\begin{proposition}\claim{ENV-4}{I}\label{prop:env-est}
+Let $N$ trajectories of length $H$ be given, and put $w_{i,t}:=\gamma^t/(NZ_H)$ on the next state $s^i_{t+1}$, $0\le t<H$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $\hat d:=\sum_{i,t}w_{i,t}\delta_{s^i_{t+1}}$ is a probability measure, each trajectory has total weight $1/N$, and for i.i.d.\ trajectories from $\mu_0$ under $\pi$, $\E\hat d(X)=d^+_{\pi,H}(X)$ for every measurable $X$. The same weights define $\hat q_E$ from the demonstrations.
+\item (Cut-and-normalize KDE.) For points $x_i\in\cS$ with weights $w_i\ge0$, $\sum_iw_i=1$, and bandwidth $h>0$, let $m_i:=\int_\cS\varphi_h(y-x_i)\dd y$ and $\hat p(x):=\sum_iw_i\varphi_h(x-x_i)\ind_\cS(x)/m_i$. Then $m_i\ge(\Phi(L/(2h))-\frac12)^2$, which is $\vn{const.kde_m_star}{0.179}$ for $h=0.05$, and $\int_\cS\hat p=1$. Moreover
+  \[
+  m_i=G_{[0,1]^2}(x_i)-\textstyle\sum_{c\in\cW}G_{\bar C_c}(x_i),\qquad G_{[a_1,b_1]\times[a_2,b_2]}(\mu):=\prod_{k=1,2}\Big[\Phi\big(\tfrac{b_k-\mu_k}h\big)-\Phi\big(\tfrac{a_k-\mu_k}h\big)\Big],
+  \]
+  with $G_\emptyset:=0$. With the closure $Q\subseteq[0,1]^2$ of a histogram cell in place of $[0,1]^2$ and $Q\cap\bar C_c$ in place of $\bar C_c$, the same formula, weighted by $w_i/m_i$ and summed, gives the exact $\hat p$-mass of the cell, up to the evaluation of $\Phi$. The smoothed density $(1-\varepsilon)\hat p+\varepsilon\ind_\cS/\Leb(\cS)$ also integrates to $1$.
+\item (Histogram.) The masses $\hat d(\cB\cap\cS)$ of the retained cells sum to $1$. The reference law $\upsilon_\cB:=\Leb(\cB\cap\cS)/\Leb(\cS)$ is strictly positive, and the smoothed masses are at least $\varepsilon\min\upsilon>0$.
+\end{enumerate}
+No unbiasedness is claimed for $\hat p(x)$, for the plug-in signal built from it (\cref{rem:fpg-kde}), or for the histogram density as an estimate of a Lebesgue density.
+\end{proposition}
+\begin{proof}
+(a) $\sum_{i,t}w_{i,t}=\sum_i\frac1N\sum_t\gamma^t/Z_H=1$, and the trajectory sums are $1/N$. By linearity, $\E\hat d(X)=\frac1N\sum_i\sum_t\frac{\gamma^t}{Z_H}\Prob^\pi_{\mu_0}(s_{t+1}\in X)=d^+_{\pi,H}(X)$ (\cref{def:occ}).
+
+(b) The lower bound is the argument of \cref{prop:env-cont}(a) with $h$ in place of $\sigma$: the rectangle $R\subseteq\cS$ built there at $x_i$ has Gaussian mass $(\Phi(L/(2h))-\frac12)^2$.
+By Tonelli, $\int_\cS\hat p=\sum_iw_i\int_\cS\varphi_h(y-x_i)\dd y/m_i=\sum_iw_i=1$.
+For the closed form, $\cS=(0,1)^2\setminus\bigcup_c\bar C_c$. The wall squares lie in $[0,1]^2$, the boundaries are null, and distinct wall squares meet in null sets.
+So $\Leb$-a.e.\ $\ind_\cS=\ind_{[0,1]^2}-\sum_c\ind_{\bar C_c}$. Integrating $\varphi_h(\cdot-x_i)$ and using independence of the coordinates gives the product of one-dimensional differences of $\Phi$.
+The same identity holds with $Q$ in place of $[0,1]^2$ and $Q\cap\bar C_c$ (a box, or empty) in place of $\bar C_c$.
+The smoothed density integrates to $(1-\varepsilon)+\varepsilon=1$.
+
+(c) The retained cells partition $\cS$ (\cref{prop:env-cells}(a)), so their masses sum to $\hat d(\cS)=1$. The reference masses are positive by definition of retained and sum to $\Leb(\cS)/\Leb(\cS)=1$.
+\end{proof}
+
+\begin{remark}[what the KDE gets wrong near walls]\label{rem:env-kde}
+Truncation is Euclidean: a kernel ignores visibility.
+(i) For a centre $x_i$ on one side of a wall of thickness at least $L\approx\vn{const.Lh}{2.9}h$, at most $\Phi(-L/h)/m_i$ of the truncated kernel's mass lies beyond the far face of that wall: about $\vn{const.kde_tail_half_pct}{0.4}\%$ if $m_i\approx\frac12$, at most $\vn{const.kde_tail_max_pct}{1.2}\%$.
+(ii) This does not bound the mass on free points hidden behind a wall corner.
+\texttt{audit/prompt3A/kde\_visibility.py} estimates, by Monte Carlo at $h=0.05$, the hidden share of the truncated kernel.
+Over a $\vn{kde.grid}{70\times70}$ grid of centres in $\cS$ it has median $\vn{kde.median}{0}$, mean $\vn{kde.mean_pct}{1.1}\%$ and 95th percentile $\vn{kde.p95_pct}{7.3}\%$.
+It is $\vn{kde.face_pct}{8}\%$ at the middle of a wall face next to a doorway and $\vn{kde.doorway_pct}{16}\%$ at a doorway corner.
+It reaches about $\vn{kde.max_pct}{31.5}\%$ for centres within about $\vn{kde.max_dist}{0.05}L$ of a wall corner at a doorway entrance.
+Both effects are approximations made by the estimator; the pilot kept $h=0.05$ (\cref{sec:protocol}). They are not properties of the kernel $P$.
+\end{remark}
+
+\subsection{Experts}\label{sec:env-experts}
+
+\begin{proposition}\claim{ENV-5}{I+D}\label{prop:env-experts}
+\leavevmode
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (Finite expert.) For every stationary deterministic $\pi$, $0\le V^\star-V^\pi\le\eta_\pi/(1-\gamma)$ with $\eta_\pi:=\lVert TV^\pi-V^\pi\rVert_\infty$, which \texttt{expert.finite\_expert} reports.
+  If $Q^\pi(s,\pi(s))\ge\max_aQ^\pi(s,a)-\kappa$ for every $s$, where $Q^\pi=Q^{+,\pi}_{r_g}$, then $\eta_\pi\le\kappa$.
+  \texttt{oracle.value\_iteration} refines the greedy policy of its final iterate as follows.
+  An action is switched only where it is more than $\kappa$ below $\max_aQ^\pi(s,a)$, and then to the first action, in the fixed order, within $\kappa$ of that maximum.
+  This refinement terminates, and its result satisfies the $\kappa$-greedy condition; \texttt{finite\_expert} raises an error otherwise.
+  The implementation uses $\kappa=$ \texttt{tie\_tol} $=10^{-10}$; the claims hold up to the floating-point error of the linear solves.
+\item (Route controller.) For $x\in\cS\subseteq(0,1)^2$, the cell $c:=\lfloor7x\rfloor$ (componentwise) lies in $G$, and it is free: $x\in\bar C_c$, and $\cS$ meets no closed wall square.
+  The continuous expert $\pi_E(x):=\Gamma(\lfloor7x\rfloor)$, with a deterministic table $\Gamma$ on free cells, is therefore well defined. It is a stationary Markov policy, constant on half-open lattice cells, using no time index or history, as A4 requires \audit{A4}.
+  Being deterministic, it does not belong to the learners' positive families $\pi_\phi$ and $\pi_{z,\tau}$ ($\tau>0$). It is a constructed reference controller; no optimality is claimed.
+\item (Planned moves are not blocked.) If $x\in C^\circ_c$ and $\Gamma(c)=a$ moves to a free neighbour $c'=c+\delta_a$, then $[x,x+L\delta_a]\subseteq R_{cc'}\subseteq\cS$, so $b(x,a)=x+L\delta_a$. Since $s_0\in C^\circ_{(1,1)}$ and $s_t$ has a Lebesgue density for $t\ge1$, almost surely no planned move of $\pi_E$ is ever blocked.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) The first bound is \cref{lem:occ-residual}(iii). Under the $\kappa$-greedy condition, $(TV^\pi)(s)-V^\pi(s)=\max_aQ^\pi(s,a)-Q^\pi(s,\pi(s))\in[0,\kappa]$, so $\eta_\pi\le\kappa$.
+
+\emph{Termination.} Let $\pi'$ differ from $\pi$ exactly at the switched states.
+At a switched state $s$, $Q^\pi(s,\pi'(s))\ge\max_aQ^\pi(s,a)-\kappa>Q^\pi(s,\pi(s))=V^\pi(s)$; elsewhere $Q^\pi(s,\pi'(s))=V^\pi(s)$.
+So $T_{\pi'}V^\pi\ge V^\pi$, with strict inequality at the switched states.
+By monotonicity of $T_{\pi'}$ (\cref{lem:occ-dp}(i)), $T_{\pi'}^nV^\pi\ge T_{\pi'}V^\pi$ for every $n\ge1$. Letting $n\to\infty$ gives $V^{\pi'}\ge T_{\pi'}V^\pi\ge V^\pi$ (\cref{lem:occ-dp}(ii)), strictly at the switched states.
+The value vector therefore increases strictly in the componentwise order at each round, so no deterministic policy is visited twice. There are finitely many, so the refinement stops, and it stops exactly when no state can be switched, i.e.\ at a $\kappa$-greedy policy.
+
+(b) $x\mapsto\lfloor7x\rfloor$ is Borel and $\Gamma$ takes finitely many values, so $\pi_E$ is a measurable deterministic Markov kernel. It uses no time index and no history.
+For $x\in(0,1)^2$, $\lfloor7x\rfloor\in\{0,\dots,6\}^2$ and $x\in\bar C_{\lfloor7x\rfloor}$.
+
+(c) $x+L\delta_a\in C^\circ_{c'}$ because $C^\circ_{c'}=C^\circ_c+L\delta_a$. The segment joins two points of the convex set $R_{cc'}\subseteq\cS$ (proof of \cref{prop:env-cells}(b)).
+For $t\ge1$, $s_t$ has a Lebesgue density: \cref{prop:env-cont}(c),(g) and \cref{rem:occ-density}. Lattice-cell boundaries are Lebesgue-null, so $s_t$ lies in an open cell almost surely.
+\end{proof}
+
+\noindent The checks in \texttt{expert.validate\_route\_controller} are empirical. They test the conclusions above on real noisy rollouts: no blocked planned move; both legs of every transition in $\cS$, by dense sampling independent of the slab test; and actions recomputed from the stored positions equal to the stored actions. They also measure the success rate and how well the goal is held.
+Negative controls in \texttt{tests/test\_expert.py} show that each criterion can fail.
+These are measurements, not proofs.
+
+\subsection{The task-blind replay law}\label{sec:env-replay}
+
+FB pretraining (\texttt{fb.collect\_replay}) collects $N_{\mathrm{seg}}$ segments of $T_{\mathrm{seg}}$ transitions each (the subscript keeps $T$ free for the f-IRL horizon of \cref{sec:firl}).
+Each segment starts from a reset $s_0\sim\upsilon$, independent of everything else, where $\upsilon$ is uniform on the free cells (finite maze) or the normalized Lebesgue measure $\Leb(\cdot\cap\cS)/\Leb(\cS)$ (continuous maze, sampled by rejection from the unit square).
+The actions are i.i.d.\ uniform on $\cA$, independent of the states, and $s_{t+1}\sim P(\cdot\mid s_t,a_t)$ with the kernel of \cref{def:env-finite} or \cref{def:env-cont}.
+Minibatches pick stored transitions uniformly at random, so a transition has the law of $(s_t,a_t,s_{t+1})$ with $t$ uniform on $\{0,\dots,T_{\mathrm{seg}}-1\}$, independent of the segment; neither storage nor sampling looks at $s_{t+1}$, which is \cref{ass:fb-data}(i).
+The replay reference measure of \cref{ass:fb-data}(ii) is therefore
+\[
+\nu:=\frac1{T_{\mathrm{seg}}}\sum_{t=0}^{T_{\mathrm{seg}}-1}\law(s_{t+1}).
+\]
+
+\begin{proposition}\claim{ENV-6}{D}\label{prop:env-replay}
+\leavevmode
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (Finite mazes.) The uniform-action kernel $P_u(s,s'):=\lvert\cA\rvert^{-1}\sum_aP(s'\mid s,a)$ is a symmetric matrix. Hence $\law(s_t)=\upsilon$ for every $t$, and $\nu=\upsilon$ is uniform: $\nu(s)=1/\#\cS>0$ for every state, for every segment length $T_{\mathrm{seg}}$ and slip probability.
+\item (Continuous maze.) With $\alpha_\star=(\Phi(L/(2\sigma))-\frac12)^2$ as in \cref{prop:env-cont},
+  \[
+  \nu\ \ge\ n_{\min}\Leb\quad\text{on }\cS,\qquad n_{\min}:=\frac{\alpha_\star}{\lvert\cA\rvert\,T_{\mathrm{seg}}\,\Leb(\cS)} .
+  \]
+  Hence the hypothesis of \cref{prop:env-cont}(f) holds: for every stationary $\pi$ and every $(s,a)$, $M^{\pi,+}(s,a,\cdot)\ll\nu$ with a $\nu$-density bounded by $p_{\max}/(n_{\min}(1-\gamma))$.
+  For $\sigma=0.01$, $\lvert\cA\rvert=5$, $T_{\mathrm{seg}}=50$ and $\Leb(\cS)=40/49$, $n_{\min}\approx\vn{const.n_min}{1.2\times10^{-3}}$.
+\item (Empirical buffer.) These statements concern the population law $\nu$. The buffer's empirical law $\hat\nu$ is atomic. In the continuous maze it charges a finite set, so (b) does not transfer to it (\cref{rem:env-atoms}). In the finite mazes, $\hat\nu(s)>0$ for every $s$ is a property of each realized buffer, not a consequence of (a): \texttt{tests/test\_fb\_algebra.py} checks it for one 50\,000-transition four-rooms buffer, and every buffer used in a run must be checked with \texttt{fb.replay\_coverage}.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) By \eqref{eq:env-finite-kernel}, $\sum_aP(\cdot\mid s,a)=\sum_a\big[(1-p_{\mathrm{slip}})\delta_{\mathrm{nx}(s,a)}+\frac{p_{\mathrm{slip}}}{\lvert\cA\rvert}\sum_{a'}\delta_{\mathrm{nx}(s,a')}\big]=\sum_a\delta_{\mathrm{nx}(s,a)}$, so $P_u(s,s')=\#\{a:\mathrm{nx}(s,a)=s'\}/\lvert\cA\rvert$.
+Let $s\ne s'$. The displacements $\delta_a$ are distinct, so at most one action moves $s$ to $s'$, and it does so exactly when $s'-s=\delta_a$ and $s'$ is free.
+The displacement set is symmetric ($\delta\mapsto-\delta$ exchanges right and left, up and down). Hence $\mathrm{nx}(s,a)=s'$ for some $a$ if and only if $\mathrm{nx}(s',a')=s$ for the opposite action $a'$, both cells being free. So $P_u(s,s')=P_u(s',s)$.
+A symmetric row-stochastic matrix is also column-stochastic, so $(\upsilon P_u)(s')=\#\cS^{-1}\sum_sP_u(s',s)=\#\cS^{-1}$: the uniform law is invariant.
+Given the states, the actions are uniform and independent, so $\law(s_{t+1})=\law(s_t)P_u$, and by induction $\law(s_t)=\upsilon$ for all $t$. Averaging over $t$ gives $\nu=\upsilon$.
+
+(b) Let $X\subseteq\cS$ be Borel. Since $\nu\ge T_{\mathrm{seg}}^{-1}\law(s_1)$, it suffices to bound $\law(s_1)$.
+Keeping only the stay action, for which $b(s,\mathrm{stay})=s$, and using $\alpha(s)\le1$ in \eqref{eq:env-cont-kernel},
+\[
+\law(s_1)(X)=\int\upsilon(\dd s)\frac1{\lvert\cA\rvert}\sum_aP(X\mid s,a)\ \ge\ \frac1{\lvert\cA\rvert\Leb(\cS)}\int_\cS\dd s\int_X\varphi_\sigma(x-s)\,\ind_{\mathcal O}(s,x)\dd x .
+\]
+The set $\mathcal O$ is open (\cref{prop:env-cont}(a)), so the integrand is Borel and nonnegative, and Tonelli's theorem exchanges the integrals.
+The closed segment $[s,x]$ equals $[x,s]$, and $[x,s]\subseteq\cS$ forces $s\in\cS$; so for $x\in X$ the inner integral over $s$ is $\int\varphi_\sigma(s-x)\ind_{V(x)}(s)\dd s=\alpha(x)$.
+The proof of $\alpha(b)\ge\alpha_\star$ in \cref{prop:env-cont}(a) uses only $b\in\cS$, so $\alpha(x)\ge\alpha_\star$ for every $x\in X$.
+Hence $\law(s_1)(X)\ge\alpha_\star\Leb(X)/(\lvert\cA\rvert\Leb(\cS))$ and $\nu(X)\ge n_{\min}\Leb(X)$.
+
+\Cref{prop:fb-dom}(b), through which \cref{prop:env-cont}(f) is proved, asks for a Lebesgue density $n$ of $\nu$ with $n\ge n_{\min}$ on $\cS$; we verify this form.
+For every $t\ge0$ and Borel $X$, $\law(s_{t+1})(X)=\E\,P(X\mid s_t,a_t)=\E\int_Xp(x\mid s_t,a_t)\dd x=\int_X\E\,p(x\mid s_t,a_t)\dd x$ by \cref{prop:env-cont}(c) and Tonelli's theorem, which applies because $(s,a,x)\mapsto p(x\mid s,a)$ is Borel (\cref{prop:env-cont}(g)) and nonnegative.
+So $\nu$ has the Lebesgue density $n(x):=T_{\mathrm{seg}}^{-1}\sum_{t<T_{\mathrm{seg}}}\E\,p(x\mid s_t,a_t)\le p_{\max}$, which vanishes off $\cS$.
+The inequality $\nu\ge n_{\min}\Leb$ on $\cS$ gives $\int_X(n-n_{\min})\dd x\ge0$ for every Borel $X\subseteq\cS$, so $n\ge n_{\min}$ almost everywhere on $\cS$; redefining $n$ on the null set where this fails changes neither $\nu$ nor the conclusions, and then $n\ge n_{\min}$ on all of $\cS$.
+\Cref{prop:fb-dom}(b), with $\lambda$ the Lebesgue measure restricted to $\cS$, the density bound $p\le p_{\max}$ and this $n$, gives the last claim of (b); $\nu$ is a probability measure, hence finite.
+For the number: $\alpha_\star=\frac14-\vn{const.alpha_gap}{4.6\times10^{-13}}$ (\cref{prop:env-cont}(a)) and $5\cdot50\cdot40/49\approx\vn{const.n_min_den}{204.1}$.
+
+(c) An empirical measure of $N$ points is atomic; \cref{rem:env-atoms} shows that an atomic reference measure triggers \cref{prop:fb-dom}(a) at every $(s,a)$ of the continuous maze.
+\end{proof}
+
+\noindent Consequences. In the finite mazes, every measure on $\cS$ is absolutely continuous with respect to $\nu$ (\cref{prop:fb-dom}(d)). In the continuous maze, the population replay law satisfies the domination hypothesis of \cref{prop:fb-dom}(b), so every successor measure, the expert's included, has a bounded $\nu$-density; this gives the absolute continuity and square integrability required in (A6) of \cref{thm:fbil-dm} (the joint measurability of a density version is not addressed here); the trained model uses $\hat\nu$, for which only the empirical-buffer readings of \cref{rem:fb-approx}(2) apply. No statement here concerns the accuracy of the trained networks.
+
+\subsection{Cross-fitted plug-in signals}\label{sec:env-crossfit}
+
+The $f$-PG learner (\texttt{fpg.crossfit\_advantages}) splits the $N$ trajectories $i=0,\dots,N-1$ of an iteration into $n_{\mathrm f}\ge2$ deterministic, nonempty folds $\mathcal I_1,\dots,\mathcal I_{n_{\mathrm f}}$, with $i\in\mathcal I_j$ for $j=1+(i\bmod n_{\mathrm f})$ (\texttt{fpg.fold\_ids} numbers the folds from 0).
+The fold index is $j$ and the folds are $\mathcal I_j$, so that neither clashes with the time index $k$ or the history $\sigma$-algebras $\cF_k$ of \cref{sec:occ,sec:fpg}.
+For the trajectories of fold $j$ the learner uses a signal $\hat g_{-j}:\cS\to\R$ and a baseline $\beta_{-j}:\{0,\dots,H-1\}\to\R$ computed from the other folds and the fixed demonstrations only.
+The estimator is
+\[
+\hat\nabla:=\frac1N\sum_{j=1}^{n_{\mathrm f}}\sum_{i\in\mathcal I_j}Z_H^{-1}\sum_{m=0}^{H-1}\gamma^m\chi^i_m\big(\hat G^{i}_m-\beta_{-j}(m)\big),\qquad
+\hat G^{i}_m:=\sum_{t=m}^{H-1}\gamma^{t-m}\hat g_{-j}(s^i_{t+1})\quad(i\in\mathcal I_j).
+\]
+For a bounded measurable $g:\cS\to\R$ let $\Gamma_\phi(g):=\nabla_\phi\,Z_H^{-1}\sum_{t<H}\gamma^t\E_\phi\,g(s_{t+1})=\nabla_\phi\int g\dd d^+_{\pi_\phi,H}$.
+
+\begin{proposition}\claim{FPG-9}{D}\label{prop:env-crossfit}
+Assume \cref{ass:fpg}(i)--(ii). Let the trajectories be i.i.d.\ under $\Prob_\phi$, independent of the demonstrations, and let every $\hat g_{-j}$ and $\beta_{-j}$ be measurable functions of the trajectories outside $\mathcal I_j$ and of the demonstrations, bounded by deterministic constants $C_g$ and $C_\beta$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item For every $j$ and $i\in\mathcal I_j$, conditionally on the data outside $\mathcal I_j$, the term of trajectory $i$ has mean $\Gamma_\phi(\hat g_{-j})$; the baseline contributes nothing.
+\item If $\hat g_{-j}$ is constant on the cells $B_b$ of a finite partition (the states of the finite maze, or the histogram cells), then $\Gamma_\phi(\hat g_{-j})=\sum_b\hat g_{-j}(b)\nabla d_\phi(b)$, and the bound of \cref{prop:fpg-approx}(a) holds for it.
+\item $\E\hat\nabla=N^{-1}\sum_j\lvert\mathcal I_j\rvert\,\Gamma_\phi(\bar g_j)$ with the pointwise means $\bar g_j:=\E\,\hat g_{-j}$.
+\item The implemented signals satisfy the hypothesis with $\varepsilon\in(0,1]$: for counts and the histogram, both smoothed masses lie in $[\varepsilon\upsilon_{\min},1]$; for the cut-and-normalize KDE, both smoothed densities lie in $[\varepsilon/\Leb(\cS),\,(1-\varepsilon)/(2\pi h^2m_\star)+\varepsilon/\Leb(\cS)]$ with $m_\star:=(\Phi(L/(2h))-\frac12)^2$. In every case the ratio stays in a compact subset of $(0,\infty)$, where $f'$ is continuous, so $\lvert\hat g_{-j}\rvert\le C_g$ deterministically. The time baseline is a mean of signal-to-go values, so $\lvert\beta_{-j}\rvert\le C_g/(1-\gamma)$.
+\end{enumerate}
+Nothing here makes $\hat\nabla$ unbiased for $\nabla J$: the signal is still a plug-in estimate (\cref{prop:fpg-approx}(b)). For the KDE signal no exact cell signal exists, and no bound between $\Gamma_\phi(\hat g_{-j})$ and a gradient of $J$ is claimed (\cref{rem:fpg-kde}).
+\end{proposition}
+\begin{proof}
+(a) Write $D_{-j}$ for the trajectories outside $\mathcal I_j$ together with the demonstrations. The trajectory $\tau^i$ is independent of $D_{-j}$, so for a bounded measurable $\Psi$, $\E[\Psi(\tau^i,D_{-j})\mid D_{-j}]=\psi(D_{-j})$ with $\psi(\delta):=\E\,\Psi(\tau^i,\delta)$ (Fubini's theorem on the product of the two laws).
+Fix $\delta$ and put $g:=\hat g_{-j}$ and $\beta:=\beta_{-j}$ evaluated at $\delta$: a bounded measurable function and a bounded vector.
+\Cref{lem:fpg-lr} with $h=g(s_{t+1})$, which is bounded, measurable and free of $\phi$, gives $\nabla_\phi\E_\phi g(s_{t+1})=\E_\phi[g(s_{t+1})\sum_{m<H}\chi_m]$, and \cref{lem:fpg-causal}(b) removes the terms $m\ge t+1$.
+Multiplying by $\gamma^t/Z_H$, summing over $t$ and exchanging the finite sums as in the proof of \cref{thm:fpg-causal} gives $\E_\phi[Z_H^{-1}\sum_m\gamma^m\chi_m\hat G_m]=\Gamma_\phi(g)$.
+For the baseline, $\E_\phi[\chi_m]\beta(m)=0$ by \cref{lem:fpg-causal}(a). The integrand is bounded by $HC(C_g/(1-\gamma)+C_\beta)$, with $C$ the score bound of \cref{ass:fpg}(ii), so all expectations exist.
+
+(b) For a cell function, $\E_\phi g(s_{t+1})=\sum_bg(b)\Prob_\phi(s_{t+1}\in B_b)$, so $\Gamma_\phi(g)=\sum_bg(b)\nabla d_\phi(b)$ by \eqref{eq:fpg-dd}. The bound is \cref{prop:fpg-approx}(a), whose proof uses only this identity and the boundedness of $g$.
+
+(c) Take expectations in (a) and average over $i$. By \cref{lem:fpg-lr,lem:fpg-causal}, $\Gamma_\phi(g)=Z_H^{-1}\sum_{t<H}\gamma^t\E_\phi[g(s_{t+1})\sum_{m\le t}\chi_m]$, which is linear in $g$. Since $\lvert\hat g_{-j}\rvert\le C_g$ and the score sums are bounded, Fubini's theorem exchanges the expectation over $D_{-j}$ with $\E_\phi$, which gives $\E\,\Gamma_\phi(\hat g_{-j})=\Gamma_\phi(\bar g_j)$.
+
+(d) Smoothing maps a probability vector $p$ to $(1-\varepsilon)p+\varepsilon\upsilon$, whose entries lie in $[\varepsilon\upsilon_{\min},(1-\varepsilon)+\varepsilon]$, and $\upsilon_{\min}>0$ (\cref{prop:env-est}(c)).
+For the KDE, every kernel satisfies $\varphi_h(x-x_i)\ind_\cS(x)/m_i\le(2\pi h^2m_\star)^{-1}$ by \cref{prop:env-est}(b), and the weights sum to one; the smoothed density adds $\varepsilon/\Leb(\cS)$ to $(1-\varepsilon)\hat p$ on $\cS$, and the query points lie in $\cS$.
+Both arguments of the ratio lie in a compact interval $[a,b]\subset(0,\infty)$, so the ratio lies in $[a/b,b/a]$. The function $f'$ is continuous on $(0,\infty)$ for the three generators (\cref{prop:div-generators}), so $(1-\varepsilon)\lvert f'\rvert$ is bounded on $[a/b,b/a]$.
+A signal-to-go is bounded by $C_g\sum_k\gamma^k\le C_g/(1-\gamma)$, and so is a mean of such values.
+\end{proof}
+
+\noindent \texttt{tests/test\_fpg\_gradient.py} checks (a)--(c) for the implemented counts estimator by exhaustive enumeration on a three-state MDP, including folds of unequal size with the time baseline; (d) is not a test but a deterministic bound.
+

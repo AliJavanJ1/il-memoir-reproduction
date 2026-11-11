@@ -1,0 +1,72 @@
+\section{Comparison of the approaches}\label{sec:compare}
+
+This section answers Q2 at the level of objectives, information and guarantees; \cref{sec:results-finite,sec:results-continuous,sec:costs} add the empirical side.
+
+\subsection{Four objectives that are not the same}
+
+\Cref{tab:objectives} writes the four objectives in the common notation. They are different objects, and none reduces to another.
+
+\begin{table}[ht]
+\centering\small
+\caption{The objectives of the four methods. $d$ is a learner occupancy, $q$ an expert one; all divergences are learner-first except where FIRL's expert-first form is shown.}\label{tab:objectives}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{1.6cm}>{\raggedright\arraybackslash}p{5.3cm}>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+Method & Objective & Learned object & What is compared\\
+\midrule
+$f$-PG (ours) & $D_f\big((d^+_{\pi_\phi,H})_\varepsilon\Vert\hat q_{E,\varepsilon}\big)$ & policy $\pi_\phi$ & discounted next-state \emph{marginal} from $\mu_0$ over $H$ steps, on cells\\
+$f$-IRL & $D_f(q^{\mathrm{IRL}}_E\Vert\rho_\theta)$, with $\rho_\theta$ the Gibbs marginal of $r_\theta$ & reward $r_\theta$ (then a MaxEnt policy) & undiscounted uniform \emph{marginal} over $s_1,\dots,s_T$\\
+\DMFB & $\int\bar\rho(\dd x)\lVert M^{\pi_{z,\tau},+}(x,\cdot)-M^{\pi_E,+}(x,\cdot)\rVert^2_{L^2(\nu)^\star}$, estimated through the model as $\hat\ell^{(K)}$ & latent $z$ of a frozen model & \emph{conditional} successor measures at expert states, in a replay-weighted $L^2$ norm\\
+\ERFB & none: $z_{ER}=\int B\dd\rho_e=z_{r_e}$, then reward maximization & latent $z$ of a frozen model & nothing is matched; $\rho_e$ defines a reward\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{How they are related.}
+$f$-PG and $f$-IRL minimize divergences between \emph{marginals} of the same kind, and \cref{prop:m-firl-fpg} shows that they weight each state by the same function $(f^\circ)'$ of the occupancy ratio; they differ in the parameterization (policy versus reward with an exact MaxEnt map), in the orientation, and in the discounting.
+\DMFB{} compares \emph{conditional} successor measures, one per expert state. The two kinds of object are linked by \cref{prop:m-norm}(b), $d^+_\pi=(1-\gamma)\int\mu_0(\dd x)M^{\pi,+}(x,\cdot)$: the occupancy is the successor measure averaged over the start law.
+In one direction this gives \cref{thm:m-dm}(e): if the start law charges $\mu_0$, a small \emph{true} \DMFB{} objective forces the occupancies to be close.
+The converse fails: $d^+_{\pi,H}=q_E$ does not imply equal successor measures at every expert state, because a marginal averages over trajectories.
+And when the start law misses $\mu_0$, the true \DMFB{} objective can vanish while the occupancy divergence is maximal (\cref{ex:fbil-blind}).
+\ERFB{} is a different kind of method altogether: under exactness it maximizes the reward $r_e=\dd\rho_e/\dd\nu$, and \cref{ex:m-er} shows a case where the resulting occupancy is at total variation $\gamma/(1+\gamma)$ from the expert's.
+Every one of these objectives is blind to actions that do not change the next-state law (\cref{prop:m-return}).
+
+\subsection{Similarities}
+
+\begin{itemize}[nosep]
+\item \textbf{Reward-free imitation of state behaviour.} All four use only expert states; none uses expert actions or a task reward.
+\item \textbf{Discounted next-state objects.} The $f$-PG target $d^+_{\pi,H}$ and the FB successor measure $M^{\pi,+}$ are both discounted laws of next states, related by \cref{prop:m-norm}(b), and both satisfy linear Bellman identities (\cref{prop:m-resolvent,prop:m-fb-bellman}).
+\item \textbf{No Bellman optimality equation for the imitation task.} $f$-PG follows a likelihood-ratio gradient; FB amortizes control into pretraining and turns a task into a latent vector. (The $f$-IRL inner loop does solve a MaxEnt control problem for every reward update.)
+\item \textbf{Approximate in practice.} The exact statements of both families hold for population quantities and exact models; both implementations rely on plug-in estimates (densities for $f$-PG, the model's successor measure for FB) whose errors are not controlled by the optimized quantity.
+\end{itemize}
+
+\subsection{Differences}
+
+\begin{table}[ht]
+\centering\small
+\caption{What each method needs and what its theory guarantees in this study.}\label{tab:differences}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+& $f$-PG (fixed target) & FB pretraining with \ERFB{} / \DMFB\\
+\midrule
+interaction & on-policy rollouts for every task & task-blind replay once per environment; none per task\\
+expert information & a density estimate of the expert occupancy & demonstration states summarized by $B$\\
+per-task optimization & policy gradient over the whole policy & $d=16$ numbers (the latent)\\
+exact guarantee & an exact gradient formula for the population objective (\cref{thm:m-fpg}); local descent for exact steps only & optimality or matching only under exactness, which is impossible in the finite mazes (\cref{prop:m-fb-rank}) and not established in the continuous one\\
+what fails first & plug-in signal bias and variance; density estimation in continuous spaces & model error of the successor measure, which the latent optimization can exploit\\
+temperature, scale & none (policy logits are free) & for an exact model, $\tau$ and $\lVert z\rVert$ act together as one inverse temperature (\cref{prop:m-fb-softmax}(d)); not guaranteed for the trained network, which also depends on $z$\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The key structural difference is \emph{where the approximation sits}.
+$f$-PG samples the real environment and approximates only the occupancy densities inside its signal. Conditionally on the fitted signal, its sampled update is an unbiased but noisy estimate of the gradient of a surrogate in which that signal is held fixed; it is not an unbiased estimate of the gradient of the divergence (\cref{prop:m-fpg-approx}).
+FB imitation keeps the imitation step cheap, but it never meets the real environment again: \ERFB{} reads a latent off four demonstrations, and \DMFB{} takes a finite number of projected Adam steps on an empirical, truncated estimate of a model-based objective. Every statement about the real environment passes through the model's successor measures, which a rank-16 network cannot represent exactly in the finite mazes.
+\DMFB{} then optimizes the model's estimate of its objective; when the model is wrong, decreasing the estimate need not decrease the true objective, and the results of \cref{sec:results-finite} show exactly this.
+
+\subsection{Use cases}
+
+\begin{itemize}[nosep]
+\item \textbf{$f$-PG} fits a single task with a cheap simulator: it needs fresh rollouts for each new expert, but nothing else. In a finite state space its occupancy estimates are unbiased counts, so its signal errors come from sampling alone (they still bias the nonlinear signal, \cref{prop:m-fpg-approx}(b)). Its weak point is density estimation in high-dimensional or continuous spaces.
+\item \textbf{$f$-IRL} is the choice when a reward is wanted, to inspect or to transfer to new dynamics; its cost is a MaxEnt inner loop per reward update, and its guarantees rest on the Gibbs hypothesis. The learned reward is not unique in general, and FIRL's transfer claim rests on an external result that we do not reprove (\cref{sec:m-firl}).
+\item \textbf{FB imitation} pays once for task-blind pretraining and then imitates any number of experts without interaction, in milliseconds for \ERFB{} and below a second here for \DMFB{} (\cref{sec:costs}). It is attractive when many tasks share one environment and interaction is expensive, provided the model is accurate enough on the states that matter; the representation rank and the coverage of the replay data then decide what can be imitated.
+\end{itemize}

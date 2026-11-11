@@ -1,0 +1,1646 @@
+{
+  "created_utc": "2026-10-05T16:28:05Z",
+  "data_id": "final-v1",
+  "items": {
+    "demos/continuous/four_rooms/goal_1_5/s0": {
+      "bytes": 7145,
+      "content_sha256": "12b0caacfe97f7a62629daef41229621aeada46e0bfa8002028ad051702bf058",
+      "created_utc": "2026-10-05T16:28:07Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "route_controller",
+      "expert_actions_sha256": "6566395a1383ee1b3a222a7cb819bff35f361feeee9f58b7c1de91e37fc073fa",
+      "file_sha256": "7430a79488d5e7432140d7486e8155fbc2957b0d21d15927d1b352257d3ad733",
+      "generation_seconds": 0.04349379998166114,
+      "kind": "demos",
+      "path": "demos/continuous/four_rooms/goal_1_5/s0.npz",
+      "shape": [
+        4,
+        101,
+        2
+      ],
+      "spec": {
+        "env": "continuous",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "route_controller",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 0,
+        "stream": [
+          "demos",
+          "continuous",
+          "four_rooms",
+          "goal_1_5"
+        ],
+        "task": "goal_1_5"
+      },
+      "spec_sha256": "89e88206f66f840f87e102b9cefe5b412e0b0a2e2ab0e3821363ea662b3f4f4e"
+    },
+    "demos/continuous/four_rooms/goal_1_5/s1": {
+      "bytes": 7195,
+      "content_sha256": "c8f77f2559468ad5850e5179835412579c7ae3b1d62e446c9a1e00b6e8a6d39c",
+      "created_utc": "2026-10-05T16:28:08Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "route_controller",
+      "expert_actions_sha256": "6566395a1383ee1b3a222a7cb819bff35f361feeee9f58b7c1de91e37fc073fa",
+      "file_sha256": "7f2b864af47cc483d1e29bd40dbb05769a018a1c0a1127dd19b5c80a0873fb12",
+      "generation_seconds": 0.04968679999001324,
+      "kind": "demos",
+      "path": "demos/continuous/four_rooms/goal_1_5/s1.npz",
+      "shape": [
+        4,
+        101,
+        2
+      ],
+      "spec": {
+        "env": "continuous",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "route_controller",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 1,
+        "stream": [
+          "demos",
+          "continuous",
+          "four_rooms",
+          "goal_1_5"
+        ],
+        "task": "goal_1_5"
+      },
+      "spec_sha256": "8b45d17a2b716c79989232ea5c7999529ac66099eb7c2a11c9d889384c1509a7"
+    },
+    "demos/continuous/four_rooms/goal_1_5/s2": {
+      "bytes": 7174,
+      "content_sha256": "cd1141f2e497f8882ef3a43a07ddf5ab7e622f20b5a8444657c0c81ff1497e15",
+      "created_utc": "2026-10-05T16:28:09Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "route_controller",
+      "expert_actions_sha256": "6566395a1383ee1b3a222a7cb819bff35f361feeee9f58b7c1de91e37fc073fa",
+      "file_sha256": "f11ce7a9a62c02d8e2fe0ecf55ede729841c45d3b4128c3d95301df9e9df5ab1",
+      "generation_seconds": 0.04985159996431321,
+      "kind": "demos",
+      "path": "demos/continuous/four_rooms/goal_1_5/s2.npz",
+      "shape": [
+        4,
+        101,
+        2
+      ],
+      "spec": {
+        "env": "continuous",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "route_controller",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 2,
+        "stream": [
+          "demos",
+          "continuous",
+          "four_rooms",
+          "goal_1_5"
+        ],
+        "task": "goal_1_5"
+      },
+      "spec_sha256": "b62f9ffc10d7906da80dd4af7fcdad3630a372337efa2bc5086f63620b02be6e"
+    },
+    "demos/continuous/four_rooms/goal_5_1/s0": {
+      "bytes": 7224,
+      "content_sha256": "3af9143a1b5ea4d1ac6351f8471547bd51816bb6248587060ef3ef1dd33e76ba",
+      "created_utc": "2026-10-05T16:28:06Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "route_controller",
+      "expert_actions_sha256": "770b76c4330649051cfc0e99ca2c6e4a21f7dd83b6c934d8411bb100a6cf6fed",
+      "file_sha256": "eaffefe77768c0918ab9d1c87a9e09a8cfe156549420f366ab3ef435f6f1934d",
+      "generation_seconds": 0.05728950002230704,
+      "kind": "demos",
+      "path": "demos/continuous/four_rooms/goal_5_1/s0.npz",
+      "shape": [
+        4,
+        101,
+        2
+      ],
+      "spec": {
+        "env": "continuous",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "route_controller",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 0,
+        "stream": [
+          "demos",
+          "continuous",
+          "four_rooms",
+          "goal_5_1"
+        ],
+        "task": "goal_5_1"
+      },
+      "spec_sha256": "c19ac10ceffd29b0f56948afcc83295cf32ff50a954245d89b803fe5776443c9"
+    },
+    "demos/continuous/four_rooms/goal_5_1/s1": {
+      "bytes": 7212,
+      "content_sha256": "d24e6083c31f9236149869a6851ca078dae8f4c11a82e31153e129537f2bb645",
+      "created_utc": "2026-10-05T16:28:08Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "route_controller",
+      "expert_actions_sha256": "770b76c4330649051cfc0e99ca2c6e4a21f7dd83b6c934d8411bb100a6cf6fed",
+      "file_sha256": "72b94a6f955d78f2509da914ec27cc753243b390b4e85c4038dcaed92fdf2bbe",
+      "generation_seconds": 0.054951900034211576,
+      "kind": "demos",
+      "path": "demos/continuous/four_rooms/goal_5_1/s1.npz",
+      "shape": [
+        4,
+        101,
+        2
+      ],
+      "spec": {
+        "env": "continuous",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "route_controller",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 1,
+        "stream": [
+          "demos",
+          "continuous",
+          "four_rooms",
+          "goal_5_1"
+        ],
+        "task": "goal_5_1"
+      },
+      "spec_sha256": "1d6393e1ab13bdf9f4266fb4ee10f176780cc53acd52686bf93df0f0f4a79a8a"
+    },
+    "demos/continuous/four_rooms/goal_5_1/s2": {
+      "bytes": 7189,
+      "content_sha256": "00bd36b78e84a619bbd5afc4c28e871023488ee2f2595ce8d28094a259888579",
+      "created_utc": "2026-10-05T16:28:09Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "route_controller",
+      "expert_actions_sha256": "770b76c4330649051cfc0e99ca2c6e4a21f7dd83b6c934d8411bb100a6cf6fed",
+      "file_sha256": "02c98b051c789ad242ea47b5ffa316ca2a82a089df3ac6b641b4fbb42dd368cc",
+      "generation_seconds": 0.04806609998922795,
+      "kind": "demos",
+      "path": "demos/continuous/four_rooms/goal_5_1/s2.npz",
+      "shape": [
+        4,
+        101,
+        2
+      ],
+      "spec": {
+        "env": "continuous",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "route_controller",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 2,
+        "stream": [
+          "demos",
+          "continuous",
+          "four_rooms",
+          "goal_5_1"
+        ],
+        "task": "goal_5_1"
+      },
+      "spec_sha256": "c8c349d1524b3520125a00ef7a9516ca91d88a322652a464afe50a0f4296e34d"
+    },
+    "demos/continuous/four_rooms/goal_5_5/s0": {
+      "bytes": 7076,
+      "content_sha256": "e981554826d05a84e121e0ed94e927093965064b995a824b1073feb884c2f845",
+      "created_utc": "2026-10-05T16:28:06Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "route_controller",
+      "expert_actions_sha256": "7f0571b39cee2e8dc22aed3fb8225f4b4c42e815b4d0cf888894bc57a9c95fe1",
+      "file_sha256": "d93a2973f18b8b279c05ff7c27546f1deb648e9bcae09fcd8296eb9936bcc613",
+      "generation_seconds": 0.045843799947761,
+      "kind": "demos",
+      "path": "demos/continuous/four_rooms/goal_5_5/s0.npz",
+      "shape": [
+        4,
+        101,
+        2
+      ],
+      "spec": {
+        "env": "continuous",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "route_controller",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 0,
+        "stream": [
+          "demos",
+          "continuous",
+          "four_rooms",
+          "goal_5_5"
+        ],
+        "task": "goal_5_5"
+      },
+      "spec_sha256": "fd952a0e8d4839afe880e218d50bd3f814bfcedfbfa3f79e4cb6d8d85c444b99"
+    },
+    "demos/continuous/four_rooms/goal_5_5/s1": {
+      "bytes": 7065,
+      "content_sha256": "7cb37728e15538570130ecc485d27d30cc99caf5de8cb05893e47182efa60c33",
+      "created_utc": "2026-10-05T16:28:08Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "route_controller",
+      "expert_actions_sha256": "7f0571b39cee2e8dc22aed3fb8225f4b4c42e815b4d0cf888894bc57a9c95fe1",
+      "file_sha256": "a1d854859aa3c109093cf0b9bbd7a7e2f56edfacb70a1ebd71118ce4c027fa98",
+      "generation_seconds": 0.049934700015001,
+      "kind": "demos",
+      "path": "demos/continuous/four_rooms/goal_5_5/s1.npz",
+      "shape": [
+        4,
+        101,
+        2
+      ],
+      "spec": {
+        "env": "continuous",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "route_controller",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 1,
+        "stream": [
+          "demos",
+          "continuous",
+          "four_rooms",
+          "goal_5_5"
+        ],
+        "task": "goal_5_5"
+      },
+      "spec_sha256": "8ae146b497494a665c08c74182b15a74875af0d0b414c871e28570991888f6a2"
+    },
+    "demos/continuous/four_rooms/goal_5_5/s2": {
+      "bytes": 7095,
+      "content_sha256": "96b0012c115d7c1f445e9d4029ee2cc86d531e517f0ef58ecd227e63ed7e8123",
+      "created_utc": "2026-10-05T16:28:09Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "route_controller",
+      "expert_actions_sha256": "7f0571b39cee2e8dc22aed3fb8225f4b4c42e815b4d0cf888894bc57a9c95fe1",
+      "file_sha256": "84db9830764fcc96410665e6cbd37891af1f4d1ecb6dd1a3609e5d3b03e7fcd7",
+      "generation_seconds": 0.04623589990660548,
+      "kind": "demos",
+      "path": "demos/continuous/four_rooms/goal_5_5/s2.npz",
+      "shape": [
+        4,
+        101,
+        2
+      ],
+      "spec": {
+        "env": "continuous",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "route_controller",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 2,
+        "stream": [
+          "demos",
+          "continuous",
+          "four_rooms",
+          "goal_5_5"
+        ],
+        "task": "goal_5_5"
+      },
+      "spec_sha256": "d30cb7354528c3332986e40be3a0a46b3e5b73ab912e57fa85cc7290061a8c1d"
+    },
+    "demos/finite/four_rooms/goal_1_5/s0": {
+      "bytes": 1540,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440682195,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 15.533949034813629,
+        "V_pi_H_start": 15.533949034813629,
+        "V_pi_start": 15.643706888714869,
+        "V_star_vi_start": 15.643706888695665,
+        "pi_residual": 7.105427357601002e-15,
+        "policy_gap_bound": 1.421085471520199e-13,
+        "value_iterate_error_bound": 1.932676241267471e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.663381206337363e-13
+      },
+      "content_sha256": "8f635f000cff2946f787267740390e8498b02588fa884523edb9ac5dc382e09f",
+      "created_utc": "2026-10-05T16:28:05Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "d4e5e521744b03f33fa5c47dfc33ef6f1d7a70ef0bf3847722f129b37616b9ce",
+      "file_sha256": "1db52cc49d4ab06f4d87935ac06b141cc20c3a9b1db315eaa404792ff0ec480c",
+      "generation_seconds": 0.037485699984245,
+      "kind": "demos",
+      "path": "demos/finite/four_rooms/goal_1_5/s0.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 0,
+        "stream": [
+          "demos",
+          "finite",
+          "four_rooms",
+          "goal_1_5"
+        ],
+        "task": "goal_1_5"
+      },
+      "spec_sha256": "442b273e964588e5d08c2958ef7a41000ee04c885a81d6e2f07ce45bff8ce722"
+    },
+    "demos/finite/four_rooms/goal_1_5/s1": {
+      "bytes": 1535,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440682195,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 15.533949034813629,
+        "V_pi_H_start": 15.533949034813629,
+        "V_pi_start": 15.643706888714869,
+        "V_star_vi_start": 15.643706888695665,
+        "pi_residual": 7.105427357601002e-15,
+        "policy_gap_bound": 1.421085471520199e-13,
+        "value_iterate_error_bound": 1.932676241267471e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.663381206337363e-13
+      },
+      "content_sha256": "c4aeebcf736e37fba15187ed9f76d60859bcccb24d4529539f6cc47639d7a31e",
+      "created_utc": "2026-10-05T16:28:07Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "d4e5e521744b03f33fa5c47dfc33ef6f1d7a70ef0bf3847722f129b37616b9ce",
+      "file_sha256": "5d68d874aefb72635179188beb94c1664554162f99ca51a0c156dcf0a08717b7",
+      "generation_seconds": 0.03345450002234429,
+      "kind": "demos",
+      "path": "demos/finite/four_rooms/goal_1_5/s1.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 1,
+        "stream": [
+          "demos",
+          "finite",
+          "four_rooms",
+          "goal_1_5"
+        ],
+        "task": "goal_1_5"
+      },
+      "spec_sha256": "02abca0fdbb8eb027282355bf5d1fbf8cb81b0640050fa2bdb990c4c4a043491"
+    },
+    "demos/finite/four_rooms/goal_1_5/s2": {
+      "bytes": 1531,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440682195,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 15.533949034813629,
+        "V_pi_H_start": 15.533949034813629,
+        "V_pi_start": 15.643706888714869,
+        "V_star_vi_start": 15.643706888695665,
+        "pi_residual": 7.105427357601002e-15,
+        "policy_gap_bound": 1.421085471520199e-13,
+        "value_iterate_error_bound": 1.932676241267471e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.663381206337363e-13
+      },
+      "content_sha256": "1776fbf2f3ee40b46cede98ef2da5338df2adbdbcb3e6372650784a910a3f864",
+      "created_utc": "2026-10-05T16:28:08Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "d4e5e521744b03f33fa5c47dfc33ef6f1d7a70ef0bf3847722f129b37616b9ce",
+      "file_sha256": "43a40e12f8763cd0c317b312b82f986cab763914a0aa75c143ffe0b26765d3cb",
+      "generation_seconds": 0.035894199972972274,
+      "kind": "demos",
+      "path": "demos/finite/four_rooms/goal_1_5/s2.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 2,
+        "stream": [
+          "demos",
+          "finite",
+          "four_rooms",
+          "goal_1_5"
+        ],
+        "task": "goal_1_5"
+      },
+      "spec_sha256": "2f1079f89420a4fd3a111fe771db5e4675bf4e7374e9ce4b23093111e44e5ea0"
+    },
+    "demos/finite/four_rooms/goal_5_1/s0": {
+      "bytes": 1541,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440682195,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 15.53394903481363,
+        "V_pi_H_start": 15.53394903481363,
+        "V_pi_start": 15.64370688871488,
+        "V_star_vi_start": 15.643706888695668,
+        "pi_residual": 7.105427357601002e-15,
+        "policy_gap_bound": 1.421085471520199e-13,
+        "value_iterate_error_bound": 1.9362289549462714e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.681144774731365e-13
+      },
+      "content_sha256": "b42acec8a1eec4182a452647997ce0b08be16f1e63a0d464dc1a0c1ff15c2107",
+      "created_utc": "2026-10-05T16:28:05Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "e1f8615ab745ca030e66db112152d4424971aed5ef927df0fe6ae0c73290fd73",
+      "file_sha256": "5612ad813919e36f4695488c19229de1583250f453c9322260bd2c0ccb2d986d",
+      "generation_seconds": 0.038751799962483346,
+      "kind": "demos",
+      "path": "demos/finite/four_rooms/goal_5_1/s0.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 0,
+        "stream": [
+          "demos",
+          "finite",
+          "four_rooms",
+          "goal_5_1"
+        ],
+        "task": "goal_5_1"
+      },
+      "spec_sha256": "1742fa7ae627ccf8b36770f87738c883e4644f97e19a4913fc9adb00d23cb125"
+    },
+    "demos/finite/four_rooms/goal_5_1/s1": {
+      "bytes": 1534,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440682195,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 15.53394903481363,
+        "V_pi_H_start": 15.53394903481363,
+        "V_pi_start": 15.64370688871488,
+        "V_star_vi_start": 15.643706888695668,
+        "pi_residual": 7.105427357601002e-15,
+        "policy_gap_bound": 1.421085471520199e-13,
+        "value_iterate_error_bound": 1.9362289549462714e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.681144774731365e-13
+      },
+      "content_sha256": "f0fe2683de6526717cee53810544a5a84dc6c32d1fc41d97f52b22d7694238b3",
+      "created_utc": "2026-10-05T16:28:07Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "e1f8615ab745ca030e66db112152d4424971aed5ef927df0fe6ae0c73290fd73",
+      "file_sha256": "1a1e6f68245bc85ca62a46029cf4c1ecef101d38aa92c3113f6cb1a8311ab4b1",
+      "generation_seconds": 0.03330060001462698,
+      "kind": "demos",
+      "path": "demos/finite/four_rooms/goal_5_1/s1.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 1,
+        "stream": [
+          "demos",
+          "finite",
+          "four_rooms",
+          "goal_5_1"
+        ],
+        "task": "goal_5_1"
+      },
+      "spec_sha256": "c8850c03ccd963baadfcaa8ac8a3a2dc445ab0268c55c91489dede7c0e509d10"
+    },
+    "demos/finite/four_rooms/goal_5_1/s2": {
+      "bytes": 1532,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440682195,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 15.53394903481363,
+        "V_pi_H_start": 15.53394903481363,
+        "V_pi_start": 15.64370688871488,
+        "V_star_vi_start": 15.643706888695668,
+        "pi_residual": 7.105427357601002e-15,
+        "policy_gap_bound": 1.421085471520199e-13,
+        "value_iterate_error_bound": 1.9362289549462714e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.681144774731365e-13
+      },
+      "content_sha256": "bacb30cd263725381dd1a4b8616e79b39825a6e85e32a6f8001f1f2f3888266d",
+      "created_utc": "2026-10-05T16:28:08Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "e1f8615ab745ca030e66db112152d4424971aed5ef927df0fe6ae0c73290fd73",
+      "file_sha256": "f448ece67480515ef9128d739fe25c87d689aa346415918c975db4059f351222",
+      "generation_seconds": 0.03866380010731518,
+      "kind": "demos",
+      "path": "demos/finite/four_rooms/goal_5_1/s2.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 2,
+        "stream": [
+          "demos",
+          "finite",
+          "four_rooms",
+          "goal_5_1"
+        ],
+        "task": "goal_5_1"
+      },
+      "spec_sha256": "baa9db689a5d61c293f294d5f08ff5d7441b3d2e3385e6dd5b070acf1044f01d"
+    },
+    "demos/finite/four_rooms/goal_5_5/s0": {
+      "bytes": 1569,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440682195,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 12.35730926424345,
+        "V_pi_H_start": 12.35730926424345,
+        "V_pi_start": 12.467067118144714,
+        "V_star_vi_start": 12.467067118125508,
+        "pi_residual": 7.105427357601002e-15,
+        "policy_gap_bound": 1.421085471520199e-13,
+        "value_iterate_error_bound": 1.9291235275886704e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.64561763794336e-13
+      },
+      "content_sha256": "440ffb47afe845e973a74a9e55a32b136b1ae57015b977d5e126beeb0554945b",
+      "created_utc": "2026-10-05T16:28:05Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "a816580fd59b1c7f659769dfebb4e1bc1942759e13fbf93d2a04cb512289c51b",
+      "file_sha256": "18b70c4758aae00a9e2578a93b38b168908c485541d44e41cd47d052ef81ffa9",
+      "generation_seconds": 0.035248200059868395,
+      "kind": "demos",
+      "path": "demos/finite/four_rooms/goal_5_5/s0.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 0,
+        "stream": [
+          "demos",
+          "finite",
+          "four_rooms",
+          "goal_5_5"
+        ],
+        "task": "goal_5_5"
+      },
+      "spec_sha256": "e78018e9c70ad541bca3c7e770bc84cb990f196e51dd98d48a23b2fbc3e0f6a8"
+    },
+    "demos/finite/four_rooms/goal_5_5/s1": {
+      "bytes": 1557,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440682195,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 12.35730926424345,
+        "V_pi_H_start": 12.35730926424345,
+        "V_pi_start": 12.467067118144714,
+        "V_star_vi_start": 12.467067118125508,
+        "pi_residual": 7.105427357601002e-15,
+        "policy_gap_bound": 1.421085471520199e-13,
+        "value_iterate_error_bound": 1.9291235275886704e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.64561763794336e-13
+      },
+      "content_sha256": "ede922aa6def2c6b571294cf34b701916be09e4c9df35a05193554cb52a50b20",
+      "created_utc": "2026-10-05T16:28:07Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "a816580fd59b1c7f659769dfebb4e1bc1942759e13fbf93d2a04cb512289c51b",
+      "file_sha256": "8f3b9f0a5bee8a94ae98b2b37904251ad364f40fbf7faa08b85f4ef7bf01a5dd",
+      "generation_seconds": 0.03453599999193102,
+      "kind": "demos",
+      "path": "demos/finite/four_rooms/goal_5_5/s1.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 1,
+        "stream": [
+          "demos",
+          "finite",
+          "four_rooms",
+          "goal_5_5"
+        ],
+        "task": "goal_5_5"
+      },
+      "spec_sha256": "dfcd679fbedfb314c799195be8db4b06a3c45a7221bd16bdb0d44b5b4973d740"
+    },
+    "demos/finite/four_rooms/goal_5_5/s2": {
+      "bytes": 1584,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440682195,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 12.35730926424345,
+        "V_pi_H_start": 12.35730926424345,
+        "V_pi_start": 12.467067118144714,
+        "V_star_vi_start": 12.467067118125508,
+        "pi_residual": 7.105427357601002e-15,
+        "policy_gap_bound": 1.421085471520199e-13,
+        "value_iterate_error_bound": 1.9291235275886704e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.64561763794336e-13
+      },
+      "content_sha256": "5b1e9b2a10b4d1d45d97441cb4e72d02587cbb128c4846f403964b73e974a78c",
+      "created_utc": "2026-10-05T16:28:08Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "a816580fd59b1c7f659769dfebb4e1bc1942759e13fbf93d2a04cb512289c51b",
+      "file_sha256": "1636ea5e21b33f22dce334111c197d3568f3c63c54e971a9a1516ddce4ceaf48",
+      "generation_seconds": 0.03332599997520447,
+      "kind": "demos",
+      "path": "demos/finite/four_rooms/goal_5_5/s2.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "four_rooms",
+        "n_trajectories": 4,
+        "seed": 2,
+        "stream": [
+          "demos",
+          "finite",
+          "four_rooms",
+          "goal_5_5"
+        ],
+        "task": "goal_5_5"
+      },
+      "spec_sha256": "4d9f7f45d83b1738a462b3ad9e343090051c7bf92bd34c3c19c6a61a557adc10"
+    },
+    "demos/finite/open/goal_1_5/s0": {
+      "bytes": 1497,
+      "certificate": {
+        "H_step_gap_bound": 0.118410584406893,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 15.507797258402121,
+        "V_pi_H_start": 15.507797258402121,
+        "V_pi_start": 15.617543253492673,
+        "V_star_vi_start": 15.617543253473466,
+        "pi_residual": 1.0658141036401503e-14,
+        "policy_gap_bound": 2.1316282072802988e-13,
+        "value_iterate_error_bound": 1.932676241267471e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.663381206337363e-13
+      },
+      "content_sha256": "91bfd3843a04f2c6ae5f41426a36c7a6d8806141f66ce0e2c036433dd991ca6d",
+      "created_utc": "2026-10-05T16:28:05Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "77e98d124584dc23e47bb1ece9448baf0699f2962fab322fe65b2c456694e93b",
+      "file_sha256": "76b57ee6a1149f5b27c8d4c6f3d6a3a4fc4ef8366f3522d0b17babd1df50befd",
+      "generation_seconds": 0.03722209995612502,
+      "kind": "demos",
+      "path": "demos/finite/open/goal_1_5/s0.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "open",
+        "n_trajectories": 4,
+        "seed": 0,
+        "stream": [
+          "demos",
+          "finite",
+          "open",
+          "goal_1_5"
+        ],
+        "task": "goal_1_5"
+      },
+      "spec_sha256": "479bdf59ecf5b208eb99d082be31631d5dea9d9ab62f2697c6352154b6b782e6"
+    },
+    "demos/finite/open/goal_1_5/s1": {
+      "bytes": 1529,
+      "certificate": {
+        "H_step_gap_bound": 0.118410584406893,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 15.507797258402121,
+        "V_pi_H_start": 15.507797258402121,
+        "V_pi_start": 15.617543253492673,
+        "V_star_vi_start": 15.617543253473466,
+        "pi_residual": 1.0658141036401503e-14,
+        "policy_gap_bound": 2.1316282072802988e-13,
+        "value_iterate_error_bound": 1.932676241267471e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.663381206337363e-13
+      },
+      "content_sha256": "ff1b9389d85fb9155a1d00ad91a166ca51fee79664427f0fcc51aa385a790f80",
+      "created_utc": "2026-10-05T16:28:07Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "77e98d124584dc23e47bb1ece9448baf0699f2962fab322fe65b2c456694e93b",
+      "file_sha256": "2b6e959cdb80e297b1d64a67a22221ed35076a310b59a1ca1716c331049b0427",
+      "generation_seconds": 0.03504440002143383,
+      "kind": "demos",
+      "path": "demos/finite/open/goal_1_5/s1.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "open",
+        "n_trajectories": 4,
+        "seed": 1,
+        "stream": [
+          "demos",
+          "finite",
+          "open",
+          "goal_1_5"
+        ],
+        "task": "goal_1_5"
+      },
+      "spec_sha256": "b7f37f257c4c50e2d46f4f870a8a59620bb26901ca700c58fad04a45d8d92210"
+    },
+    "demos/finite/open/goal_1_5/s2": {
+      "bytes": 1508,
+      "certificate": {
+        "H_step_gap_bound": 0.118410584406893,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 15.507797258402121,
+        "V_pi_H_start": 15.507797258402121,
+        "V_pi_start": 15.617543253492673,
+        "V_star_vi_start": 15.617543253473466,
+        "pi_residual": 1.0658141036401503e-14,
+        "policy_gap_bound": 2.1316282072802988e-13,
+        "value_iterate_error_bound": 1.932676241267471e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.663381206337363e-13
+      },
+      "content_sha256": "ef3f4e4700c531c74fe17b110d83d6f6f2981e60f5e4672f7dc10efe1fe23846",
+      "created_utc": "2026-10-05T16:28:08Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "77e98d124584dc23e47bb1ece9448baf0699f2962fab322fe65b2c456694e93b",
+      "file_sha256": "020827c981f1693c5932d28d493bbcb02c314400f0d66c5b7a924f954fe93736",
+      "generation_seconds": 0.03419820009730756,
+      "kind": "demos",
+      "path": "demos/finite/open/goal_1_5/s2.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "open",
+        "n_trajectories": 4,
+        "seed": 2,
+        "stream": [
+          "demos",
+          "finite",
+          "open",
+          "goal_1_5"
+        ],
+        "task": "goal_1_5"
+      },
+      "spec_sha256": "418d6502694ce0685f4ee88fb199d05c405bf69d15456afd47a3183e4d245a54"
+    },
+    "demos/finite/open/goal_5_1/s0": {
+      "bytes": 1517,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440685748,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 15.507797258402121,
+        "V_pi_H_start": 15.507797258402121,
+        "V_pi_start": 15.617543253492649,
+        "V_star_vi_start": 15.617543253473466,
+        "pi_residual": 8.881784197001252e-15,
+        "policy_gap_bound": 1.776356839400249e-13,
+        "value_iterate_error_bound": 1.932676241267471e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.663381206337363e-13
+      },
+      "content_sha256": "f5611ffdc04cf925bb10e6060662e497f9d7dd8016e59c6214f20956d5b0148d",
+      "created_utc": "2026-10-05T16:28:05Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "a24feaf5d5b5d4153cb67f8d901ea6f611b95536c431678aab90b62826153cef",
+      "file_sha256": "2693118c973adaec9c9d6ef9b39dec2fbd9188b1e7097996ae957095b6f6a591",
+      "generation_seconds": 0.047225399990566075,
+      "kind": "demos",
+      "path": "demos/finite/open/goal_5_1/s0.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "open",
+        "n_trajectories": 4,
+        "seed": 0,
+        "stream": [
+          "demos",
+          "finite",
+          "open",
+          "goal_5_1"
+        ],
+        "task": "goal_5_1"
+      },
+      "spec_sha256": "aad3dc0a96cd5ae858d2794190b4b25852c245b1dd473500aaed1aa01a2bef49"
+    },
+    "demos/finite/open/goal_5_1/s1": {
+      "bytes": 1527,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440685748,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 15.507797258402121,
+        "V_pi_H_start": 15.507797258402121,
+        "V_pi_start": 15.617543253492649,
+        "V_star_vi_start": 15.617543253473466,
+        "pi_residual": 8.881784197001252e-15,
+        "policy_gap_bound": 1.776356839400249e-13,
+        "value_iterate_error_bound": 1.932676241267471e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.663381206337363e-13
+      },
+      "content_sha256": "46aa0650703accd56eedfa5b8c9f58ad364625bb90dc1d5c44619a28fd2ae0d8",
+      "created_utc": "2026-10-05T16:28:07Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "a24feaf5d5b5d4153cb67f8d901ea6f611b95536c431678aab90b62826153cef",
+      "file_sha256": "90594bb55ab078df500cd6151cc0b5e939140ee777e7e86045cac1678a235c9f",
+      "generation_seconds": 0.040337199927307665,
+      "kind": "demos",
+      "path": "demos/finite/open/goal_5_1/s1.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "open",
+        "n_trajectories": 4,
+        "seed": 1,
+        "stream": [
+          "demos",
+          "finite",
+          "open",
+          "goal_5_1"
+        ],
+        "task": "goal_5_1"
+      },
+      "spec_sha256": "46394394ce18343818f9ff695d7563f90fba63af6a3afec5ff124565ba019fce"
+    },
+    "demos/finite/open/goal_5_1/s2": {
+      "bytes": 1561,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440685748,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 15.507797258402121,
+        "V_pi_H_start": 15.507797258402121,
+        "V_pi_start": 15.617543253492649,
+        "V_star_vi_start": 15.617543253473466,
+        "pi_residual": 8.881784197001252e-15,
+        "policy_gap_bound": 1.776356839400249e-13,
+        "value_iterate_error_bound": 1.932676241267471e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.663381206337363e-13
+      },
+      "content_sha256": "ebcfa27670660668491c58741d64172c7710017c212af38406a17ac41957c1b1",
+      "created_utc": "2026-10-05T16:28:08Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "a24feaf5d5b5d4153cb67f8d901ea6f611b95536c431678aab90b62826153cef",
+      "file_sha256": "416dc5dad16adacc35224defc09d613613d3e4987f63e9cc2c9b243dcd590607",
+      "generation_seconds": 0.03572729998268187,
+      "kind": "demos",
+      "path": "demos/finite/open/goal_5_1/s2.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "open",
+        "n_trajectories": 4,
+        "seed": 2,
+        "stream": [
+          "demos",
+          "finite",
+          "open",
+          "goal_5_1"
+        ],
+        "task": "goal_5_1"
+      },
+      "spec_sha256": "be5ca77ae884ce5b4d513336030fa62572b8c74219d718ad2ee254666d448fbc"
+    },
+    "demos/finite/open/goal_5_5/s0": {
+      "bytes": 1535,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440682195,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 12.43259559283688,
+        "V_pi_H_start": 12.43259559283688,
+        "V_pi_start": 12.542341587927426,
+        "V_star_vi_start": 12.542341587908222,
+        "pi_residual": 7.105427357601002e-15,
+        "policy_gap_bound": 1.421085471520199e-13,
+        "value_iterate_error_bound": 1.9362289549462714e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.681144774731365e-13
+      },
+      "content_sha256": "aa5029d04da7313143683861e89aa199b25f3bdd0d7f466fa935057fefe3a116",
+      "created_utc": "2026-10-05T16:28:05Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "cf9dbc0fbffe443e36777cbc67381828b058b2e377726159486b5a6fae24db13",
+      "file_sha256": "a26e178b0d5980e6071c4453fe1ebc9320e3ac3843ad911c80481fcd0cb93ea1",
+      "generation_seconds": 0.04913040006067604,
+      "kind": "demos",
+      "path": "demos/finite/open/goal_5_5/s0.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "open",
+        "n_trajectories": 4,
+        "seed": 0,
+        "stream": [
+          "demos",
+          "finite",
+          "open",
+          "goal_5_5"
+        ],
+        "task": "goal_5_5"
+      },
+      "spec_sha256": "693990011050a2d8675f1596ae8efc550b66b7d6360a6d096c779f706520c923"
+    },
+    "demos/finite/open/goal_5_5/s1": {
+      "bytes": 1526,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440682195,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 12.43259559283688,
+        "V_pi_H_start": 12.43259559283688,
+        "V_pi_start": 12.542341587927426,
+        "V_star_vi_start": 12.542341587908222,
+        "pi_residual": 7.105427357601002e-15,
+        "policy_gap_bound": 1.421085471520199e-13,
+        "value_iterate_error_bound": 1.9362289549462714e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.681144774731365e-13
+      },
+      "content_sha256": "ce630f7b77950adf0a6c3bd0b28edfefa3f91a67a53c8a3c9a280cca0b154243",
+      "created_utc": "2026-10-05T16:28:07Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "cf9dbc0fbffe443e36777cbc67381828b058b2e377726159486b5a6fae24db13",
+      "file_sha256": "2e77505982c65fb1eb7da52cb7f908e132f8163e06e98d48ea12b85f11901682",
+      "generation_seconds": 0.03623069997411221,
+      "kind": "demos",
+      "path": "demos/finite/open/goal_5_5/s1.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "open",
+        "n_trajectories": 4,
+        "seed": 1,
+        "stream": [
+          "demos",
+          "finite",
+          "open",
+          "goal_5_5"
+        ],
+        "task": "goal_5_5"
+      },
+      "spec_sha256": "8a2f8f38058c59ee3572b43270ecd46ca766e03c2e0c2363a73571e52b860d39"
+    },
+    "demos/finite/open/goal_5_5/s2": {
+      "bytes": 1556,
+      "certificate": {
+        "H_step_gap_bound": 0.11841058440682195,
+        "H_step_gap_start": 0.0,
+        "V_H_star_start": 12.43259559283688,
+        "V_pi_H_start": 12.43259559283688,
+        "V_pi_start": 12.542341587927426,
+        "V_star_vi_start": 12.542341587908222,
+        "pi_residual": 7.105427357601002e-15,
+        "policy_gap_bound": 1.421085471520199e-13,
+        "value_iterate_error_bound": 1.9362289549462714e-11,
+        "vi_iterations": 539.0,
+        "vi_residual": 9.681144774731365e-13
+      },
+      "content_sha256": "ad87d7f2e15993b9d9e827ddc1c2181eb840870c089ca125fb496becf54850b2",
+      "created_utc": "2026-10-05T16:28:08Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "expert": "finite_oracle_optimal",
+      "expert_actions_sha256": "cf9dbc0fbffe443e36777cbc67381828b058b2e377726159486b5a6fae24db13",
+      "file_sha256": "c1a00e468d7d914a6b9f46eb0285eaf56e7de1b53fa227c5fa70d6341e2b2330",
+      "generation_seconds": 0.03847759997006506,
+      "kind": "demos",
+      "path": "demos/finite/open/goal_5_5/s2.npz",
+      "shape": [
+        4,
+        101
+      ],
+      "spec": {
+        "env": "finite",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "finite_oracle_optimal",
+        "horizon": 100,
+        "kind": "demos",
+        "layout": "open",
+        "n_trajectories": 4,
+        "seed": 2,
+        "stream": [
+          "demos",
+          "finite",
+          "open",
+          "goal_5_5"
+        ],
+        "task": "goal_5_5"
+      },
+      "spec_sha256": "a032729de5b0491f7b2a6c2b5e8de27a11fe355729fadb683e26fa1cbed6706c"
+    },
+    "reference/continuous/four_rooms/goal_1_5/r314159": {
+      "bytes": 3002473,
+      "content_sha256": "9bf6bd33cc66f9dee2d1d34eaba839500f080949e22f1c4f233f56fd41ec4d0e",
+      "created_utc": "2026-10-05T16:28:07Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "file_sha256": "dd115de7a375f5094e7ebbdf29c3bdf6f7a904099a81b1b1f75e364781b0d2d7",
+      "generation_seconds": 0.4102386999875307,
+      "kind": "reference",
+      "path": "reference/continuous/four_rooms/goal_1_5/r314159.npz",
+      "shape": [
+        2000,
+        101,
+        2
+      ],
+      "spec": {
+        "env": "continuous",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "route_controller",
+        "horizon": 100,
+        "kind": "reference",
+        "layout": "four_rooms",
+        "n_trajectories": 2000,
+        "seed": 314159,
+        "stream": [
+          "heldout_reference",
+          "continuous",
+          "four_rooms",
+          "goal_1_5"
+        ],
+        "task": "goal_1_5"
+      },
+      "spec_sha256": "41cdd7e6cf05c56782a10c54c97f9d89248452a0f86a0ffd6c6aaf8042a8ffce"
+    },
+    "reference/continuous/four_rooms/goal_5_1/r314159": {
+      "bytes": 3002894,
+      "content_sha256": "6eb31e765ada185edf48230ef9542550f201318566075a9956213d50ba0fddb3",
+      "created_utc": "2026-10-05T16:28:06Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "file_sha256": "5f5d4d84c69fab5b66619090fa23625df9e5379e613fedec3ad9122d6d8c6704",
+      "generation_seconds": 0.43375249998643994,
+      "kind": "reference",
+      "path": "reference/continuous/four_rooms/goal_5_1/r314159.npz",
+      "shape": [
+        2000,
+        101,
+        2
+      ],
+      "spec": {
+        "env": "continuous",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "route_controller",
+        "horizon": 100,
+        "kind": "reference",
+        "layout": "four_rooms",
+        "n_trajectories": 2000,
+        "seed": 314159,
+        "stream": [
+          "heldout_reference",
+          "continuous",
+          "four_rooms",
+          "goal_5_1"
+        ],
+        "task": "goal_5_1"
+      },
+      "spec_sha256": "b82e5058822cc712e2d289629f98a2b261970c00336d5f3db7c97a279b3dccc6"
+    },
+    "reference/continuous/four_rooms/goal_5_5/r314159": {
+      "bytes": 2950673,
+      "content_sha256": "90ab9453ed4e140839727cab6acd26a5cae7655216125872f4b1b41fc72737fa",
+      "created_utc": "2026-10-05T16:28:07Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "file_sha256": "d5e75fefab3dc9c41aa4be712b9c67afd99b3068bfb13a90f42ff0b72091c332",
+      "generation_seconds": 0.4393811000045389,
+      "kind": "reference",
+      "path": "reference/continuous/four_rooms/goal_5_5/r314159.npz",
+      "shape": [
+        2000,
+        101,
+        2
+      ],
+      "spec": {
+        "env": "continuous",
+        "env_sha256": "388667b48dfece5af281ae9bcc213b69b9aab181d96295320b288c87493c33a8",
+        "expert": "route_controller",
+        "horizon": 100,
+        "kind": "reference",
+        "layout": "four_rooms",
+        "n_trajectories": 2000,
+        "seed": 314159,
+        "stream": [
+          "heldout_reference",
+          "continuous",
+          "four_rooms",
+          "goal_5_5"
+        ],
+        "task": "goal_5_5"
+      },
+      "spec_sha256": "6897a48e9333526131ffac5fcd12df7f0b2f509995d87bad4243e901221cc3cf"
+    },
+    "replay/continuous/four_rooms/s0": {
+      "bytes": 3086384,
+      "content_sha256": "0f915c89b60d13193311d18bce8cd96633dda3978d1b5434ab8a407d76bad959",
+      "coverage": {
+        "action_counts": [
+          20072,
+          19907,
+          20226,
+          19692,
+          20103
+        ],
+        "cells_visited": 40,
+        "covers_all": true,
+        "min_cell_action_count": 435,
+        "n_free_cells": 40
+      },
+      "created_utc": "2026-10-05T16:28:06Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "file_sha256": "aff3a3b7e7d4f15531eb609c0e6c6c67169693a49672d9cd4db90ff5a6555a9a",
+      "generation_seconds": 0.3895821999758482,
+      "kind": "replay",
+      "n_resets": 2000,
+      "n_transitions": 100000,
+      "path": "replay/continuous/four_rooms/s0.npz",
+      "spec": {
+        "behaviour": "uniform random actions; segments from uniform free-space resets (fb.collect_replay)",
+        "env": "continuous",
+        "kind": "replay",
+        "layout": "four_rooms",
+        "n_transitions": 100000,
+        "seed": 0,
+        "segment_length": 50,
+        "sim_sha256": "9aa97f5c0979d41854e6916bd3f754d1e0ac5e9fd1c97256eeed4ce642f0494a",
+        "stream": [
+          "replay",
+          "continuous",
+          "four_rooms"
+        ]
+      },
+      "spec_sha256": "5a10899f3a14b0adaf48d0ba9e3ba76977b877686de9f00a6c39d795682aaa28"
+    },
+    "replay/continuous/four_rooms/s1": {
+      "bytes": 3086241,
+      "content_sha256": "2569b3c7f7a048e30bffefc8f654f203f764efb9de6be4ee3d60d5010c2fc7df",
+      "coverage": {
+        "action_counts": [
+          19855,
+          19890,
+          20099,
+          20171,
+          19985
+        ],
+        "cells_visited": 40,
+        "covers_all": true,
+        "min_cell_action_count": 434,
+        "n_free_cells": 40
+      },
+      "created_utc": "2026-10-05T16:28:08Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "file_sha256": "51ac69e89332f0b40fa6f9ba47acedb0dda58ad588da4fab8d9659b2127fe4f8",
+      "generation_seconds": 0.3711430000839755,
+      "kind": "replay",
+      "n_resets": 2000,
+      "n_transitions": 100000,
+      "path": "replay/continuous/four_rooms/s1.npz",
+      "spec": {
+        "behaviour": "uniform random actions; segments from uniform free-space resets (fb.collect_replay)",
+        "env": "continuous",
+        "kind": "replay",
+        "layout": "four_rooms",
+        "n_transitions": 100000,
+        "seed": 1,
+        "segment_length": 50,
+        "sim_sha256": "9aa97f5c0979d41854e6916bd3f754d1e0ac5e9fd1c97256eeed4ce642f0494a",
+        "stream": [
+          "replay",
+          "continuous",
+          "four_rooms"
+        ]
+      },
+      "spec_sha256": "a39fc33d543bad661e3115765483b141d8f1f9deb8f2af182886b8905b316846"
+    },
+    "replay/continuous/four_rooms/s2": {
+      "bytes": 3086300,
+      "content_sha256": "43440945ee072113d19a8b5e53a7e5164dd5ae4d39b531b33ae109bfc0bdab84",
+      "coverage": {
+        "action_counts": [
+          19942,
+          20025,
+          20028,
+          19896,
+          20109
+        ],
+        "cells_visited": 40,
+        "covers_all": true,
+        "min_cell_action_count": 423,
+        "n_free_cells": 40
+      },
+      "created_utc": "2026-10-05T16:28:09Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "file_sha256": "babb09d207bc6d07c8b3b3648044da316af367707af10b48fdefaa49c1503b90",
+      "generation_seconds": 0.3706767000257969,
+      "kind": "replay",
+      "n_resets": 2000,
+      "n_transitions": 100000,
+      "path": "replay/continuous/four_rooms/s2.npz",
+      "spec": {
+        "behaviour": "uniform random actions; segments from uniform free-space resets (fb.collect_replay)",
+        "env": "continuous",
+        "kind": "replay",
+        "layout": "four_rooms",
+        "n_transitions": 100000,
+        "seed": 2,
+        "segment_length": 50,
+        "sim_sha256": "9aa97f5c0979d41854e6916bd3f754d1e0ac5e9fd1c97256eeed4ce642f0494a",
+        "stream": [
+          "replay",
+          "continuous",
+          "four_rooms"
+        ]
+      },
+      "spec_sha256": "ce80c22cdadfc32e02e85908ffcb0156f09f7fc096ad6f6b890a1b79c392ffbf"
+    },
+    "replay/finite/four_rooms/s0": {
+      "bytes": 92693,
+      "content_sha256": "a6812297e1187363ee48d5b6deab7ce5bf93c3f1ed5bf2047d1c25d4f9247e92",
+      "coverage": {
+        "action_counts": [
+          10058,
+          9927,
+          10075,
+          9982,
+          9958
+        ],
+        "covers_all": true,
+        "min_next_state_count": 1083,
+        "min_state_action_count": 188,
+        "n_states": 40,
+        "states_visited": 40
+      },
+      "created_utc": "2026-10-05T16:28:05Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "file_sha256": "a561eeba8cabe0bbf846f48addb568de3f6d8beb4762a38c7417aed3c657a947",
+      "generation_seconds": 0.06660669995471835,
+      "kind": "replay",
+      "n_resets": 1000,
+      "n_transitions": 50000,
+      "path": "replay/finite/four_rooms/s0.npz",
+      "spec": {
+        "behaviour": "uniform random actions; segments from uniform free-space resets (fb.collect_replay)",
+        "env": "finite",
+        "kind": "replay",
+        "layout": "four_rooms",
+        "n_transitions": 50000,
+        "seed": 0,
+        "segment_length": 50,
+        "sim_sha256": "9aa97f5c0979d41854e6916bd3f754d1e0ac5e9fd1c97256eeed4ce642f0494a",
+        "stream": [
+          "replay",
+          "finite",
+          "four_rooms"
+        ]
+      },
+      "spec_sha256": "6e22e5d4a76e8da2fbc824a47f7782d494ef85e0cf4ae3b8af64d9874ff12410"
+    },
+    "replay/finite/four_rooms/s1": {
+      "bytes": 92660,
+      "content_sha256": "32fd2447b3f8ea58ef2b679223cb8cd75057fc5b99b6a4c394323041beb9fdcc",
+      "coverage": {
+        "action_counts": [
+          9994,
+          10055,
+          9951,
+          10105,
+          9895
+        ],
+        "covers_all": true,
+        "min_next_state_count": 1076,
+        "min_state_action_count": 192,
+        "n_states": 40,
+        "states_visited": 40
+      },
+      "created_utc": "2026-10-05T16:28:07Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "file_sha256": "8ed2be6264520fe66b2d42a77ce9468ff8d31a63d705348c175ec159e9b64d1a",
+      "generation_seconds": 0.06988069997169077,
+      "kind": "replay",
+      "n_resets": 1000,
+      "n_transitions": 50000,
+      "path": "replay/finite/four_rooms/s1.npz",
+      "spec": {
+        "behaviour": "uniform random actions; segments from uniform free-space resets (fb.collect_replay)",
+        "env": "finite",
+        "kind": "replay",
+        "layout": "four_rooms",
+        "n_transitions": 50000,
+        "seed": 1,
+        "segment_length": 50,
+        "sim_sha256": "9aa97f5c0979d41854e6916bd3f754d1e0ac5e9fd1c97256eeed4ce642f0494a",
+        "stream": [
+          "replay",
+          "finite",
+          "four_rooms"
+        ]
+      },
+      "spec_sha256": "073d3199d155c878dc1355ec044d71add12facc68455672a890c5a975cc7650f"
+    },
+    "replay/finite/four_rooms/s2": {
+      "bytes": 92613,
+      "content_sha256": "2bc8a2bc32ab943bbea0f983b0ec2be39b3e360fd5026e63b0d7e0232719fae0",
+      "coverage": {
+        "action_counts": [
+          10036,
+          10098,
+          9924,
+          9890,
+          10052
+        ],
+        "covers_all": true,
+        "min_next_state_count": 989,
+        "min_state_action_count": 180,
+        "n_states": 40,
+        "states_visited": 40
+      },
+      "created_utc": "2026-10-05T16:28:08Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "file_sha256": "816b4f403de65157eaa4d1d3cd9853b9070c61592af0b64eeecacdcbcb15b04f",
+      "generation_seconds": 0.06425369996577501,
+      "kind": "replay",
+      "n_resets": 1000,
+      "n_transitions": 50000,
+      "path": "replay/finite/four_rooms/s2.npz",
+      "spec": {
+        "behaviour": "uniform random actions; segments from uniform free-space resets (fb.collect_replay)",
+        "env": "finite",
+        "kind": "replay",
+        "layout": "four_rooms",
+        "n_transitions": 50000,
+        "seed": 2,
+        "segment_length": 50,
+        "sim_sha256": "9aa97f5c0979d41854e6916bd3f754d1e0ac5e9fd1c97256eeed4ce642f0494a",
+        "stream": [
+          "replay",
+          "finite",
+          "four_rooms"
+        ]
+      },
+      "spec_sha256": "965b3de990efbb82439bce51d997946d8eb72151426cbec995c7aa4ee4182ca1"
+    },
+    "replay/finite/open/s0": {
+      "bytes": 101087,
+      "content_sha256": "50530907da3d18cf67ddbcbc71308f938eaeaead75bae97ecae1a3bdd5ffd18c",
+      "coverage": {
+        "action_counts": [
+          9957,
+          9986,
+          9958,
+          10010,
+          10089
+        ],
+        "covers_all": true,
+        "min_next_state_count": 834,
+        "min_state_action_count": 137,
+        "n_states": 49,
+        "states_visited": 49
+      },
+      "created_utc": "2026-10-05T16:28:05Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "file_sha256": "6f79a791796d6213e9e9585e67129666c2be9223d460a8500975e6e3d144c68e",
+      "generation_seconds": 0.07046389998868108,
+      "kind": "replay",
+      "n_resets": 1000,
+      "n_transitions": 50000,
+      "path": "replay/finite/open/s0.npz",
+      "spec": {
+        "behaviour": "uniform random actions; segments from uniform free-space resets (fb.collect_replay)",
+        "env": "finite",
+        "kind": "replay",
+        "layout": "open",
+        "n_transitions": 50000,
+        "seed": 0,
+        "segment_length": 50,
+        "sim_sha256": "9aa97f5c0979d41854e6916bd3f754d1e0ac5e9fd1c97256eeed4ce642f0494a",
+        "stream": [
+          "replay",
+          "finite",
+          "open"
+        ]
+      },
+      "spec_sha256": "abc4dea990a158057746a73180d72a5d254fb700c9482268f3376d634f338ecc"
+    },
+    "replay/finite/open/s1": {
+      "bytes": 101258,
+      "content_sha256": "1737f1753cb4c30ad347ac0a7c52686d8edc90de26933583a7e42ad35faf1259",
+      "coverage": {
+        "action_counts": [
+          10048,
+          9911,
+          10106,
+          9939,
+          9996
+        ],
+        "covers_all": true,
+        "min_next_state_count": 935,
+        "min_state_action_count": 161,
+        "n_states": 49,
+        "states_visited": 49
+      },
+      "created_utc": "2026-10-05T16:28:07Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "file_sha256": "d4a5443e369572d0dc02045eba357869836b68ed682c88b87b6fcc626ac0566f",
+      "generation_seconds": 0.07147080008871853,
+      "kind": "replay",
+      "n_resets": 1000,
+      "n_transitions": 50000,
+      "path": "replay/finite/open/s1.npz",
+      "spec": {
+        "behaviour": "uniform random actions; segments from uniform free-space resets (fb.collect_replay)",
+        "env": "finite",
+        "kind": "replay",
+        "layout": "open",
+        "n_transitions": 50000,
+        "seed": 1,
+        "segment_length": 50,
+        "sim_sha256": "9aa97f5c0979d41854e6916bd3f754d1e0ac5e9fd1c97256eeed4ce642f0494a",
+        "stream": [
+          "replay",
+          "finite",
+          "open"
+        ]
+      },
+      "spec_sha256": "33fc7f0c8dab61c2ef2a691d34ca3b389ae3deb9213e2e3ee1273026c0fd5441"
+    },
+    "replay/finite/open/s2": {
+      "bytes": 101238,
+      "content_sha256": "9e351fd5ed9f6ba97259fdde7d5f04682bd2214e716556bee2adc9ca09095f28",
+      "coverage": {
+        "action_counts": [
+          10035,
+          10201,
+          9963,
+          9968,
+          9833
+        ],
+        "covers_all": true,
+        "min_next_state_count": 832,
+        "min_state_action_count": 145,
+        "n_states": 49,
+        "states_visited": 49
+      },
+      "created_utc": "2026-10-05T16:28:08Z",
+      "data_code_sha256": "0c2f3c11a45cc7803f0ab7b7dbde79532687384e67dde266e3d8129c87301522",
+      "file_sha256": "c2aaa10549337cf2acee5bf7a53c6c0cfed0f8be808a4e2eee53390b845cdc78",
+      "generation_seconds": 0.07338489999528974,
+      "kind": "replay",
+      "n_resets": 1000,
+      "n_transitions": 50000,
+      "path": "replay/finite/open/s2.npz",
+      "spec": {
+        "behaviour": "uniform random actions; segments from uniform free-space resets (fb.collect_replay)",
+        "env": "finite",
+        "kind": "replay",
+        "layout": "open",
+        "n_transitions": 50000,
+        "seed": 2,
+        "segment_length": 50,
+        "sim_sha256": "9aa97f5c0979d41854e6916bd3f754d1e0ac5e9fd1c97256eeed4ce642f0494a",
+        "stream": [
+          "replay",
+          "finite",
+          "open"
+        ]
+      },
+      "spec_sha256": "3191893d54743f52023c7bafc35aa7b336aec96a2f567d1138a30e75687505a3"
+    }
+  },
+  "schema": "il_memoir/data-v1",
+  "suites": [
+    "core"
+  ],
+  "updated_utc": "2026-11-11T21:51:05Z"
+}

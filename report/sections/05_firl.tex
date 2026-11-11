@@ -1,0 +1,64 @@
+\section{\texorpdfstring{$f$}{f}-IRL: reward learning by marginal matching (theory only)}\label{sec:m-firl}
+
+$f$-IRL \citep{ni2021firl} learns a state reward $r_\theta$ such that the maximum-entropy (MaxEnt) policy of $r_\theta$ matches the expert's state marginal under an $f$-divergence.
+It is not implemented here; we reprove its central result under its exact hypothesis and relate it to $f$-PG. The complete proofs are in \cref{sec:firl}.
+
+\paragraph{Setting.}
+$f$-IRL uses a finite, undiscounted horizon $T_{\mathrm{IRL}}$, a marginal that counts $s_1,\dots,s_{T_{\mathrm{IRL}}}$ (not $s_0$), an expert-first objective, and parameters $\theta$ of the \emph{reward}:
+\[
+L_f(\theta):=D_f(q^{\mathrm{IRL}}_E\Vert\rho_\theta),\qquad\rho_\theta(s):=\frac1{T_{\mathrm{IRL}}}\E_{\tau\sim\rho_\theta}\eta_\tau(s),\quad\eta_\tau(s):=\sum_{t=1}^{T_{\mathrm{IRL}}}\ind[s_t=s]
+\]
+(FIRL Eq.~2, p.~3; A.1, p.~11). The central hypothesis is that the agent's law over state sequences is the \emph{Gibbs} law
+\begin{equation}\label{eq:m-gibbs}
+\rho_\theta(\tau)=\bar p(\tau)\exp\Big(\frac1\alpha\sum_{t=1}^{T_{\mathrm{IRL}}}r_\theta(s_t)\Big)\Big/Z(\theta)
+\end{equation}
+for a base weight $\bar p$ that does not depend on $\theta$ and a temperature $\alpha>0$ (\cref{ass:firl}). FIRL writes $\bar p(\tau)=\rho_0(s_0)\prod_tp(s_{t+1}\mid s_t,a_t)$ although $\tau$ contains no actions; \eqref{eq:m-gibbs} is the property the proof actually uses. We do not claim that any trained MaxEnt or soft actor--critic policy realizes it \audit{U-7}.
+
+\begin{theorem}[FIRL Theorem~4.1, p.~3; \cref{thm:firl}]\claim{FIRL-1}{S}\label{thm:m-firl}
+Under \eqref{eq:m-gibbs}, a finite state space, $C^1$ rewards in $\theta$, visitability of every state, and $f$ convex and $C^1$ on $(0,\infty)$ (with $f(0)$ finite if the expert marginal has zeros),
+\[
+\nabla_\theta L_f(\theta)=\frac1{\alpha T_{\mathrm{IRL}}}\Cov_{\tau\sim\rho_\theta}\Big(\sum_{t=1}^{T_{\mathrm{IRL}}}h_f\big(u_\theta(s_t)\big),\ \sum_{t=1}^{T_{\mathrm{IRL}}}\nabla_\theta r_\theta(s_t)\Big),
+\]
+where $h_f(u):=f(u)-uf'(u)$ and $u_\theta:=q^{\mathrm{IRL}}_E/\rho_\theta$.
+\end{theorem}
+\begin{proof}
+\emph{Gibbs derivative.} With $R_\theta(\tau)=\sum_tr_\theta(s_t)$, $\log\rho_\theta(\tau)=\log\bar p(\tau)+R_\theta(\tau)/\alpha-\log Z(\theta)$ and $\nabla\log Z=\E_{\rho_\theta}[\nabla R_\theta]/\alpha$, so $\nabla\rho_\theta(\tau)=\alpha^{-1}\rho_\theta(\tau)(\nabla R_\theta(\tau)-\E\nabla R_\theta)$. Summing against $\eta_\tau(s)/T_{\mathrm{IRL}}$ gives $\nabla\rho_\theta(s)=(\alpha T_{\mathrm{IRL}})^{-1}\Cov(\eta_\tau(s),\nabla R_\theta)$; all sums are finite.
+\emph{Chain rule.} Visitability gives $\rho_\theta(s)>0$, and for $q^{\mathrm{IRL}}_E(s)>0$,
+$\nabla[\rho_\theta f(q/\rho_\theta)]=\nabla\rho_\theta\,f(u)-\rho_\theta f'(u)\,q\,\nabla\rho_\theta/\rho_\theta^2=h_f(u)\nabla\rho_\theta$; for $q^{\mathrm{IRL}}_E(s)=0$ the term is $\rho_\theta(s)f(0)$, with gradient $h_f(0)\nabla\rho_\theta(s)$ where $h_f(0):=f(0)$.
+\emph{Covariance.} By bilinearity, $\nabla L_f=(\alpha T_{\mathrm{IRL}})^{-1}\Cov(\sum_sh_f(u(s))\eta_\tau(s),\nabla R_\theta)$, and $\sum_sh_f(u(s))\eta_\tau(s)=\sum_th_f(u(s_t))$.
+\end{proof}
+
+\begin{proposition}[the weight $h_f$ and the orientation; \cref{prop:firl-h}]\claim{FIRL-2}{S+D}\label{prop:m-firl-h}
+$h_f'(u)=-uf''(u)\le0$, and $h_f(u)=(f^\circ)'(1/u)$: FIRL's weight is the derivative of the \emph{learner-first} generator evaluated at the learner-to-expert ratio. For the three divergences:
+\begin{center}
+\small
+\begin{tabular}{@{}lllll@{}}
+\toprule
+FIRL name & $f$ (expert first) & $h_f(u)$, $u=q/\rho$ & our divergence & $(f^\circ)'(v)$, $v=\rho/q$\\
+\midrule
+FKL & $u\log u$ & $-u$ & $\KL(q\Vert d)$ & $-1/v$\\
+RKL & $-\log u$ & $1-\log u$ & $\KL(d\Vert q)$ & $1+\log v$\\
+JS & $f_{\JS}$ & $\tfrac12\log\tfrac2{1+u}$ & $\JS$ & $\tfrac12\log\tfrac{2v}{1+v}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{proposition}
+
+\begin{proposition}[relation with $f$-PG; \cref{prop:firl-compare}]\claim{FIRL-3}{D}\label{prop:m-firl-fpg}
+For any $C^1$ parameterization $\vartheta\mapsto m_\vartheta>0$ of a learner marginal and a fixed expert marginal $q>0$,
+\[
+\nabla_\vartheta D_f(q\Vert m_\vartheta)=\sum_xh_f\Big(\frac{q(x)}{m_\vartheta(x)}\Big)\nabla m_\vartheta(x)=\sum_x(f^\circ)'\Big(\frac{m_\vartheta(x)}{q(x)}\Big)\nabla m_\vartheta(x).
+\]
+\end{proposition}
+
+So $f$-IRL and $f$-PG weight each state by the \emph{same} function of the occupancy ratio. They differ in three respects:
+(i) how $\nabla m$ is obtained, by the Gibbs covariance over reward parameters in $f$-IRL and by the likelihood ratio over policy parameters in $f$-PG;
+(ii) which marginal is matched, the undiscounted uniform marginal over $s_1,\dots,s_{T_{\mathrm{IRL}}}$ in $f$-IRL and the discounted next-state occupancy $d^+_{\pi,H}$ here;
+(iii) what is learned, a reward that needs a MaxEnt inner loop after every reward update (FIRL Algorithm~1, p.~4) in $f$-IRL, and the policy itself in $f$-PG.
+
+\paragraph{Sign of the reward update.}
+FIRL descends $L_f$. With tabular rewards $r_\theta(s)=\theta_s$, the $s'$-component of the gradient is $(\alpha T_{\mathrm{IRL}})^{-1}\Cov(\sum_th_f(u(s_t)),\eta_\tau(s'))$, so the reward of $s'$ increases when its visit count is negatively correlated with the trajectory signal $\sum_th_f(u(s_t))$. Since $h_f$ is nonincreasing, trajectories through states where the expert/agent ratio is large have a small signal; the paper's reading that such states gain reward (p.~4) is a heuristic about the typical sign of this covariance, not a consequence of the formula (\cref{rem:firl-sign}). Adding a constant to $h_f$ does not change a covariance, which is why FIRL's $h_{\JS}=-\log(1+u)$ may drop $\log2$ \audit{D3}.
+
+\paragraph{Exact versus approximate in $f$-IRL.}
+The covariance formula is exact only for the Gibbs law \eqref{eq:m-gibbs}. The practical algorithm departs from it in four ways (\cref{rem:firl-approx}): the agent is an approximately trained soft actor--critic policy, so its law is not exactly Gibbs; $\rho_\theta$ is estimated by kernel density estimation (FIRL App.~C.1, p.~18); the covariance is estimated from samples; and the practical Eq.~(6), p.~5, mixes expert trajectories into the covariance, which the paper itself notes biases the gradient.
+FIRL's claim that the learned state-only reward is recovered up to a constant (\S4.3, p.~4; App.~A.4, p.~13) rests on a theorem of AIRL \citep{fu2018airl}, external to the supplied PDFs; we report it as the source's claim and do not reprove it.

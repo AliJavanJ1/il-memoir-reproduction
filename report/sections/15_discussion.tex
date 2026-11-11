@@ -1,0 +1,48 @@
+\section{Discussion}\label{sec:discussion}
+
+\subsection{What the theory predicted, and what the runs show}
+
+\paragraph{$f$-PG.}
+The fixed-target $f$-PG objective has an exact gradient formula (\cref{thm:m-fpg}). The implementation replaces the occupancies by plug-in estimates, removes the same-batch dependence by cross-fitting, and smooths both arguments, so that its sampled update is, conditionally on the fitted signal, an unbiased but noisy estimate of the gradient of a surrogate, not of the divergence (\cref{prop:m-fpg-approx}).
+No theorem here says that the iteration converges, let alone to the expert.
+In the finite mazes, where the signal is built from exact counts of simulated transitions, it nevertheless did so reliably: every run, goal and seed met the thresholds by the checkpoint at $\vn{s14.pct.lo}{40}$ to $\vn{s14.pct.hi}{60}\%$ of its budget (an upper bound at the $\vn{fpg.interval.f}{10{,}000}$-transition evaluation interval), with smooth curves and standard deviations across seeds of no more than about $\vn{s11.sd.fpg_max}{0.014}$ nats.
+In the continuous maze the signal depends on a kernel density estimate and the policy on an MLP; the method progressed steadily but slowly and produced very stochastic policies that reach the goal without staying there.
+The divergence was still falling when the budget ended.
+
+\paragraph{FB imitation.}
+The FB theory is exact only for exact representations, and \cref{prop:m-fb-rank} shows that a rank-16 model cannot be exact in the finite mazes, whose kernels have rank \vn{env.rank.4r}{40} or \vn{env.rank.open}{49}.
+So the finite experiments test FB imitation outside the regime of its guarantees, and the oracle shows how far outside: over state--action pairs, the largest total-variation error of the model's successor measures is $\vn{s15.tv.lo}{36}$ to $\vn{s15.tv.hi}{80}$, for a true mass of $\vn{const.mass}{20}$.
+The finite results are consistent with this picture.
+\ERFB, which only reads a latent off the demonstrations, often reaches the goal but rarely stays.
+\DMFB{} trusts the model further: it minimizes the model's estimate of the successor-measure distance, which it did successfully in all \vn{s11.dmpath.loss}{27} adaptations, and in \vn{abs.dm.js_up_finite}{16} of the \vn{abs.dm.n_finite}{18} finite ones the policy moved \emph{away} from the expert while doing so.
+We read this as the latent optimizer exploiting the model's error, but the runs show the correlation, not the mechanism.
+This is not a contradiction of FI24, whose experiments use much larger models and data; it shows that the matching step is only as good as the model it is computed with.
+In the continuous maze, a nearly singular backward Gram matrix appeared in the pilot and again in every final model, and neither FB method imitated the expert.
+
+\paragraph{Stability.}
+Numerically, every method was stable: no failure, no non-finite value, no restart.
+Statistically, the two families differ sharply.
+$f$-PG's outcome hardly depends on the seed.
+FB imitation depends on the seed and on the pretraining snapshot: the divergence of a run moved by up to $\vn{s11.swing}{0.53}$ nats between consecutive snapshots, and \vn{s15.third}{a third} of the finite curves reached a success of $0.80$ at some snapshot but lost it by the last.
+A user of FB imitation would need a criterion to choose the snapshot, and none is available without evaluation rollouts or an oracle.
+
+\subsection{Limitations}
+
+\begin{itemize}[nosep]
+\item \textbf{Three seeds} per configuration describe these runs; they do not support confidence intervals, significance tests or rankings beyond the observed counts.
+\item \textbf{Small, simple environments.} Two $7\times7$ mazes and one continuous maze, with three goals each. Whether the conclusions transfer to larger state spaces, other dynamics or high-dimensional observations is untested.
+\item \textbf{Narrow tuning.} The $f$-PG learning rates and the FB temperature were chosen on one seed and one goal; both learning rates are at the edge of their grid, the $\KL$ ablations reuse the $\JS$ rate, and the FB network sizes, update counts and \DMFB{} settings were not tuned at all. A better-tuned FB model could change the comparison.
+\item \textbf{Fixed budgets.} The budgets are the ceilings of the specification. They were not chosen to be sufficient; continuous $f$-PG in particular was still improving.
+\item \textbf{Evaluation choices.} The operational thresholds are study choices; success counts a single visit to the goal, so we also report staying in the goal and the return. The continuous divergence is a biased plug-in estimate on histogram cells, with a measured floor of $\vn{s12.floor.lo}{0.0005}$ to $\vn{s12.floor.hi}{0.0013}$ nats.
+\item \textbf{State matching.} All objectives compare state distributions; none identifies the expert's actions, and the state--action divergences are diagnostics only.
+\item \textbf{Scope of the theory.} The proofs cover population objectives and exact models. No statement here concerns the convergence of neural-network training or the quality of a trained model, and $f$-IRL was analysed but not run.
+\end{itemize}
+
+\subsection{What would test the explanations}
+
+The runs suggest experiments that this study did not perform.
+A finite FB model with $d\ge\vn{env.rank.open}{49}$, for which an exact representation exists, would show whether \DMFB{} improves on \ERFB{} once the model error is small, and whether the oracle's model error predicts the imitation error.
+Tracking the true \DMFB{} objective along the latent path, which the oracle can compute in the finite mazes, would test the model-exploitation reading directly.
+In the continuous maze, radial-basis inputs to $B$ as in FB21, a larger budget and a larger rank would test the candidate causes of the degenerate Gram matrix.
+Longer continuous $f$-PG runs and a learning-rate grid that extends past its current edge would show where $f$-PG stops.
+More seeds, and goals not used for tuning, would turn the descriptive counts into estimates.

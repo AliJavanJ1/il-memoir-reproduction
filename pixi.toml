@@ -1,0 +1,40 @@
+[workspace]
+name = "il-memoir"
+version = "1.0.0"
+description = "Imitation Learning by State-Occupancy Matching (f-PG) and Forward-Backward (FB) Representations"
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64"]
+
+[dependencies]
+python = "3.11.*"
+
+[pypi-dependencies]
+numpy = "==2.4.6"
+scipy = "==1.17.1"
+torch = "==2.14.1"
+matplotlib = "==3.11.2"
+pyyaml = "==6.0.3"
+pytest = "==9.1.1"
+psutil = "==7.2.2"
+
+[tasks]
+# 1. Quick verification checks
+test = "python -m pytest -q"
+smoke = "python scripts/smoke.py --device cpu"
+
+# 2. Prepare / verify the frozen dataset (data/final-v1)
+data = "python scripts/prepare_data.py --config configs/core.yaml"
+data-check = "python scripts/prepare_data.py --config configs/core.yaml --check"
+
+# 3. Run the frozen experiment suites on CPU (4 threads, as in the report)
+run-core = "python scripts/run_suite.py --config configs/core.yaml --device cpu --resume"
+run-ablations = "python scripts/run_suite.py --config configs/compact_ablations.yaml --device cpu --resume"
+
+# 4. Generate tables, figures, and audit provenance
+analyze = "python scripts/analyze.py --runs runs --out results"
+audit = "python scripts/audit_results.py --runs runs --results results"
+figures = "python report/figures/make_figures.py"
+build-report = "python scripts/build.py --target report"
+
+# Full end-to-end reproduction pipeline (~18-20 minutes on a laptop CPU)
+reproduce = { depends-on = ["data", "run-core", "run-ablations", "analyze", "audit", "figures"] }

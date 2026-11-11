@@ -1,0 +1,60 @@
+# TEST FIXTURE -- smoke suite (INTERFACE command 3), written in Prompt 3C (2026-10-05).
+#
+# Tiny budgets that exercise the complete data-to-results path through BOTH environments (finite
+# four rooms and the continuous maze), both methods (f-PG; FB pretraining with ER_FB and DM_FB),
+# checkpoint save/reload, resume and held-out evaluation.  scripts/smoke.py runs it in a fresh
+# directory under runs/smoke/ and then analyses and audits it.  Its outputs are labelled as test
+# fixtures and are never scientific results; the budgets are far too small to learn anything.
+schema: il_memoir/suite-v1
+suite: smoke
+kind: smoke
+description: >-
+  TEST FIXTURE: smoke run of every job type in both environments with tiny budgets (not a result).
+environment_config: configs/environment.yaml
+seeds: smoke
+data:
+  id: smoke-fixture
+  n_demos: 4
+  replay:
+    finite: {n_transitions: 4000, segment_length: 50}       # enough for full state-action coverage
+    continuous: {n_transitions: 4000, segment_length: 50}
+  reference:
+    continuous: {n_trajectories: 64}
+grid:
+  - {env: finite, layout: four_rooms, tasks: [goal_5_5]}
+  - {env: continuous, layout: four_rooms, tasks: [goal_5_5]}
+methods:
+  fpg:
+    divergences: [js]
+    finite:
+      settings: {n_traj: 4, n_folds: 2, baseline: time, lr: 0.1}
+      budget_transitions: 1200          # 3 iterations of 4 x 100 transitions
+      eval_every_iterations: 1
+    continuous:
+      settings: {n_traj: 4, n_folds: 2, baseline: time, lr: 0.001, density: kde}
+      budget_transitions: 1200
+      eval_every_iterations: 1
+    variants: {base: {}}
+  fb:
+    finite:
+      settings: {d: 16, hidden: 64, tau: 0.1, batch_size: 32, target_batch_size: 32, lr: 0.0003, n_updates: 40}
+      snapshot_every: 20
+      log_every_updates: 10
+    continuous:
+      settings: {d: 16, hidden: 64, tau: 0.1, batch_size: 32, target_batch_size: 32, lr: 0.0003, n_updates: 40}
+      snapshot_every: 20
+      log_every_updates: 10
+    variants: {base: {}}
+  adaptation:
+    dm: {K: 60, steps: 20, lr: 0.05}
+    dm_snapshot_steps: [0, 10, 20]
+    fb_snapshots: all
+evaluation:
+  device: cpu
+  finite: {mc_rollouts: 16}
+  continuous: {rollouts: 16}
+  convergence: {js_max_nats: 0.10, success_min: 0.80}
+runner:
+  cpu_threads: 2
+  checkpoint_every_updates: 10
+  checkpoint_every_seconds: 60

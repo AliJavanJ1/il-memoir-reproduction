@@ -1,0 +1,542 @@
+% ---------------------------------------------------------------------------
+% Appendix A (from theory/01_occupancy.tex)  --  claims OCC-1 ... OCC-7
+% ---------------------------------------------------------------------------
+\section{Occupancy measures, timing and the finite oracle}\label{sec:occ}
+
+\paragraph{Status.}
+Everything in this section is either a definition-level identity (\textsf{I}) or a
+derived statement (\textsf{D}) about the conventions of \cref{sec:notation}.
+No result here is copied from a source.  The sources only fix the conventions:
+\begin{itemize}[nosep]
+\item FI24 Eq.~(1), p.~3: next-state successor measure;
+\item FPG pp.~2--3: return $\sum_t\gamma^t r(s_{t+1},g)$;
+\item FB21 Eq.~(1), p.~2: state--action successor measure from $t=0$.
+\end{itemize}
+The finite oracle results of \cref{sec:occ-oracle} are standard dynamic programming.
+They are proved here because the finite expert and every ``gap to optimum'' depend on them.
+
+\subsection{Setting and the trajectory law}\label{sec:occ-setting}
+
+\begin{assumption}[A-MDP]\label{ass:mdp}
+\leavevmode
+\begin{enumerate}[nosep,label=(\roman*)]
+\item The state space $\cS$ is either a finite set or a Borel subset of $\R^2$ with its Borel
+  $\sigma$-algebra. The action set $\cA$ is finite (here $|\cA|=5$).
+\item $P(\cdot\mid s,a)$ is a Markov kernel from $\cS\times\cA$ to $\cS$.
+\item $\mu_0$ is a probability measure on $\cS$.
+\item $\gamma\in(0,1)$ and $H\in\N$ with $H\ge1$. We write $Z_H:=\sum_{t=0}^{H-1}\gamma^t=(1-\gamma^H)/(1-\gamma)$.
+\item A (stationary Markov) policy is a kernel $\pi(\cdot\mid s)$ from $\cS$ to $\cA$, measurable in $s$.
+\item Rewards $r:\cS\to\R$ are bounded and measurable, with $\|r\|_\infty:=\sup_s|r(s)|$.
+\end{enumerate}
+\end{assumption}
+
+Let $\Omega=(\cS\times\cA)^{\N}$ carry the coordinates $(s_0,a_0,s_1,a_1,\dots)$.
+Let $\cF_t:=\sigma(s_0,a_0,\dots,a_{t-1},s_t)$ denote the history up to and including $s_t$,
+before $a_t$ is drawn.
+By the Ionescu--Tulcea theorem there is a unique probability measure $\Prob^\pi_{\mu_0}$ on
+$\Omega$ such that
+\begin{equation}\label{eq:occ-traj}
+  s_0\sim\mu_0,\qquad
+  a_t\mid\cF_t\sim\pi(\cdot\mid s_t),\qquad
+  s_{t+1}\mid(\cF_t,a_t)\sim P(\cdot\mid s_t,a_t)\qquad(t\ge0).
+\end{equation}
+For $(s,a)\in\cS\times\cA$ we write $\Prob^\pi_{(s,a)}$ for the analogous law started from
+$s_0=s$, $a_0=a$, after which actions are drawn from $\pi$.
+Expectations are written $\E^\pi_{\mu_0}$ and $\E^\pi_{(s,a)}$.
+
+Let $\mathcal G$ be the product $\sigma$-algebra on $\Omega$.
+A \emph{cylinder} is a set $E=\{(s_0,a_0,\dots,s_T,a_T)\in B\}$ with $T\ge0$ and $B$ measurable in $(\cS\times\cA)^{T+1}$.
+The cylinders form a $\pi$-system that generates $\mathcal G$.
+The Ionescu--Tulcea theorem defines $\Prob^\pi_{(s,a)}(E)$ on cylinders by the iterated integral
+\begin{multline}\label{eq:occ-cyl}
+\Prob^\pi_{(s,a)}(E)=\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)\cdots\\
+\cdots\int P(\dd s_T\mid s_{T-1},a_{T-1})\sum_{a_T}\pi(a_T\mid s_T)\,\ind_B(s,a,s_1,a_1,\dots,s_T,a_T),
+\end{multline}
+and $\Prob^\pi_{\mu_0}(E)$ by the same formula preceded by $\int\mu_0(\dd s_0)\sum_{a_0}\pi(a_0\mid s_0)$.
+It extends each of them uniquely to a probability measure on $(\Omega,\mathcal G)$.
+We use two consequences of this construction.
+\begin{enumerate}[nosep,label=(M\arabic*)]
+\item\label{M1} \emph{First-pair disintegration.} For every $E\in\mathcal G$, the map $(s,a)\mapsto\Prob^\pi_{(s,a)}(E)$ is measurable and
+  $\Prob^\pi_{\mu_0}(E)=\int\mu_0(\dd s)\sum_{a}\pi(a\mid s)\,\Prob^\pi_{(s,a)}(E)$.
+\item\label{M2} \emph{Markov shift.} For every $t\ge1$ and measurable $X\subseteq\cS$,
+  \[
+    \Prob^\pi_{(s,a)}(s_{t+1}\in X)=\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)\,
+    \Prob^\pi_{(s_1,a_1)}(s_t\in X).
+  \]
+\end{enumerate}
+\begin{proof}[Proof of \ref{M1} and \ref{M2}]
+\emph{Measurability.} Let $\mathcal D$ be the class of $E\in\mathcal G$ for which $(s,a)\mapsto\Prob^\pi_{(s,a)}(E)$ is measurable.
+For a cylinder, \eqref{eq:occ-cyl} is an iterated integral of a bounded measurable function against Markov kernels.
+Each integration step preserves measurability in the remaining variables, so every cylinder lies in $\mathcal D$.
+$\mathcal D$ contains $\Omega$ and is closed under proper differences ($E\subseteq F$ gives $\Prob(F\setminus E)=\Prob(F)-\Prob(E)$).
+It is closed under increasing unions, because the pointwise limit of measurable functions is measurable (continuity from below).
+So $\mathcal D$ is a Dynkin system containing the generating $\pi$-system, and Dynkin's $\pi$--$\lambda$ theorem gives $\mathcal D=\mathcal G$.
+
+\emph{\ref{M1}.} Define $Q(E):=\int\mu_0(\dd s)\sum_a\pi(a\mid s)\Prob^\pi_{(s,a)}(E)$ for $E\in\mathcal G$; the integrand is measurable by the first step.
+$Q(\Omega)=1$, and $Q$ is countably additive by monotone convergence, so $Q$ is a probability measure.
+On a cylinder, $Q(E)$ is \eqref{eq:occ-cyl} preceded by $\int\mu_0(\dd s)\sum_a\pi(a\mid s)$, which is the defining formula of $\Prob^\pi_{\mu_0}(E)$.
+Two probability measures that agree on a generating $\pi$-system agree on $\mathcal G$, so $Q=\Prob^\pi_{\mu_0}$.
+
+\emph{\ref{M2}.} Let $\theta(s_0,a_0,s_1,a_1,\dots):=(s_1,a_1,s_2,a_2,\dots)$; it is measurable since each coordinate of $\theta$ is a coordinate of $\Omega$.
+Fix $(s,a)$. Both $E\mapsto\Prob^\pi_{(s,a)}(\theta^{-1}E)$ and $E\mapsto R(E):=\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)\Prob^\pi_{(s_1,a_1)}(E)$ are probability measures on $\mathcal G$; for $R$ this uses the measurability step and monotone convergence.
+For a cylinder $E=\{(s_0,\dots,a_T)\in B\}$ we have $\theta^{-1}E=\{(s_1,a_1,\dots,s_{T+1},a_{T+1})\in B\}$.
+By \eqref{eq:occ-cyl} at length $T+1$, $\Prob^\pi_{(s,a)}(\theta^{-1}E)$ is the integral over $(s_1,a_1)$ of \eqref{eq:occ-cyl} started at $(s_1,a_1)$, which is $R(E)$.
+This uses that $P$ and $\pi$ do not depend on $t$.
+Hence the two measures agree on cylinders and therefore on $\mathcal G$.
+Taking $E=\{s_t\in X\}$, for which $\theta^{-1}E=\{s_{t+1}\in X\}$, gives \ref{M2}.
+\end{proof}
+When $\cS$ is finite, \eqref{eq:occ-cyl} with the $\mu_0$ prefix and $B$ a singleton is the explicit product formula
+$\Prob^\pi_{\mu_0}(s_{0:T}=x_{0:T},a_{0:T}=b_{0:T})
+ =\mu_0(x_0)\big[\prod_{k=0}^{T-1}\pi(b_k\mid x_k)P(x_{k+1}\mid x_k,b_k)\big]\pi(b_T\mid x_T)$,
+and \ref{M1}--\ref{M2} can also be read off by summing over the first or the second pair.
+
+\begin{definition}[Marginals, occupancies, successor measures]\label{def:occ}
+Let $\law_t:=\Prob^\pi_{\mu_0}(s_t\in\cdot)$; the policy is suppressed from the notation when it is clear.
+For measurable $X\subseteq\cS$ and $Y\subseteq\cS\times\cA$:
+\begin{align*}
+ d^+_\pi(X)&:=(1-\gamma)\textstyle\sum_{t\ge0}\gamma^t\law_{t+1}(X), &
+ d^+_{\pi,H}(X)&:=Z_H^{-1}\textstyle\sum_{t=0}^{H-1}\gamma^t\law_{t+1}(X),\\
+ d^{\SA}_\pi(Y)&:=(1-\gamma)\textstyle\sum_{t\ge0}\gamma^t\Prob^\pi_{\mu_0}((s_t,a_t)\in Y), &
+ d^{\SA}_{\pi,H}(Y)&:=Z_H^{-1}\textstyle\sum_{t=0}^{H-1}\gamma^t\Prob^\pi_{\mu_0}((s_t,a_t)\in Y),\\
+ d^{\pre}_\pi(X)&:=(1-\gamma)\textstyle\sum_{t\ge0}\gamma^t\law_{t}(X), &
+ d^{\pre}_{\pi,H}(X)&:=Z_H^{-1}\textstyle\sum_{t=0}^{H-1}\gamma^t\law_{t}(X),
+\end{align*}
+\[
+ M^{\pi,+}(s,a,X):=\sum_{t\ge0}\gamma^t\,\Prob^\pi_{(s,a)}(s_{t+1}\in X),\qquad
+ M^{\pi,+}(s,X):=\sum_{a}\pi(a\mid s)\,M^{\pi,+}(s,a,X).
+\]
+\end{definition}
+
+\begin{lemma}[Marginal recursion]\label{lem:occ-recursion}
+Under \cref{ass:mdp}, $\law_{t+1}(X)=\int\law_t(\dd s)\sum_a\pi(a\mid s)P(X\mid s,a)$ for all $t\ge0$.
+If $\cS$ is finite, write $P_\pi(s,s'):=\sum_a\pi(a\mid s)P(s'\mid s,a)$ and regard laws as row vectors.
+Then $\law_{t+1}=\law_tP_\pi$, and hence $\law_t=\mu_0^\top P_\pi^t$.
+\end{lemma}
+\begin{proof}
+By \eqref{eq:occ-traj} and the tower property,
+\[
+\Prob(s_{t+1}\in X)=\E\big[\Prob(s_{t+1}\in X\mid\cF_t)\big]
+=\E\Big[\textstyle\sum_a\pi(a\mid s_t)P(X\mid s_t,a)\Big].
+\]
+The integrand is a bounded measurable function of $s_t$, so the right-hand side is its integral against $\law_t$.
+In the finite case this reads $\law_{t+1}(s')=\sum_s\law_t(s)P_\pi(s,s')$.
+Induction from $\law_0=\mu_0$ gives $\law_t=\mu_0^\top P_\pi^t$.
+\end{proof}
+
+\subsection{Normalization}\label{sec:occ-norm}
+
+\begin{proposition}\claim{OCC-1}{I}\label{prop:occ-norm}
+Under \cref{ass:mdp}:
+\begin{enumerate}[nosep,label=(\alph*)]
+\item for every $(s,a)$, $M^{\pi,+}(s,a,\cdot)$ and $M^{\pi,+}(s,\cdot)$ are measures on $\cS$ of total mass $1/(1-\gamma)$;
+\item $d^+_\pi$, $d^+_{\pi,H}$, $d^{\pre}_\pi$, $d^{\pre}_{\pi,H}$ are probability measures on $\cS$, and
+  $d^{\SA}_\pi$, $d^{\SA}_{\pi,H}$ are probability measures on $\cS\times\cA$;
+\item $d^+_\pi=(1-\gamma)\int\mu_0(\dd s)\sum_a\pi(a\mid s)M^{\pi,+}(s,a,\cdot)=(1-\gamma)\int\mu_0(\dd s)M^{\pi,+}(s,\cdot)$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) Fix $(s,a)$ and measurable $X$.
+The terms $\gamma^t\Prob^\pi_{(s,a)}(s_{t+1}\in X)$ lie in $[0,\gamma^t]$, so the series converges.
+Its value lies in $[0,1/(1-\gamma)]$, and it vanishes for $X=\emptyset$.
+For countable additivity, let $X=\bigsqcup_iX_i$ be a disjoint union.
+Countable additivity of $\Prob^\pi_{(s,a)}$ gives $\Prob^\pi_{(s,a)}(s_{t+1}\in X)=\sum_i\Prob^\pi_{(s,a)}(s_{t+1}\in X_i)$.
+The double series $\sum_t\sum_i\gamma^t\Prob^\pi_{(s,a)}(s_{t+1}\in X_i)$ has nonnegative terms, so Tonelli's theorem for series allows interchanging the order of summation:
+$M^{\pi,+}(s,a,X)=\sum_iM^{\pi,+}(s,a,X_i)$.
+Taking $X=\cS$ gives total mass $\sum_t\gamma^t=1/(1-\gamma)$.
+$M^{\pi,+}(s,\cdot)$ is a convex combination of finitely many such measures, so the same holds for it.
+
+(b) The argument of (a), applied to $\law_{t+1}$, $\law_t$ and the state--action marginals, shows that each object is a measure.
+The total masses are $(1-\gamma)\sum_{t\ge0}\gamma^t=1$ and $Z_H^{-1}\sum_{t=0}^{H-1}\gamma^t=1$.
+
+(c) By \ref{M1} with $E=\{s_{t+1}\in X\}$,
+$\law_{t+1}(X)=\int\mu_0(\dd s)\sum_a\pi(a\mid s)\Prob^\pi_{(s,a)}(s_{t+1}\in X)$.
+Multiply by $(1-\gamma)\gamma^t$ and sum over $t$.
+Since every term is nonnegative, Tonelli's theorem lets the sum pass inside $\int\mu_0(\dd s)\sum_a$.
+\end{proof}
+
+\subsection{Time shift between pre-action and next-state occupancies}\label{sec:occ-shift}
+
+\begin{proposition}\claim{OCC-2}{I}\label{prop:occ-shift}
+Under \cref{ass:mdp}, for all measurable $X\subseteq\cS$:
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $d^{\SA}_\pi(X\times\cA)=d^{\pre}_\pi(X)$ and $d^{\SA}_{\pi,H}(X\times\cA)=d^{\pre}_{\pi,H}(X)$;
+\item $d^{\pre}_\pi=(1-\gamma)\mu_0+\gamma\,d^+_\pi$;
+\item $Z_H\,d^{\pre}_{\pi,H}=\mu_0+\gamma Z_H\,d^+_{\pi,H}-\gamma^H\law_H$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) Use $\Prob((s_t,a_t)\in X\times\cA)=\Prob(s_t\in X)$ termwise.
+
+(b) Separate the $t=0$ term and shift the index $u=t-1$:
+\[
+d^{\pre}_\pi=(1-\gamma)\law_0+(1-\gamma)\sum_{t\ge1}\gamma^t\law_t
+=(1-\gamma)\mu_0+\gamma(1-\gamma)\sum_{u\ge0}\gamma^u\law_{u+1}=(1-\gamma)\mu_0+\gamma d^+_\pi.
+\]
+
+(c) Similarly,
+$Z_Hd^{\pre}_{\pi,H}=\mu_0+\gamma\sum_{u=0}^{H-2}\gamma^u\law_{u+1}$.
+Moreover $\sum_{u=0}^{H-2}\gamma^u\law_{u+1}=Z_Hd^+_{\pi,H}-\gamma^{H-1}\law_H$.
+Substituting gives the claim.
+\end{proof}
+
+\begin{remark}
+The pre-action occupancy contains the uncontrolled start through the atom $(1-\gamma)\mu_0$.
+The next-state occupancy does not.
+This is the timing difference between FB21 (from $t=0$) and FI24/FPG (next state).
+\Cref{prop:occ-conv} gives the corresponding statement for successor measures.
+\end{remark}
+
+\subsection{Finite resolvent and Bellman identities}\label{sec:occ-resolvent}
+
+\begin{lemma}[Neumann series]\label{lem:neumann}
+Let $\cS$ be finite and $P_\pi$ row-stochastic.
+Then $I-\gamma P_\pi$ is invertible, and
+$(I-\gamma P_\pi)^{-1}=\sum_{t\ge0}\gamma^tP_\pi^t$, the series converging absolutely in the induced norm $\|\cdot\|_\infty$ (maximum absolute row sum).
+Its entries are nonnegative, every row sums to $1/(1-\gamma)$, and it commutes with $P_\pi$.
+\end{lemma}
+\begin{proof}
+$\|P_\pi\|_\infty=1$ and the norm is submultiplicative, so $\|\gamma^tP_\pi^t\|_\infty\le\gamma^t$.
+The partial sums $S_n:=\sum_{t\le n}\gamma^tP_\pi^t$ are therefore Cauchy and converge to a limit $S$.
+Telescoping gives $(I-\gamma P_\pi)S_n=S_n(I-\gamma P_\pi)=I-\gamma^{n+1}P_\pi^{n+1}\to I$.
+Hence $(I-\gamma P_\pi)S=S(I-\gamma P_\pi)=I$.
+The entries of $S$ are nonnegative because every term is nonnegative.
+For the row sums, $S\mathbf 1=\sum_t\gamma^tP_\pi^t\mathbf 1=\sum_t\gamma^t\mathbf 1$.
+Each $S_n$ commutes with $P_\pi$, so the limit does too.
+\end{proof}
+
+\begin{proposition}\claim{OCC-3}{I}\label{prop:occ-resolvent}
+Let $\cS$ be finite, write $p_{sa}:=P(\cdot\mid s,a)$ as a row vector, and let $R_\pi:=(I-\gamma P_\pi)^{-1}$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $M^{\pi,+}(s,a,\cdot)=p_{sa}R_\pi$ and $M^{\pi,+}(s,\cdot)=e_s^\top P_\pi R_\pi$.
+  Writing $\bar M_\pi$ for the matrix with rows $M^{\pi,+}(s,\cdot)$, we have $\bar M_\pi=P_\pi R_\pi=R_\pi P_\pi$.
+\item (Bellman identity)
+  $M^{\pi,+}(s,a,\cdot)=p_{sa}+\gamma\sum_{s_1}P(s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)M^{\pi,+}(s_1,a_1,\cdot)$.
+  Moreover $\bar M_\pi$ is the unique matrix solution $X$ of $X=P_\pi+\gamma P_\pi X$.
+\item $d^+_\pi=(1-\gamma)\mu_0^\top P_\pi R_\pi$.
+\item $d^+_{\pi,H}=Z_H^{-1}\sum_{t=0}^{H-1}\gamma^t\mu_0^\top P_\pi^{t+1}=Z_H^{-1}\mu_0^\top P_\pi(I-\gamma^HP_\pi^H)R_\pi$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) Under $\Prob^\pi_{(s,a)}$ the law of $s_1$ is $p_{sa}$.
+\Cref{lem:occ-recursion}, applied from time $1$, gives that the law of $s_{t+1}$ is $p_{sa}P_\pi^t$.
+Hence $M^{\pi,+}(s,a,\cdot)=\sum_t\gamma^tp_{sa}P_\pi^t=p_{sa}R_\pi$, where the series is passed through the linear map $x\mapsto p_{sa}x$ (continuous in finite dimension).
+Averaging over $a$ uses $\sum_a\pi(a\mid s)p_{sa}=e_s^\top P_\pi$.
+The commutation is \cref{lem:neumann}.
+
+(b) \Cref{lem:neumann} gives $R_\pi=I+\gamma P_\pi R_\pi$. Hence
+\[
+p_{sa}R_\pi=p_{sa}+\gamma\,p_{sa}P_\pi R_\pi=p_{sa}+\gamma\sum_{s_1}P(s_1\mid s,a)\,e_{s_1}^\top P_\pi R_\pi .
+\]
+By (a), $e_{s_1}^\top P_\pi R_\pi=M^{\pi,+}(s_1,\cdot)=\sum_{a_1}\pi(a_1\mid s_1)M^{\pi,+}(s_1,a_1,\cdot)$.
+The matrix form follows by averaging over $a$ with weights $\pi(a\mid s)$.
+For uniqueness, if $X=P_\pi+\gamma P_\pi X$ then $(I-\gamma P_\pi)X=P_\pi$, so $X=R_\pi P_\pi=\bar M_\pi$.
+
+(c) By \cref{lem:occ-recursion}, $\law_{t+1}=\mu_0^\top P_\pi^{t+1}$.
+Sum with weights $(1-\gamma)\gamma^t$ and use \cref{lem:neumann}.
+
+(d) The first equality is the definition combined with \cref{lem:occ-recursion}.
+For the second, telescoping gives $\big(\sum_{t<H}\gamma^tP_\pi^t\big)(I-\gamma P_\pi)=I-\gamma^HP_\pi^H$.
+Multiply on the right by $R_\pi$, then on the left by $\mu_0^\top P_\pi$.
+\end{proof}
+
+\begin{proposition}[measure form of the Bellman identity]\claim{OCC-3}{I}\label{prop:occ-bellman-general}
+Under \cref{ass:mdp}, for every $(s,a)$ and measurable $X$:
+\[
+M^{\pi,+}(s,a,X)=P(X\mid s,a)+\gamma\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)\,M^{\pi,+}(s_1,a_1,X).
+\]
+\end{proposition}
+\begin{proof}
+The $t=0$ term of $M^{\pi,+}(s,a,X)$ is $\Prob^\pi_{(s,a)}(s_1\in X)=P(X\mid s,a)$.
+For $t\ge1$, \ref{M2} gives
+$\gamma^t\Prob^\pi_{(s,a)}(s_{t+1}\in X)=\gamma\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)\,\gamma^{t-1}\Prob^\pi_{(s_1,a_1)}(s_{(t-1)+1}\in X)$.
+Sum over $t\ge1$ and interchange the sum with the integral and the finite sum by Tonelli's theorem, since all terms are nonnegative.
+The remaining sum over $u=t-1\ge0$ is $M^{\pi,+}(s_1,a_1,X)$.
+\end{proof}
+
+\begin{remark}[validation]
+The finite oracle evaluates $d^+_{\pi,H}$ both by the explicit finite sum and by the resolvent form in \cref{prop:occ-resolvent}(d).
+The two are algebraically identical; numerically they agree up to floating-point round-off, as checked in \texttt{theory/checks/check\_2A.py}.
+\end{remark}
+
+\subsection{Return identity and the non-identifiability of actions}\label{sec:occ-return}
+
+\begin{proposition}\claim{OCC-4}{D}\label{prop:occ-return}
+Under \cref{ass:mdp}, let $r$ be bounded and measurable, and define
+$J_H(\pi):=\E^\pi_{\mu_0}\sum_{t=0}^{H-1}\gamma^tr(s_{t+1})$ and
+$J_\infty(\pi):=\E^\pi_{\mu_0}\sum_{t\ge0}\gamma^tr(s_{t+1})$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $J_H(\pi)=Z_H\int r\dd d^+_{\pi,H}$.
+\item $J_\infty(\pi)$ is well defined and $J_\infty(\pi)=(1-\gamma)^{-1}\int r\dd d^+_\pi$.
+\item $d^+_{\pi,H}=d^+_{\pi',H}$ if and only if $J_H(\pi)=J_H(\pi')$ for every bounded measurable $r$.
+  The same holds with $(d^+_\pi,J_\infty)$ in place of $(d^+_{\pi,H},J_H)$.
+\item Suppose that for every $s$, $\sum_a\pi(a\mid s)P(\cdot\mid s,a)=\sum_a\pi'(a\mid s)P(\cdot\mid s,a)$.
+  Then $\law^\pi_t=\law^{\pi'}_t$ for all $t$, so all state occupancies (next-state and pre-action, finite and infinite horizon) coincide, even when $\pi\ne\pi'$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+First, an integration fact. Let $\nu_t$ be probability measures and $c_t\ge0$ with $\sum_tc_t<\infty$. Then
+\begin{equation}\label{eq:occ-int}
+\int r\dd\Big(\sum_tc_t\nu_t\Big)=\sum_tc_t\int r\dd\nu_t
+\end{equation}
+for bounded measurable $r$. It holds for indicators by definition of the series measure, and for simple functions by linearity.
+For measurable $r\ge0$ it follows by monotone convergence applied to an increasing sequence of simple functions, on both sides.
+For general bounded $r=r^+-r^-$, both sides are finite and the identity follows by subtraction.
+
+(a) By linearity of expectation over the finite sum, and since $\E r(s_{t+1})=\int r\dd\law_{t+1}$, we get $J_H=\sum_{t<H}\gamma^t\int r\dd\law_{t+1}=Z_H\int r\dd d^+_{\pi,H}$ by \eqref{eq:occ-int}.
+
+(b) $\big|\sum_{t\le n}\gamma^tr(s_{t+1})\big|\le\|r\|_\infty/(1-\gamma)$ for all $n$.
+So dominated convergence gives $J_\infty=\sum_{t\ge0}\gamma^t\int r\dd\law_{t+1}$, which equals $(1-\gamma)^{-1}\int r\dd d^+_\pi$ by \eqref{eq:occ-int}.
+
+(c) ``Only if'' follows from (a). For ``if'', take $r=\ind_X$: then $Z_Hd^+_{\pi,H}(X)=Z_Hd^+_{\pi',H}(X)$ for every $X$. The infinite-horizon case is the same with (b).
+
+(d) In \cref{lem:occ-recursion}, the policy enters only through the kernel $\sum_a\pi(a\mid s)P(\cdot\mid s,a)$.
+Induction on $t$ from $\law_0=\mu_0$ gives the equality of marginals, and every occupancy in \cref{def:occ} restricted to states is a function of the marginals.
+\end{proof}
+
+\begin{example}[stay versus blocked move]\label{ex:occ-blocked}
+In the finite maze with deterministic movement, take the corner cell $c=(0,0)$.
+There, ``move left'' is blocked and therefore stays, so $P(\cdot\mid c,\text{left})=P(\cdot\mid c,\text{stay})=\delta_c$.
+Two policies that agree everywhere except that one plays ``left'' and the other ``stay'' at $c$ satisfy the hypothesis of \cref{prop:occ-return}(d).
+They have identical state occupancies, hence by (c) identical returns for every state reward.
+If $c$ is visited with positive probability, their state--action occupancies differ: $d^{\SA}(c,\text{left})>0$ for one and $=0$ for the other.
+State-only matching therefore cannot identify the expert's action choices.
+This is why the report never claims that state-only matching identifies the expert's action choices.
+The same holds for any movement-noise model in which the blocked move and stay induce the same next-state law.
+\end{example}
+
+\subsection{Finite versus infinite horizon}\label{sec:occ-tail}
+
+\begin{proposition}\claim{OCC-5}{D}\label{prop:occ-tail}
+Under \cref{ass:mdp}, define
+\[
+d^{+,\tail}_\pi:=(1-\gamma)\textstyle\sum_{u\ge0}\gamma^u\law_{H+1+u},
+\]
+a probability measure by the argument of \cref{prop:occ-norm}. Then:
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $d^+_\pi=(1-\gamma^H)d^+_{\pi,H}+\gamma^Hd^{+,\tail}_\pi$;
+\item $\TV(d^+_\pi,d^+_{\pi,H}):=\sup_X|d^+_\pi(X)-d^+_{\pi,H}(X)|\le\gamma^H$;
+\item $J_\infty(\pi)-J_H(\pi)=\gamma^H(1-\gamma)^{-1}\int r\dd d^{+,\tail}_\pi$, hence $|J_\infty-J_H|\le\gamma^H\|r\|_\infty/(1-\gamma)$.
+\end{enumerate}
+For $\gamma=0.95$ and $H=100$: $\gamma^H\approx\vn{const.gH}{5.92\times10^{-3}}$, $Z_H\approx\vn{const.ZH}{19.88}$ and $\gamma^H/(1-\gamma)\approx\vn{const.gH_over4}{0.1184}$.
+\end{proposition}
+\begin{proof}
+(a) Split the series at $t=H$.
+The head is $(1-\gamma)\sum_{t<H}\gamma^t\law_{t+1}=(1-\gamma)Z_Hd^+_{\pi,H}=(1-\gamma^H)d^+_{\pi,H}$.
+The tail is $(1-\gamma)\sum_{t\ge H}\gamma^t\law_{t+1}=\gamma^H(1-\gamma)\sum_{u\ge0}\gamma^u\law_{H+u+1}$.
+
+(b) By (a), $d^+_\pi-d^+_{\pi,H}=\gamma^H(d^{+,\tail}_\pi-d^+_{\pi,H})$.
+Both measures are probabilities, so for every $X$, $|d^{+,\tail}_\pi(X)-d^+_{\pi,H}(X)|\le1$.
+
+(c) Following (b) of \cref{prop:occ-return},
+\[
+J_\infty-J_H=\sum_{t\ge H}\gamma^t\int r\dd\law_{t+1}=\gamma^H\sum_u\gamma^u\int r\dd\law_{H+u+1}.
+\]
+This equals $\gamma^H(1-\gamma)^{-1}\int r\dd d^{+,\tail}_\pi$ by \eqref{eq:occ-int}, and $|\int r\dd d^{+,\tail}_\pi|\le\|r\|_\infty$.
+\end{proof}
+
+\begin{remark}
+In the $f$-PG objective, the learner occupancy and the expert target are both defined at the same horizon $H$ (\cref{sec:notation}).
+The H-step objective therefore involves no truncation approximation; $d^+_\pi$ serves only as a reference.
+\end{remark}
+
+\subsection{The finite oracle: stationary and H-step optima}\label{sec:occ-oracle}
+
+Let $\cS$ and $\cA$ be finite and $r$ a state reward. For $V\in\R^{\cS}$ define the next-state Bellman operators
+\begin{align*}
+(T_\pi V)(s)&:=\sum_a\pi(a\mid s)\sum_{s'}P(s'\mid s,a)\big[r(s')+\gamma V(s')\big],\\
+(TV)(s)&:=\max_a\sum_{s'}P(s'\mid s,a)\big[r(s')+\gamma V(s')\big].
+\end{align*}
+\paragraph{General policies.}
+In this subsection a \emph{policy} $\sigma$ may be history-dependent and randomized.
+It is a family of laws $\sigma(\cdot\mid h_t)$ on $\cA$, one for each history $h_t=(s_0,a_0,\dots,s_t)\in(\cS\times\cA)^t\times\cS$ and $t\ge0$.
+A stationary Markov $\pi$ is the case $\sigma(\cdot\mid h_t)=\pi(\cdot\mid s_t)$.
+For $s\in\cS$, $T\ge0$, $x_{0:T}\in\cS^{T+1}$ and $b_{0:T}\in\cA^{T+1}$, write $h_k:=(x_0,b_0,\dots,x_k)$ and set
+\begin{equation}\label{eq:occ-hist}
+p^\sigma_{s,T}(x_{0:T},b_{0:T}):=\delta_s(x_0)\,\sigma(b_0\mid h_0)\prod_{k=1}^{T}P(x_k\mid x_{k-1},b_{k-1})\,\sigma(b_k\mid h_k).
+\end{equation}
+These are probability vectors, and the family is consistent: summing $p^\sigma_{s,T+1}$ over $(x_{T+1},b_{T+1})$ gives $p^\sigma_{s,T}$, because $\sum_{x}P(x\mid x_T,b_T)\sum_b\sigma(b\mid h_T,b_T,x)=1$.
+All coordinate spaces are finite, so the Kolmogorov extension theorem gives a unique probability $\Prob^\sigma_s$ on $\Omega$ whose law of $(s_{0:T},a_{0:T})$ is $p^\sigma_{s,T}$ for every $T$.
+For $\sigma=\pi$ stationary Markov, \eqref{eq:occ-hist} is the product formula of \cref{sec:occ-setting} with $\mu_0=\delta_s$, so $\Prob^\pi_s=\Prob^\pi_{\delta_s}$ by uniqueness.
+Summing \eqref{eq:occ-hist} over $b_T$ gives $\Prob^\sigma_s(h_T)=\delta_s(x_0)\prod_{k=1}^{T}\sigma(b_{k-1}\mid h_{k-1})P(x_k\mid x_{k-1},b_{k-1})$.
+Dividing $\Prob^\sigma_s(h_n,a_n=a,s_{n+1}=s')$ by $\Prob^\sigma_s(h_n)$ therefore gives, for every $h_n$ with $\Prob^\sigma_s(h_n)>0$,
+\begin{equation}\label{eq:occ-hist-cond}
+\Prob^\sigma_s(a_n=a,\ s_{n+1}=s'\mid h_n)=\sigma(a\mid h_n)\,P(s'\mid s_n,a).
+\end{equation}
+Let $V^\sigma(s):=\E^\sigma_s\sum_{t\ge0}\gamma^tr(s_{t+1})$, an absolutely convergent series since $|r|\le\|r\|_\infty$.
+For $n\ge0$ let $V^\sigma_n(s):=\E^\sigma_s\sum_{t=0}^{n-1}\gamma^tr(s_{t+1})$; the H-step value is $V^\sigma_H$.
+
+\begin{lemma}\claim{OCC-6}{I}\label{lem:occ-dp}
+\leavevmode
+\begin{enumerate}[nosep,label=(\roman*)]
+\item $T$ and $T_\pi$ are $\gamma$-contractions in $\|\cdot\|_\infty$. They are monotone ($V\le W\Rightarrow TV\le TW$) and satisfy $T(V+c\mathbf1)=TV+\gamma c\mathbf1$.
+\item For a stationary Markov $\pi$, $V^\pi=(I-\gamma P_\pi)^{-1}P_\pi r$ is the unique fixed point of $T_\pi$.
+\item $T$ has a unique fixed point $V^\star$, and $\|V^\star\|_\infty\le\|r\|_\infty/(1-\gamma)$. Every stationary deterministic $\pi^\star$ that is greedy with respect to $V^\star$, with ties broken in any fixed way, satisfies $V^{\pi^\star}=V^\star$.
+\item For every policy $\sigma$ and every $s$, $V^\sigma(s)\le V^\star(s)$. Hence $\pi^\star$ is optimal among all policies.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(i) Since $|\max_ax_a-\max_ay_a|\le\max_a|x_a-y_a|$, we get
+\[
+|(TV)(s)-(TW)(s)|\le\gamma\max_a\sum_{s'}P(s'\mid s,a)|V(s')-W(s')|\le\gamma\|V-W\|_\infty .
+\] The same argument applies to $T_\pi$, with an average in place of the max.
+Monotonicity and the constant shift are immediate from the definitions.
+
+(ii) $T_\pi V=P_\pi r+\gamma P_\pi V$, an affine $\gamma$-contraction, so by Banach's theorem it has a unique fixed point.
+By \cref{prop:occ-return}(b) with $\mu_0=\delta_s$ and \cref{lem:occ-recursion}, $V^\pi=\sum_t\gamma^tP_\pi^{t+1}r=P_\pi r+\gamma P_\pi\sum_t\gamma^tP_\pi^{t+1}r=T_\pi V^\pi$.
+By \cref{lem:neumann}, $\sum_t\gamma^tP_\pi^{t+1}r=P_\pi(I-\gamma P_\pi)^{-1}r=(I-\gamma P_\pi)^{-1}P_\pi r$.
+
+(iii) Existence and uniqueness of $V^\star$ follow from Banach's theorem on the complete space $(\R^{\cS},\|\cdot\|_\infty)$.
+For the bound, let $\rho:=\|r\|_\infty/(1-\gamma)$. If $\|V\|_\infty\le\rho$, then $|(TV)(s)|\le\|r\|_\infty+\gamma\rho=\rho$.
+So $T$ maps the closed ball $\{\|V\|_\infty\le\rho\}$ into itself. The Banach iterates $T^n0$ stay in this ball and converge to $V^\star$, and the ball is closed.
+Greediness means $T_{\pi^\star}V^\star=TV^\star=V^\star$, so $V^\star$ is the fixed point of $T_{\pi^\star}$, which is $V^{\pi^\star}$ by (ii).
+
+(iv) Fix $\sigma$ and $s$. We show by induction that for every $n\ge0$,
+$\E^\sigma_s\big[\sum_{t<n}\gamma^tr(s_{t+1})+\gamma^nV^\star(s_n)\big]\le V^\star(s)$.
+The case $n=0$ is an equality.
+For the induction step, condition on $h_n$ with $\Prob^\sigma_s(h_n)>0$. By \eqref{eq:occ-hist-cond},
+$\E[r(s_{n+1})+\gamma V^\star(s_{n+1})\mid h_n]=\sum_a\sigma(a\mid h_n)\sum_{s'}P(s'\mid s_n,a)[r(s')+\gamma V^\star(s')]\le(TV^\star)(s_n)=V^\star(s_n)$,
+since an average does not exceed a maximum.
+Multiplying by $\gamma^n$ and averaging over $h_n$ gives $\E[\gamma^nr(s_{n+1})+\gamma^{n+1}V^\star(s_{n+1})]\le\E[\gamma^nV^\star(s_n)]$.
+Adding this to the induction hypothesis for $n$ gives the statement for $n+1$.
+As $n\to\infty$, $|\gamma^n\E V^\star(s_n)|\le\gamma^n\|r\|_\infty/(1-\gamma)\to0$ by (iii).
+The partial sums are bounded by $\|r\|_\infty/(1-\gamma)$, so dominated convergence gives $\E\sum_{t<n}\gamma^tr(s_{t+1})\to V^\sigma(s)$.
+\end{proof}
+
+\begin{lemma}[residual certificates]\claim{OCC-6}{I}\label{lem:occ-residual}
+\leavevmode
+\begin{enumerate}[nosep,label=(\roman*)]
+\item If $\|TV-V\|_\infty\le\eta$, then $\|V-V^\star\|_\infty\le\eta/(1-\gamma)$.
+\item If moreover $\pi$ is greedy with respect to $V$, then $0\le V^\star-V^\pi\le 2\gamma\eta/(1-\gamma)^2$ componentwise.
+\item For a stationary $\pi$, let $\eta_\pi:=\|TV^\pi-V^\pi\|_\infty$. Then $0\le V^\star-V^\pi\le\eta_\pi/(1-\gamma)$.
+  Here $\eta_\pi$ is computable from the linear solve in \cref{lem:occ-dp}(ii), up to the floating-point error of that solve.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(i) $\|V-V^\star\|\le\|V-TV\|+\|TV-TV^\star\|\le\eta+\gamma\|V-V^\star\|$.
+
+(ii) The lower bound is \cref{lem:occ-dp}(iv). For the upper bound, $T_\pi V=TV$ by greediness and $T_\pi V^\pi=V^\pi$, so
+$V^\star-V^\pi=(TV^\star-TV)+(T_\pi V-T_\pi V^\pi)$.
+The first term is at most $\gamma\|V^\star-V\|\mathbf1$.
+The second equals $\gamma P_\pi(V-V^\pi)=\gamma P_\pi(V-V^\star)+\gamma P_\pi(V^\star-V^\pi)\le\gamma\|V-V^\star\|\mathbf1+\gamma\delta\mathbf1$, where $\delta:=\max_s(V^\star-V^\pi)(s)\ge0$.
+Taking the maximum over $s$ gives $\delta\le2\gamma\|V-V^\star\|+\gamma\delta$; then apply (i).
+
+(iii) Apply (i) with $V=V^\pi$, and \cref{lem:occ-dp}(iv) for the lower bound.
+\end{proof}
+
+\begin{proposition}[H-step optimum by backward induction]\claim{OCC-6}{D}\label{prop:occ-hstep}
+Let $W_H:=0$ and $W_k:=TW_{k+1}$ for $k=H-1,\dots,0$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item For every policy $\sigma$ and every $s$, $V^\sigma_H(s)\le W_0(s)$.
+\item Equality holds for any non-stationary Markov policy $\sigma^\star=(\sigma^\star_0,\dots,\sigma^\star_{H-1})$ with $\sigma^\star_k(s)\in\argmax_a\sum_{s'}P(s'\mid s,a)[r(s')+\gamma W_{k+1}(s')]$. Thus $V^\star_H:=W_0$ is the H-step optimum.
+\item Let $\pi^\star$ be the stationary optimal policy of \cref{lem:occ-dp}. For bounded $r$, $0\le V^\star_H-V^{\pi^\star}_H\le2\gamma^H\|r\|_\infty/(1-\gamma)$. If $r\ge0$, then $0\le V^\star_H-V^{\pi^\star}_H\le\gamma^H\|r\|_\infty/(1-\gamma)$. For $r_g\in[0,1]$, $\gamma=0.95$ and $H=100$, the bound $\gamma^H\|r_g\|_\infty/(1-\gamma)$ is at most $\gamma^H/(1-\gamma)\approx\vn{const.gH_over4}{0.1184}$ $(<\vn{const.gH_over_lt}{0.119})$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a)--(b) Fix a policy $\sigma$. Define functions $U_k$ on all histories by backward recursion: $U_H(h_H):=0$ and, for $k=H-1,\dots,0$,
+\[
+U_k(h_k):=\sum_a\sigma(a\mid h_k)\sum_{s'}P(s'\mid s_k,a)\big[r(s')+\gamma U_{k+1}(h_k,a,s')\big].
+\]
+\emph{Step 1: $U_0(s)=V^\sigma_H(s)$.} We claim that for every $k\le H$ and every $h_k$,
+\[
+U_k(h_k)=\sum_{b_k,x_{k+1},\dots,b_{H-1},x_H}\ \prod_{j=k}^{H-1}\sigma(b_j\mid h_j)P(x_{j+1}\mid x_j,b_j)\ \sum_{t=k}^{H-1}\gamma^{t-k}r(x_{t+1}),
+\]
+where $h_j$ extends $h_k$ by $(b_k,x_{k+1},\dots,b_{j-1},x_j)$.
+For $k=H$ both sides are $0$.
+Assume the claim for $k+1$ and insert it into the recursion.
+The weights $\prod_{j=k+1}^{H-1}\sigma(b_j\mid h_j)P(x_{j+1}\mid x_j,b_j)$ sum to $1$ over $(b_{k+1},\dots,x_H)$, so $r(x_{k+1})$ may be written as the same weighted sum of the constant $r(x_{k+1})$.
+Combining the two terms gives the claim for $k$.
+For $k=0$ and $h_0=s$, the right-hand side is the expectation of $\sum_{t<H}\gamma^tr(s_{t+1})$ under $p^\sigma_{s,H}$ of \eqref{eq:occ-hist}, summed over $b_H$.
+Hence $U_0(s)=V^\sigma_H(s)$.
+
+\emph{Step 2: comparison.} We show $U_k(h_k)\le W_k(s_k)$ for all $h_k$, by backward induction on $k$.
+The case $k=H$ is trivial.
+If $U_{k+1}(h_{k+1})\le W_{k+1}(s_{k+1})$ for all $h_{k+1}$, then
+$U_k(h_k)\le\sum_a\sigma(a\mid h_k)\sum_{s'}P(s'\mid s_k,a)[r(s')+\gamma W_{k+1}(s')]\le W_k(s_k)$,
+since an average does not exceed a maximum.
+For $\sigma^\star$, i.e.\ $\sigma(\cdot\mid h_k)=\delta_{\sigma^\star_k(s_k)}$ for $k<H$, both inequalities are equalities at every stage.
+Indeed, by induction $U_{k+1}(h_{k+1})=W_{k+1}(s_{k+1})$ for all $h_{k+1}$, and the greedy action attains the maximum.
+Taking $k=0$ and using Step 1 gives (a) and (b).
+
+(c) The lower bound follows from (a) applied to $\sigma=\pi^\star$.
+For the upper bound, let $\tilde\sigma$ follow $\sigma^\star$ for $t<H$ and $\pi^\star$ afterwards.
+Split its infinite-horizon value at $H$.
+In \eqref{eq:occ-hist} for $\tilde\sigma$, the factors with index $k<H$ are those of $\sigma^\star$, and those with $k\ge H$ are those of $\pi^\star$.
+So the law of $h_H$ is the same under $\tilde\sigma$ and $\sigma^\star$, and the first $H$ terms contribute $V^\star_H(s)$ by (b).
+Given $h_H$, the law of $(a_H,s_{H+1},a_{H+1},\dots,s_{H+n})$ is that of $(a_0,s_1,a_1,\dots,s_n)$ under $\Prob^{\pi^\star}_{s_H}$.
+Hence $\E^{\tilde\sigma}_s\sum_{t=H}^{H+n-1}\gamma^tr(s_{t+1})=\gamma^H\E^{\sigma^\star}_s[V^{\pi^\star}_n(s_H)]$ for every $n$.
+Letting $n\to\infty$ by dominated convergence (all terms are bounded by $\|r\|_\infty/(1-\gamma)$) gives
+$V^{\tilde\sigma}(s)=V^\star_H(s)+\gamma^H\E^{\sigma^\star}_s[V^{\pi^\star}(s_H)]$.
+In the same way, $V^{\pi^\star}(s)=V^{\pi^\star}_H(s)+\gamma^H\E^{\pi^\star}_s[V^{\pi^\star}(s_H)]$.
+By \cref{lem:occ-dp}(iv), $V^{\tilde\sigma}\le V^\star=V^{\pi^\star}$.
+Since $|V^{\pi^\star}|\le\|r\|_\infty/(1-\gamma)$, this gives
+$V^\star_H(s)-\gamma^H\|r\|_\infty/(1-\gamma)\le V^{\pi^\star}_H(s)+\gamma^H\|r\|_\infty/(1-\gamma)$.
+If $r\ge0$, then $V^{\pi^\star}\ge0$; dropping the first $\gamma^H$ term gives the sharper bound.
+\end{proof}
+
+\begin{remark}[use in the protocol]
+The finite expert is the stationary greedy policy $\pi^\star$, which is Markov as required by DM$_{\mathrm{FB}}$ \audit{A4}.
+The oracle reports:
+\begin{itemize}[nosep]
+\item $V^\star$ with its Bellman residual (\cref{lem:occ-residual});
+\item the exact $V^{\pi^\star}$, with the certificate $\eta_{\pi^\star}$;
+\item $V^\star_H$;
+\item the expert's H-step return $V^{\pi^\star}_H$.
+\end{itemize}
+H-step gaps of learners are measured against $V^\star_H$ (\cref{sec:protocol}).
+Ties in the greedy step do not affect optimality (\cref{lem:occ-dp}(iii)); they affect only which optimal policy is used, so they are broken deterministically.
+\end{remark}
+
+\subsection{The 2021 and 2024 successor conventions}\label{sec:occ-conv}
+
+FB21 (Eq.~(1), p.~2) uses $M^\pi_{21}(s,a,Y):=\sum_{t\ge0}\gamma^t\Prob^\pi_{(s,a)}((s_t,a_t)\in Y)$ for $Y\subseteq\cS\times\cA$, together with $Q$-functions $\sum_t\gamma^t\E[r(s_t,a_t)]$.
+
+\begin{proposition}\claim{OCC-7}{D}\label{prop:occ-conv}
+Under \cref{ass:mdp}, with a state reward $r$:
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $M^\pi_{21}(s,a,X\times\cA)=\delta_s(X)+\gamma M^{\pi,+}(s,a,X)$; both sides have total mass $1/(1-\gamma)$.
+\item Let
+  \begin{align*}
+  Q^\pi_{21}(s,a)&:=\E^\pi_{(s,a)}\textstyle\sum_{t\ge0}\gamma^tr(s_t),\\
+  Q^{\pi,+}(s,a)&:=\int r\dd M^{\pi,+}(s,a,\cdot)=\E^\pi_{(s,a)}\textstyle\sum_{t\ge0}\gamma^tr(s_{t+1}).
+  \end{align*}
+  Then $Q^\pi_{21}=r(s)+\gamma Q^{\pi,+}$.
+\item $\argmax_aQ^\pi_{21}(s,a)=\argmax_aQ^{\pi,+}(s,a)$ for every $\pi$ and $s$. Also $\sup_\pi Q^\pi_{21}=r(s)+\gamma\sup_\pi Q^{\pi,+}$, so the two conventions have the same optimal policies.
+\item $d^{\SA}_\pi=(1-\gamma)\int\mu_0(\dd s)\sum_a\pi(a\mid s)M^\pi_{21}(s,a,\cdot)$.
+\item The $Q$-function printed in FI24 (p.~3), $\sum_t\gamma^t\E[r(s_t)\mid s_0,a_0,\pi]$, equals $Q^\pi_{21}$ by (b). It differs from $\int r\dd M^{\pi,+}$ (FI24 Eq.~1) by $r(s_0)$ and the factor $\gamma$. FI24 Prop.~1's identity $Q^\star_r=F^\top z_r$ is consistent with $M^{\pi,+}$ only if the reward is read at $s_{t+1}$ \audit{R1}. We adopt that reading; \cref{thm:fb-opt} completes it.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) The $t=0$ term is $\Prob_{(s,a)}(s_0\in X)=\delta_s(X)$.
+For $t\ge1$, $\gamma^t\Prob(s_t\in X)=\gamma\cdot\gamma^{t-1}\Prob(s_{(t-1)+1}\in X)$; summing over $t\ge1$ gives $\gamma M^{\pi,+}(s,a,X)$.
+The masses are $1+\gamma/(1-\gamma)=1/(1-\gamma)$.
+
+(b) Under $\Prob^\pi_{(s,a)}$, dominated convergence (as in \cref{prop:occ-return}(b)) gives
+\[
+Q^\pi_{21}(s,a)=\textstyle\sum_{t\ge0}\gamma^t\int r\dd\Prob^\pi_{(s,a)}(s_t\in\cdot).
+\]
+By \eqref{eq:occ-int} this is $\int r(x)\,M^\pi_{21}(s,a,\dd x\times\cA)$, and in the same way $Q^{\pi,+}(s,a)=\int r\dd M^{\pi,+}(s,a,\cdot)$.
+Integrating $r$ against the identity of measures in (a) gives $Q^\pi_{21}=r(s)+\gamma Q^{\pi,+}$.
+
+(c) $r(s)$ does not depend on $a$ and $\gamma>0$, so the two functions of $a$ differ by a positive affine map.
+The identity of (b) holds for every $\pi$ pointwise, so taking suprema preserves it.
+
+(d) Use \ref{M1} as in \cref{prop:occ-norm}(c).
+
+(e) The printed expression is, term by term, the definition of $Q^\pi_{21}$ in (b).
+Its relation to $\int r\dd M^{\pi,+}=Q^{\pi,+}$ is then (b), and the two differ in general.
+For example, if $s$ is left at $t=1$ and never revisited and $r=\ind_{\{s\}}$, then $Q^\pi_{21}(s,a)=1$ and $Q^{\pi,+}(s,a)=0$.
+Any identity of the form $F(s,a)^\top z_r=\int r\dd M^{\pi,+}(s,a,\cdot)$ therefore equals $Q^{\pi,+}$, the reward read at $s_{t+1}$, and not the printed $Q$.
+\Cref{thm:fb-opt}(a) shows that an exact FB representation gives $F(s,a,z)^\top z_r=\int r\dd M^{\pi_z,+}(s,a,\cdot)$, the reward read at $s_{t+1}$; with the printed $Q$ the identity becomes $Q^\star_{21,r}=r(s)+\gamma F(s,a,z_r)^\top z_r$ (\cref{thm:fb-opt}(c)).
+\end{proof}
+
+\begin{remark}[continuous spaces, densities and the reference measure]\label{rem:occ-density}
+All statements above are identities between measures; none needs a density.
+Density statements need domination. If $P(\cdot\mid s,a)\ll\lambda$ for every $(s,a)$ and some $\sigma$-finite $\lambda$, then
+$\law_{t+1}(X)=\int\law_t(\dd s)\sum_a\pi(a\mid s)P(X\mid s,a)=0$ whenever $\lambda(X)=0$.
+Hence every $\law_{t+1}$, and every countable nonnegative combination such as $d^+_\pi$, $d^+_{\pi,H}$ and $M^{\pi,+}(s,a,\cdot)$, is $\lambda$-absolutely continuous.
+The pre-action quantities additionally contain $\mu_0$, and $M_{21}$ contains the atom $\delta_s$ (FB21 B.6, p.~24).
+In the continuous maze, boundary clipping or collision rules can put positive mass on Lebesgue-null sets.
+Whether this matters depends on the reference measure used (Lebesgue, the replay law $\nu$, or histogram cells); the implemented kernel is examined in \cref{sec:env-continuous}, which shows that it has no atom and no clipping.
+A histogram estimate never proves absolute continuity.
+\Cref{prop:fb-dom} states the consequences for FB representations, and \cref{rem:fb-dom} those of the continuous-maze kernel design.
+\end{remark}

@@ -1,0 +1,63 @@
+\section{Occupancy measures: the exact identities}\label{sec:occupancy}
+
+This section collects the identities on which both families rest. They are exact, they hold for every policy, and their complete proofs are in \cref{sec:occ}. They involve no approximation; approximations enter only with the algorithms of \cref{sec:m-fpg,sec:m-fb,sec:m-fbil}.
+
+\begin{proposition}[normalization and time shift; \cref{prop:occ-norm,prop:occ-shift}]\claim{OCC-1, OCC-2}{I}\label{prop:m-norm}
+For every policy $\pi$:
+(a) $d^+_\pi$, $d^+_{\pi,H}$, $d^{\pre}_\pi$ are probability measures on $\cS$, $d^{\SA}_\pi$ and $d^{\SA}_{\pi,H}$ on $\cS\times\cA$, and $M^{\pi,+}(s,a,\cdot)$ has mass $1/(1-\gamma)$;
+(b) $d^+_\pi=(1-\gamma)\int\mu_0(\dd s)\,M^{\pi,+}(s,\cdot)$;
+(c) $d^{\pre}_\pi=(1-\gamma)\mu_0+\gamma\,d^+_\pi$, and $Z_H\,d^{\pre}_{\pi,H}=\mu_0+\gamma Z_H\,d^+_{\pi,H}-\gamma^H\law_H$.
+\end{proposition}
+\begin{proof}[Proof idea]
+Every object is a nonnegative series of probability measures with weights summing to $1$ (or to $1/(1-\gamma)$), and Tonelli's theorem gives countable additivity. (b) disintegrates the trajectory law along its first state--action pair. (c) separates the $t=0$ term and shifts the index.
+\end{proof}
+
+The time shift (c) is the difference between the 2021 and 2024 conventions: the pre-action occupancy contains the uncontrolled start through the atom $(1-\gamma)\mu_0$, the next-state occupancy does not.
+
+\begin{proposition}[finite resolvent and Bellman identities; \cref{prop:occ-resolvent,prop:occ-bellman-general}]\claim{OCC-3}{I}\label{prop:m-resolvent}
+If $\cS$ is finite and $R_\pi:=(I-\gamma P_\pi)^{-1}=\sum_{t\ge0}\gamma^tP_\pi^t$, then, with measures written as row vectors,
+\[
+M^{\pi,+}(s,a,\cdot)=P(\cdot\mid s,a)\,R_\pi,\qquad d^+_\pi=(1-\gamma)\,\mu_0^\top P_\pi R_\pi,\qquad d^+_{\pi,H}=Z_H^{-1}\sum_{t=0}^{H-1}\gamma^t\mu_0^\top P_\pi^{t+1},
+\]
+and, on any state space, $M^{\pi,+}(s,a,\cdot)=P(\cdot\mid s,a)+\gamma\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)M^{\pi,+}(s_1,a_1,\cdot)$.
+\end{proposition}
+
+The oracle of \cref{sec:protocol} computes $d^+_{\pi,H}$ both by the finite sum and by the resolvent form $Z_H^{-1}\mu_0^\top P_\pi(I-\gamma^HP_\pi^H)R_\pi$; the two agree up to round-off.
+
+\begin{proposition}[return identity; \cref{prop:occ-return}]\claim{OCC-4}{D}\label{prop:m-return}
+For every bounded state reward $r$ read at the next state,
+\[
+J_H(\pi)=Z_H\int r\dd d^+_{\pi,H},\qquad J_\infty(\pi)=\frac1{1-\gamma}\int r\dd d^+_\pi .
+\]
+Hence $d^+_{\pi,H}=d^+_{\pi',H}$ if and only if $J_H(\pi)=J_H(\pi')$ for every bounded $r$.
+If two policies induce the same state kernel, $\sum_a\pi(a\mid s)P(\cdot\mid s,a)=\sum_a\pi'(a\mid s)P(\cdot\mid s,a)$ for every $s$, all their state occupancies coincide even when $\pi\ne\pi'$.
+\end{proposition}
+\begin{proof}
+By linearity, $J_H(\pi)=\sum_{t<H}\gamma^t\E\,r(s_{t+1})=\sum_{t<H}\gamma^t\int r\dd\law_{t+1}$, which is $Z_H\int r\dd d^+_{\pi,H}$ by the definition of $d^+_{\pi,H}$; integrating against a countable sum of measures is justified for indicators, then simple functions, then bounded functions by monotone convergence. The infinite-horizon identity follows in the same way after dominated convergence. Taking $r=\ind_X$ gives the converse. For the last claim, $\law_{t+1}=\law_tP_\pi$ depends on $\pi$ only through $P_\pi$, so induction from $\law_0=\mu_0$ gives equal marginals.
+\end{proof}
+
+The last statement is why state-occupancy matching cannot identify actions.
+In a corner cell, ``move into the wall'' and ``stay'' have the same next-state law; two policies that differ only there have the same state occupancies and the same return for every state reward, but different state--action occupancies (\cref{ex:occ-blocked}).
+
+\begin{proposition}[finite versus infinite horizon; \cref{prop:occ-tail}]\claim{OCC-5}{D}\label{prop:m-tail}
+$d^+_\pi=(1-\gamma^H)d^+_{\pi,H}+\gamma^Hd^{+,\tail}_\pi$ for a probability measure $d^{+,\tail}_\pi$. Hence $\TV(d^+_\pi,d^+_{\pi,H})\le\gamma^H$ and $\lvert J_\infty(\pi)-J_H(\pi)\rvert\le\gamma^H\lVert r\rVert_\infty/(1-\gamma)$.
+For $\gamma=0.95$ and $H=100$, $\gamma^H\approx\vn{const.gH}{5.92\times10^{-3}}$ and $\gamma^H/(1-\gamma)\approx\vn{const.gH_over}{0.118}$.
+\end{proposition}
+
+Learner and expert occupancies are both taken at the same horizon $H$, so the $f$-PG objective involves no truncation; $d^+_\pi$ serves only as a reference.
+
+\begin{proposition}[the finite oracle; \cref{lem:occ-dp,lem:occ-residual,prop:occ-hstep}]\claim{OCC-6}{I+D}\label{prop:m-oracle}
+Let $\cS$ be finite and $r$ a state reward read at the next state. Value iteration with the next-state Bellman operator $(TV)(s)=\max_a\sum_{s'}P(s'\mid s,a)[r(s')+\gamma V(s')]$ converges to $V^\star$, and any greedy stationary $\pi^\star$ is optimal among all history-dependent policies; a residual $\eta_\pi=\lVert TV^\pi-V^\pi\rVert_\infty$ certifies $0\le V^\star-V^\pi\le\eta_\pi/(1-\gamma)$.
+Backward induction $W_H=0$, $W_k=TW_{k+1}$ gives the $H$-step optimum $V^\star_H=W_0$ over all policies, and for $r\in[0,1]$, $0\le V^\star_H-V^{\pi^\star}_H\le\gamma^H/(1-\gamma)\approx\vn{const.gH_over4}{0.1184}$.
+\end{proposition}
+
+The finite experts of \cref{sec:protocol} are certified this way, and the ``gap'' of a learner is always measured against $V^\star_H$, the optimum for the exact reward, kernel and timing of the evaluation.
+
+\begin{proposition}[the 2021 and 2024 conventions; \cref{prop:occ-conv}]\claim{OCC-7}{D}\label{prop:m-conv}
+For a state reward $r$: $M^\pi_{21}(s,a,X\times\cA)=\delta_s(X)+\gamma M^{\pi,+}(s,a,X)$; the 2021 action value $Q^\pi_{21}=\E\sum_t\gamma^tr(s_t)$ and the next-state value $Q^{\pi,+}=\E\sum_t\gamma^tr(s_{t+1})$ satisfy $Q^\pi_{21}=r(s)+\gamma Q^{\pi,+}$; and both conventions have the same greedy and optimal policies.
+\end{proposition}
+
+FI24 Proposition~1's identity $Q^\star_r=F^\top z_r$ therefore holds with the reward read at $s_{t+1}$, as in its Eq.~(1); with the $Q$ printed on FI24 p.~3 it would read $Q^\star_{21,r}=r(s)+\gamma F^\top z_r$ (\cref{thm:fb-opt}(c)).
+
+\paragraph{Densities.} All identities above are identities between measures.
+Density statements need domination: if every $P(\cdot\mid s,a)$ has a density with respect to a reference measure, so do $d^+_\pi$ and $M^{\pi,+}(s,a,\cdot)$, but $d^{\pre}_\pi$ and $M^\pi_{21}$ keep the atoms $\mu_0$ and $\delta_s$ (\cref{rem:occ-density}). The continuous kernel of our maze has a bounded Lebesgue density and no atom (\cref{prop:env-cont}); histogram estimates never prove absolute continuity.

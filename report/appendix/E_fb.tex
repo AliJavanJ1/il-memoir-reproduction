@@ -1,0 +1,758 @@
+% ---------------------------------------------------------------------------
+% Appendix E (from theory/05_fb.tex)  --  claims FB-1 ... FB-11
+% ---------------------------------------------------------------------------
+\section{Forward--backward representations}\label{sec:fb}
+
+\paragraph{Status and sources.}
+Sources are FB21 (Touati \& Ollivier, arXiv v3) and FI24 (Pirotta et al., ICLR 2024).
+Every theorem number, equation number and page below was checked in the supplied PDFs on 5 October 2026; the mathematics of FB21 pp.~14, 24, 29 and FI24 pp.~17--18 was also read on the rendered pages.
+\begin{itemize}[nosep]
+\item FB21: Definition~1 and Theorem~2 (p.~3); Eq.~(4) (p.~4); Algorithm~1 (p.~14); Definition~3 and Theorem~4 (pp.~15--16); Remark~5 (p.~16); Proposition~6 (p.~17); Remark~7 (p.~18); Theorem~8 (p.~19); \S B.6 (p.~24); proofs of Theorems~2 and~4 (pp.~25--26), of Proposition~6 (pp.~26--27), Propositions~17--18 (pp.~27--28) and the proof of Theorem~8 (pp.~29--30, Eqs.~97--109); Eqs.~(164)--(166) (pp.~36--37).
+\item FI24: Eqs.~(1)--(3) (p.~3); Proposition~1 (p.~4); the measure Bellman equation (p.~6).
+\end{itemize}
+Type labels:
+\begin{itemize}[nosep]
+\item \textsf{S}: FB-1 (FB21 Eq.~4 and FI24's averaged Bellman equation), FB-2 (FB21 Theorem~2), FB-7 (FI24 Proposition~1, second part) and FB-9 (orthonormality), each reproved here under its own assumptions;
+\item \textsf{S+D}: FB-3 (FB21 Proposition~6, and our state-only analogue with a rank obstruction) and FB-6 (FB21 Theorem~8 in our convention with a direct proof, and our softmax and scaled versions);
+\item \textsf{D}: FB-4, FB-5, FB-8 and FB-11, which are ours;
+\item \textsf{I+D}: FB-10 (Gram matrix; its part~(d) is \textsf{S+D}).
+\end{itemize}
+Throughout, the \emph{next-state convention} of \cref{sec:occ} is used: $M^{\pi,+}$ (FI24 Eq.~1) and rewards read at $s_{t+1}$.
+The 2021 convention of FB21 Eq.~(1) is written $M^\pi_{21}$ and is translated by \cref{prop:occ-conv}.
+Nothing in this section is a statement about a trained network unless it says so; \cref{rem:fb-approx} lists what changes for the implemented model.
+In proofs, $\theta$ denotes the shift map of the proof of \ref{M2}, not the $f$-IRL reward parameter.
+
+\providecommand{\Bb}{\mathcal B_b}
+\providecommand{\gr}{\mathrm{gr}}
+
+\subsection{Setting}\label{sec:fb-setting}
+
+\begin{assumption}[A-FB]\label{ass:fb}
+\leavevmode
+\begin{enumerate}[nosep,label=(\roman*)]
+\item \Cref{ass:mdp} holds; $\cA$ is finite.
+\item $\nu$ is a nonzero finite measure on $\cS$, the \emph{reference measure}.
+  In the implementation $\nu$ is the population law of the replay next states (\cref{sec:notation}), a probability measure; the finite buffer replaces it by its empirical law $\hat\nu$ (\cref{rem:fb-approx}(2)).
+\item $B:\cS\to\R^d$ is measurable and bounded: $\beta_B:=\sup_x\|B(x)\|_2<\infty$.
+\item For every $(a,z)\in\cA\times\R^d$, $s\mapsto F(s,a,z)\in\R^d$ is measurable and $\sup_{s,a}\|F(s,a,z)\|_2<\infty$.
+\item $\mathcal Z\subseteq\R^d$ is the \emph{latent domain}, and $z\mapsto\pi_z$ assigns a stationary Markov policy to every $z\in\mathcal Z$.
+\end{enumerate}
+\end{assumption}
+Items (iii)--(iv) hold for continuous networks on a bounded state space (and, for (iv), at each fixed $z$). They only make every integral below finite; FB21 instead assumes that the integrals exist (p.~3, below Eq.~3).
+
+\begin{definition}[FB objects]\label{def:fb}
+Under \cref{ass:fb}:
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $G_B:=\int BB^\top\dd\nu\in\R^{d\times d}$ (the \emph{Gram matrix}; FB21 and FI24 call it $\mathrm{Cov}\,B$, \cref{prop:fb-gram}); and $z_r:=\int rB\dd\nu\in\R^d$ for every bounded measurable $r:\cS\to\R$.
+\item The \emph{model kernel} is $\hat M_z(s,a,X):=\int_XF(s,a,z)^\top B(x)\,\nu(\dd x)$, a finite signed measure for every $(s,a,z)$, with density $\hat m_z(s,a,x):=F(s,a,z)^\top B(x)$ with respect to $\nu$.
+\item The \emph{greedy family} is $\pi^{\gr}_z(s):=$ the first maximizer of $a\mapsto F(s,a,z)^\top z$ in a fixed order on $\cA$.
+  The \emph{softmax family} with temperature $\tau>0$ is
+  \begin{equation}\label{eq:fb-softmax}
+  \pi_{z,\tau}(a\mid s):=\frac{\exp(F(s,a,z)^\top z/\tau)}{\sum_b\exp(F(s,b,z)^\top z/\tau)}.
+  \end{equation}
+  Both are measurable in $s$. For the greedy family, $\{\pi^{\gr}_z(s)=a\}$ is a finite intersection of sets of the form $\{F(s,a,z)^\top z>F(s,b,z)^\top z\}$ and $\{F(s,a,z)^\top z\ge F(s,b,z)^\top z\}$.
+\item $(F,B,(\pi_z)_{z\in\mathcal Z})$ is an \emph{exact FB representation with respect to $\nu$ at $z$} if
+  $M^{\pi_z,+}(s,a,\cdot)=\hat M_z(s,a,\cdot)$ for every $(s,a)\in\cS\times\cA$; it is exact \emph{on} $\mathcal Z$ if this holds for every $z\in\mathcal Z$.
+  We call it \emph{greedy} if $\pi_z=\pi^{\gr}_z$ and \emph{softmax} if $\pi_z=\pi_{z,\tau}$.
+\end{enumerate}
+\end{definition}
+FI24 Eq.~(2) (p.~3) is (d) with ``$\approx$'' in place of equality and an approximately greedy policy.
+FB21 Definition~1 (p.~3) is the analogue in the 2021 convention: a measure $\rho$ on $\cS\times\cA$, $B(s,a)$, $M^\pi_{21}$ from $t=0$ and greedy policies.
+FB21 states argmax policies with ``ties may be broken any way'' (p.~2); a fixed tie-breaking rule is one such choice, and every statement below holds for any fixed measurable rule.
+
+\paragraph{General policies.}
+A (history-dependent, randomized) policy $\sigma$ is a sequence of kernels $\sigma_t(\dd a\mid h_t)$ from $\mathcal H_t:=(\cS\times\cA)^t\times\cS$ to $\cA$.
+By the Ionescu--Tulcea theorem there is a unique probability $\Prob^\sigma_s$ on $\Omega$ with $s_0=s$, $a_t\mid h_t\sim\sigma_t(\cdot\mid h_t)$ and $s_{t+1}\mid(h_t,a_t)\sim P(\cdot\mid s_t,a_t)$.
+A stationary Markov policy is the case $\sigma_t(\cdot\mid h_t)=\pi(\cdot\mid s_t)$, and then $\Prob^\sigma_s=\Prob^\pi_{\delta_s}$.
+For finite $\cS$ this is the construction of \cref{sec:occ-oracle}.
+
+\paragraph{The shift identity.}
+The proof of \ref{M2} showed that the image of $\Prob^\pi_{(s,a)}$ under the shift $\theta$ is
+$R_{(s,a)}:=\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)\Prob^\pi_{(s_1,a_1)}$.
+Integrating a bounded measurable $\Psi:\Omega\to\R$ against both measures gives
+\begin{equation}\label{eq:fb-shift}
+\E^\pi_{(s,a)}[\Psi\circ\theta]=\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)\,\E^\pi_{(s_1,a_1)}[\Psi]
+=\int P(\dd s_1\mid s,a)\,\E^\pi_{\delta_{s_1}}[\Psi].
+\end{equation}
+The first equality holds for indicators by the identity of measures, for simple $\Psi$ by linearity, and for bounded $\Psi$ by uniform approximation with simple functions.
+The second is \ref{M1} with $\mu_0=\delta_{s_1}$, extended from events to bounded functions in the same way.
+The same argument shows that $(s,a)\mapsto\E^\pi_{(s,a)}[\Psi]$ is measurable for every bounded measurable $\Psi$, and that \ref{M1} holds with a bounded measurable $\Psi$ in place of an indicator.
+
+\subsection{Two lemmas on value functions}\label{sec:fb-lemmas}
+
+\begin{lemma}[next-state $Q$-functions]\label{lem:fb-q}
+Under \cref{ass:mdp}, let $r$ be bounded and measurable, let $\pi$ be stationary Markov, and set $c_r(s,a):=\int P(\dd x\mid s,a)\,r(x)$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $Q^{+,\pi}_r(s,a):=\E^\pi_{(s,a)}\sum_{t\ge0}\gamma^tr(s_{t+1})=\int r\dd M^{\pi,+}(s,a,\cdot)$.
+  It is measurable in $(s,a)$ and $|Q^{+,\pi}_r|\le\|r\|_\infty/(1-\gamma)$.
+\item With $V^\pi_r(s):=\sum_a\pi(a\mid s)Q^{+,\pi}_r(s,a)$, we have $Q^{+,\pi}_r(s,a)=c_r(s,a)+\gamma\int P(\dd s_1\mid s,a)V^\pi_r(s_1)$.
+\item For every policy $\sigma$ and every $s$, $\E^\sigma_s\sum_{t\ge0}\gamma^tr(s_{t+1})=\E^\sigma_s\sum_{t\ge0}\gamma^tc_r(s_t,a_t)$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(a) The partial sums are bounded by $\|r\|_\infty/(1-\gamma)$, so dominated convergence gives
+$Q^{+,\pi}_r(s,a)=\sum_t\gamma^t\int r\dd\Prob^\pi_{(s,a)}(s_{t+1}\in\cdot)$, and \eqref{eq:occ-int} identifies this with $\int r\dd M^{\pi,+}(s,a,\cdot)$.
+Each $(s,a)\mapsto\E^\pi_{(s,a)}r(s_{t+1})$ is measurable (end of \cref{sec:fb-setting}), so $Q^{+,\pi}_r$ is a pointwise limit of measurable functions.
+
+(b) Write $\sum_{t\ge0}\gamma^tr(s_{t+1})=r(s_1)+\gamma\,\Psi\circ\theta$ with $\Psi:=\sum_{u\ge0}\gamma^ur(s_{u+1})$, which is bounded and measurable on $\Omega$.
+Under $\Prob^\pi_{(s,a)}$ the law of $s_1$ is $P(\cdot\mid s,a)$, so $\E^\pi_{(s,a)}r(s_1)=c_r(s,a)$.
+By \eqref{eq:fb-shift}, $\E^\pi_{(s,a)}[\Psi\circ\theta]=\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)Q^{+,\pi}_r(s_1,a_1)=\int P(\dd s_1\mid s,a)V^\pi_r(s_1)$.
+
+(c) By construction of $\Prob^\sigma_s$, $\E^\sigma_s[r(s_{t+1})\mid h_t,a_t]=c_r(s_t,a_t)$.
+Take expectations, multiply by $\gamma^t$ and sum; the infinite sums are exchanged with the expectation by dominated convergence, as in (a).
+\end{proof}
+
+\begin{lemma}[Bellman optimality on a general state space]\label{lem:fb-dp}
+Let $c:\cS\times\cA\to\R$ be bounded and measurable.
+For a policy $\sigma$ let $V^\sigma_c(s):=\E^\sigma_s\sum_{t\ge0}\gamma^tc(s_t,a_t)$; for stationary $\pi$ let $Q^\pi_c(s,a):=c(s,a)+\gamma\int P(\dd s'\mid s,a)V^\pi_c(s')$.
+On the Banach space $\Bb(\cS)$ of bounded measurable functions with the norm $\|\cdot\|_\infty$, define
+\begin{align*}
+(T_cV)(s)&:=\max_a\Big[c(s,a)+\gamma\!\int\!P(\dd s'\mid s,a)V(s')\Big],\\
+(T_{\pi,c}V)(s)&:=\sum_a\pi(a\mid s)\Big[c(s,a)+\gamma\!\int\!P(\dd s'\mid s,a)V(s')\Big].
+\end{align*}
+\begin{enumerate}[nosep,label=(\roman*)]
+\item $T_c$ and $T_{\pi,c}$ map $\Bb(\cS)$ into itself and are monotone $\gamma$-contractions.
+\item $V^\pi_c$ is the unique fixed point of $T_{\pi,c}$; equivalently, $V^\pi_c(s)=\sum_a\pi(a\mid s)Q^\pi_c(s,a)$.
+\item $T_c$ has a unique fixed point $V^\star_c$, and $V^\sigma_c\le V^\star_c$ for every policy $\sigma$.
+  With $Q^\star_c:=c+\gamma\int P(\dd s'\mid\cdot,\cdot)V^\star_c(s')$ we have $V^\star_c(s)=\max_aQ^\star_c(s,a)$.
+\item For every $V\in\Bb(\cS)$, $\|V-V^\star_c\|_\infty\le\|T_cV-V\|_\infty/(1-\gamma)$.
+\item A stationary $\pi$ is optimal, i.e.\ $V^\pi_c=V^\star_c$, if and only if $\sum_a\pi(a\mid s)Q^\pi_c(s,a)=\max_aQ^\pi_c(s,a)$ for every $s$, that is, if and only if every $\pi(\cdot\mid s)$ is supported on $\argmax_aQ^\pi_c(s,\cdot)$.
+  In that case $Q^\pi_c=Q^\star_c$.
+  Every stationary $\pi$ whose every $\pi(\cdot\mid s)$ is supported on $\argmax_aQ^\star_c(s,\cdot)$ is optimal.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(i) For $V\in\Bb(\cS)$, $s\mapsto\int P(\dd s'\mid s,a)V(s')$ is measurable (kernel property, extended from indicators to bounded functions as in \eqref{eq:fb-shift}) and bounded by $\|V\|_\infty$.
+Finite maxima and averages of measurable functions are measurable.
+Since $|\max_ax_a-\max_ay_a|\le\max_a|x_a-y_a|$ and $|\int P(\dd s'\mid s,a)(V-W)(s')|\le\|V-W\|_\infty$, both operators are $\gamma$-Lipschitz; monotonicity is immediate.
+
+(ii) $V^\pi_c$ is bounded by $\|c\|_\infty/(1-\gamma)$ and measurable as in \cref{lem:fb-q}(a).
+By \ref{M1} with $\mu_0=\delta_s$, $V^\pi_c(s)=\sum_a\pi(a\mid s)\E^\pi_{(s,a)}\sum_t\gamma^tc(s_t,a_t)$.
+Under $\Prob^\pi_{(s,a)}$ the sum equals $c(s,a)+\gamma\,\Psi\circ\theta$ with $\Psi:=\sum_{u\ge0}\gamma^uc(s_u,a_u)$, and \eqref{eq:fb-shift} gives $\E^\pi_{(s,a)}[\Psi\circ\theta]=\int P(\dd s_1\mid s,a)V^\pi_c(s_1)$.
+Hence $V^\pi_c=T_{\pi,c}V^\pi_c$, which is the stated identity; uniqueness follows from (i) and Banach's fixed-point theorem.
+
+(iii) Existence and uniqueness of $V^\star_c$ follow from Banach's theorem.
+Fix $\sigma$ and $s$, and let $\cF_n$ be the $\sigma$-algebra generated by $h_n$. By construction of $\Prob^\sigma_s$,
+\begin{align*}
+\E\big[c(s_n,a_n)+\gamma V^\star_c(s_{n+1})\,\big|\,\cF_n\big]&=\int\sigma_n(\dd a\mid h_n)\Big[c(s_n,a)+\gamma\!\int\!P(\dd s'\mid s_n,a)V^\star_c(s')\Big]\\
+&\le(T_cV^\star_c)(s_n)=V^\star_c(s_n),
+\end{align*}
+since an average does not exceed a maximum.
+Multiply by $\gamma^n$, take expectations and sum over $n<N$; the terms telescope to
+$\E^\sigma_s\big[\sum_{t<N}\gamma^tc(s_t,a_t)+\gamma^NV^\star_c(s_N)\big]\le V^\star_c(s)$.
+Let $N\to\infty$: $|\gamma^N\E V^\star_c(s_N)|\le\gamma^N\|V^\star_c\|_\infty\to0$, and dominated convergence handles the partial sums.
+The identity $V^\star_c=\max_aQ^\star_c$ is $T_cV^\star_c=V^\star_c$ rewritten.
+
+(iv) $\|V-V^\star_c\|\le\|V-T_cV\|+\|T_cV-T_cV^\star_c\|\le\|T_cV-V\|+\gamma\|V-V^\star_c\|$.
+
+(v) By definition $(T_cV^\pi_c)(s)=\max_aQ^\pi_c(s,a)$, and by (ii) $V^\pi_c(s)=\sum_a\pi(a\mid s)Q^\pi_c(s,a)$.
+If these agree for every $s$, then $V^\pi_c$ is a fixed point of $T_c$, so $V^\pi_c=V^\star_c$ by (iii).
+Conversely, $V^\pi_c=V^\star_c$ gives $T_cV^\pi_c=T_cV^\star_c=V^\star_c=V^\pi_c$.
+An average of $Q^\pi_c(s,\cdot)$ equals its maximum exactly when no mass sits on non-maximizing actions.
+If $\pi$ is optimal, $Q^\pi_c=c+\gamma PV^\pi_c=c+\gamma PV^\star_c=Q^\star_c$.
+For the last claim, support on $\argmax Q^\star_c(s,\cdot)$ gives $T_{\pi,c}V^\star_c=T_cV^\star_c=V^\star_c$, so $V^\star_c$ is the fixed point $V^\pi_c$ of $T_{\pi,c}$ by (ii).
+\end{proof}
+
+\paragraph{Both timing conventions are instances.}
+For a next-state reward $r$, \cref{lem:fb-q}(b)--(c) give $Q^{+,\pi}_r=Q^\pi_{c_r}$ and $\E^\sigma_s\sum_t\gamma^tr(s_{t+1})=V^\sigma_{c_r}(s)$.
+For the 2021 convention with a reward $r(s,a)$, FB21's $Q^\pi_r(s_0,a_0)=\sum_t\gamma^t\E[r(s_t,a_t)\mid s_0,a_0,\pi]$ (p.~2) equals $Q^\pi_c$ with $c=r$, by the computation of (ii).
+We write $V^\star_r:=V^\star_{c_r}$ and $Q^\star_r:=Q^\star_{c_r}$ for next-state rewards.
+FI24 defines $Q^\star_r:=\sup_\pi Q^\pi_r$ (p.~3). With the reward read at $s_{t+1}$ \audit{R1} the two agree, since $Q^\pi_{c_r}=c_r+\gamma PV^\pi_{c_r}\le Q^\star_r$ by (iii), with equality for the optimal policies of (v); with the printed $r(s_t)$ the supremum is $r(s)+\gamma Q^\star_r$ (\cref{thm:fb-opt}(c)).
+For finite $\cS$, \cref{lem:fb-dp} reduces to \cref{lem:occ-dp} and \cref{lem:occ-residual}(i),(iii).
+
+\subsection{The successor Bellman identity}\label{sec:fb-bellman}
+
+\begin{proposition}\claim{FB-1}{S}\label{prop:fb-bellman}
+Under \cref{ass:mdp}, for every stationary Markov policy $\pi$:
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (next-state convention) For all $(s,a,X)$,
+  \[M^{\pi,+}(s,a,X)=P(X\mid s,a)+\gamma\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)M^{\pi,+}(s_1,a_1,X).\]
+  This per-pair identity is \cref{prop:occ-bellman-general}, the next-state analogue of FB21 Eq.~(4).
+  Averaging over $a\sim\pi(\cdot\mid s)$ gives the measure Bellman equation of FI24 (p.~6): $M^{\pi,+}(s,\cdot)=P_\pi(s,\cdot)+\gamma\int P_\pi(s,\dd s_1)M^{\pi,+}(s_1,\cdot)$.
+\item (uniqueness) Let $\mathcal K(s,a,\cdot)$ be finite signed measures with $(s,a)\mapsto\mathcal K(s,a,X)$ measurable for every $X$ and $\sup_{s,a,X}|\mathcal K(s,a,X)|<\infty$.
+  If $\mathcal K$ satisfies the identity in (a), then $\mathcal K=M^{\pi,+}$.
+\item (2021 convention; FB21 Eq.~4, p.~4)
+  $M^\pi_{21}(s,a,Y)=\delta_{(s,a)}(Y)+\gamma\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)M^\pi_{21}(s_1,a_1,Y)$ for measurable $Y\subseteq\cS\times\cA$, and $M^\pi_{21}$ is the unique bounded solution in the sense of (b).
+\item (time shift) $M^\pi_{21}(s,a,X\times\cA)=\delta_s(X)+\gamma M^{\pi,+}(s,a,X)$ (\cref{prop:occ-conv}(a)).
+  The $t=0$ term of $M^\pi_{21}$ is the atom $\delta_{(s,a)}$; the $t=0$ term of $M^{\pi,+}$ is $P(\cdot\mid s,a)$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) is \cref{prop:occ-bellman-general}; multiply by $\pi(a\mid s)$ and sum over $a$ for the averaged form.
+
+(b) Let $D:=\mathcal K-M^{\pi,+}$. It inherits the measurability, and it is bounded because $0\le M^{\pi,+}(s,a,X)\le1/(1-\gamma)$.
+Subtracting the two identities gives $D(s,a,X)=\gamma\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)D(s_1,a_1,X)$.
+With $\delta:=\sup_{s,a,X}|D(s,a,X)|<\infty$, the integrand is bounded by $\delta$, so $|D(s,a,X)|\le\gamma\delta$ for all $(s,a,X)$.
+Hence $\delta\le\gamma\delta$ and $\delta=0$.
+
+(c) The $t=0$ term of $M^\pi_{21}(s,a,Y)$ is $\Prob^\pi_{(s,a)}((s_0,a_0)\in Y)=\delta_{(s,a)}(Y)$.
+For $t\ge1$, apply \eqref{eq:fb-shift} to $\Psi=\ind[(s_{t-1},a_{t-1})\in Y]$, for which $\Psi\circ\theta=\ind[(s_t,a_t)\in Y]$, and sum over $t\ge1$ by Tonelli's theorem as in \cref{prop:occ-bellman-general}.
+FB21 Eq.~(4) writes a deterministic $\pi(s_1)$; for a stochastic $\pi$ the next action is averaged.
+Uniqueness is proved as in (b).
+
+(d) is \cref{prop:occ-conv}(a).
+\end{proof}
+
+\Cref{prop:fb-bellman}(a) is the regression target of FB pretraining (\cref{prop:fb-loss}); (d) explains why the ``diagonal'' term of the 2021 training loss (FB21 Eq.~164) differs from that of our next-state loss (\cref{rem:fb-loss}).
+
+\subsection{Reward-to-task optimality}\label{sec:fb-opt}
+
+\begin{theorem}[FB21 Theorem~2, p.~3; FI24 Proposition~1, p.~4, first part]\claim{FB-2}{S}\label{thm:fb-opt}
+Assume \cref{ass:fb}. Let $r:\cS\to\R$ be bounded and measurable, and $z_r=\int rB\dd\nu$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (policy evaluation; no greediness) If the representation is exact at $z\in\mathcal Z$, for any policy family, then
+  \[Q^{+,\pi_z}_r(s,a)=F(s,a,z)^\top z_r\qquad\text{for all }(s,a).\]
+\item (optimality) If $z_r\in\mathcal Z$ and the greedy representation $(F,B,(\pi^{\gr}_z))$ is exact at $z_r$, then $\pi^{\gr}_{z_r}$ is optimal for the next-state reward $r$ among all policies, and $Q^\star_r(s,a)=F(s,a,z_r)^\top z_r$.
+\item (2021 reading) Under the hypothesis of (b), $\pi^{\gr}_{z_r}$ is also optimal in the 2021 convention, among all policies, and $Q^\star_{21,r}(s,a)=r(s)+\gamma F(s,a,z_r)^\top z_r$.
+\item (the source statement) FB21 Theorem~2 as printed (a measure $\rho$ on $\cS\times\cA$, $B(s,a)$, $M^\pi_{21}$, a bounded reward $r(s,a)$, $z_R=\int rB\dd\rho$, greedy policies, exactness for all $z$) holds, with its standing assumptions made explicit: $r$, $B$, $F(\cdot,\cdot,z)$ and the tie-breaking rule are measurable, and $z_R$ exists (FB21: ``assuming the integral exists'').
+  Its proof is the proof of (a)--(b) with $M^\pi_{21}$ in place of $M^{\pi,+}$ and $c=r$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+(a) By \cref{lem:fb-q}(a) and exactness at $z$,
+\[
+Q^{+,\pi_z}_r(s,a)=\int r\dd M^{\pi_z,+}(s,a,\cdot)=\int r(x)\,F(s,a,z)^\top B(x)\,\nu(\dd x)=F(s,a,z)^\top\!\int rB\dd\nu .
+\]
+The last step is linearity of the integral applied to the $d$ functions $rB_i$, which are $\nu$-integrable because $|rB_i|\le\|r\|_\infty\beta_B$ and $\nu$ is finite.
+
+(b) Let $\pi:=\pi^{\gr}_{z_r}$. By (a) at $z=z_r$, $F(s,\cdot,z_r)^\top z_r=Q^{+,\pi}_r(s,\cdot)$ for every $s$.
+By definition, $\pi(s)$ maximizes the left-hand side, so $\pi(\cdot\mid s)=\delta_{\pi(s)}$ is supported on $\argmax_aQ^{+,\pi}_r(s,a)=\argmax_aQ^\pi_{c_r}(s,a)$ (\cref{lem:fb-q}(b)).
+\Cref{lem:fb-dp}(v) with $c=c_r$ gives $V^\pi_{c_r}=V^\star_r$ and $Q^{+,\pi}_r=Q^\star_r$.
+By \cref{lem:fb-dp}(iii) and \cref{lem:fb-q}(c), no policy has a larger next-state return from any state.
+Combining with (a) gives $Q^\star_r=F^\top z_r$.
+
+(c) For every policy $\sigma$ and state $s$, the pathwise identity $\sum_t\gamma^tr(s_t)=r(s_0)+\gamma\sum_t\gamma^tr(s_{t+1})$ gives $\E^\sigma_s\sum_t\gamma^tr(s_t)=r(s)+\gamma\,\E^\sigma_s\sum_t\gamma^tr(s_{t+1})$.
+So the 2021 value of every policy is $r(s)$ plus $\gamma$ times its next-state value, and the two conventions have the same optimal policies among all policies.
+For stationary $\pi$, \cref{prop:occ-conv}(b) gives $Q^\pi_{21}=r(s)+\gamma Q^{+,\pi}_r$; at the optimal policy of (b) this is $Q^\star_{21,r}=r(s)+\gamma Q^\star_r=r(s)+\gamma F^\top z_r$.
+
+(d) FB21 Proposition~16 (p.~25) gives $Q^\pi_{21}(s,a)=\int r\dd M^\pi_{21}(s,a,\cdot)$, which is proved exactly as \cref{lem:fb-q}(a).
+Under exactness, $F(s,a,z)^\top B$ is a $\rho$-density of the nonnegative measure $M^{\pi_z}_{21}(s,a,\cdot)$ of mass $1/(1-\gamma)$; hence it is nonnegative $\rho$-a.e., $rF^\top B\in L^1(\rho)$, and, since each $rB_i\in L^1(\rho)$ by the existence of $z_R$, $\int rF(s,a,z)^\top B\dd\rho=F(s,a,z)^\top z_R$.
+So $Q^{\pi_z}_{21}=F^\top z_R$ for every $z$, as in (a).
+For the greedy $\pi_{z_R}$, $\pi_{z_R}(s)\in\argmax_aQ^{\pi_{z_R}}_{21}(s,a)$, and $Q^\pi_{21}=Q^\pi_c$ with $c=r$; \cref{lem:fb-dp}(v) concludes.
+\end{proof}
+
+\begin{remark}[what the proof uses]\label{rem:fb-opt-uses}
+\leavevmode
+\begin{itemize}[nosep]
+\item Exactness is needed only at the single latent $z_r$. FB21 assumes it for every $z$ so that the conclusion holds for every reward.
+\item Greediness enters only in (b). For the softmax family, (a) still holds and \cref{prop:fb-softmax} replaces (b).
+\item FB21 Remark~5 (p.~16) notes that the FB equation requires the support of $M^{\pi_z}$ to be included in that of $\rho$. Exactness in fact forces the stronger condition $M^{\pi_z,+}(s,a,\cdot)\ll\nu$, because $\hat M_z(s,a,\cdot)\ll\nu$ always (\cref{prop:fb-dom}(a), ours).
+\item (a)--(b) complete \cref{prop:occ-conv}(e): FI24 Proposition~1's identity $Q^\star_r=F^\top z_r$, which is (b), holds when the reward is read at $s_{t+1}$, as in FI24 Eq.~(1). With the $Q$ printed on FI24 p.~3, which reads $r(s_t)$, the identity becomes $Q^\star_{21,r}=r(s)+\gamma F^\top z_r$ by (c).
+\end{itemize}
+\end{remark}
+
+\subsection{Exact finite representations and the rank obstruction}\label{sec:fb-exist}
+
+\begin{proposition}\claim{FB-3}{S+D}\label{prop:fb-exist}
+Let $\cS$ and $\cA$ be finite.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (\textsf{S}; FB21 Proposition~6, p.~17; proof pp.~26--27) Let $\rho$ be a measure on $\cS\times\cA$ with $\rho(s,a)>0$ everywhere and $d\ge\#\cS\cdot\#\cA$.
+  Then there are $F:\cS\times\cA\times\R^d\to\R^d$ and $B:\cS\times\cA\to\R^d$ such that, for every $z$,
+  $F(s,a,z)^\top B(s',a')=M^{\pi_z}_{21}(s,a,\{(s',a')\})/\rho(s',a')$ for all pairs, where $\pi_z$ is the greedy policy of $F(\cdot,\cdot,z)^\top z$.
+\item (\textsf{D}; next-state, state-only analogue) Let $\nu(s)>0$ for every $s$ and $d\ge\#\cS$.
+  Then there are $F:\cS\times\cA\times\R^d\to\R^d$ and $B:\cS\to\R^d$, with $B(s)$ the $s$-th unit vector padded with zeros, such that $(F,B,(\pi^{\gr}_z)_{z\in\R^d})$ is an exact greedy representation on $\R^d$.
+  This holds for any fixed tie-breaking rule.
+\item (\textsf{D}; rank obstruction) Let $\tilde P\in\R^{(\cS\times\cA)\times\cS}$ have rows $p_{sa}=P(\cdot\mid s,a)$ and $k:=\operatorname{rank}\tilde P$.
+  For every stationary $\pi$, the matrix $\mathbf M^\pi:=[M^{\pi,+}(s,a,\{s'\})]$ has rank $k$, and an exact representation at $z$ with $B:\cS\to\R^d$ requires $d\ge k$.
+  If some action $a_0$ has a nonsingular matrix $[P(s'\mid s,a_0)]_{s,s'}$, then $k=\#\cS$.
+  This is the case for a stay action of the form $P(\cdot\mid s,a_0)=(1-\epsilon)\delta_s+\epsilon u_s$, with probability vectors $u_s$ and $0\le\epsilon<\frac12$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(b) Let $d=\#\cS$. For larger $d$, pad $B$ with zero coordinates and set the extra coordinates of $F$ to zero; then $F^\top B$ is unchanged and $F^\top z$ depends on $z$ only through its first $\#\cS$ coordinates, to which the argument below applies.
+With $B(s)=e_s$, the coordinates of $z_r$ are $(z_r)_s=\nu(s)r(s)$.
+For $z\in\R^d$ define the reward $r_z(s):=z_s/\nu(s)$, so that $z_{r_z}=z$.
+Let $\pi^{(z)}$ be the greedy policy of $Q^\star_{r_z}$ under the fixed tie-breaking rule; it is optimal by the last claim of \cref{lem:fb-dp}(v).
+Define $F(s,a,z)_{s'}:=M^{\pi^{(z)},+}(s,a,\{s'\})/\nu(s')$. Then:
+\begin{itemize}[nosep]
+\item $F(s,a,z)^\top B(s')\nu(s')=M^{\pi^{(z)},+}(s,a,\{s'\})$, i.e.\ $\hat M_z=M^{\pi^{(z)},+}$;
+\item $F(s,a,z)^\top z=\sum_{s'}M^{\pi^{(z)},+}(s,a,\{s'\})\,r_z(s')=Q^{+,\pi^{(z)}}_{r_z}(s,a)=Q^\star_{r_z}(s,a)$, by \cref{lem:fb-q}(a)--(b) and optimality (\cref{lem:fb-dp}(v)).
+\end{itemize}
+Hence the first maximizer of $F(s,\cdot,z)^\top z$ is the first maximizer of $Q^\star_{r_z}(s,\cdot)$, that is $\pi^{\gr}_z=\pi^{(z)}$, and $M^{\pi^{\gr}_z,+}=\hat M_z$.
+
+(a) The same construction in the 2021 convention: $B(s,a):=e_{(s,a)}$, so $(z_R)_{(s,a)}=r(s,a)\rho(s,a)$ and $r_z(s,a):=z_{(s,a)}/\rho(s,a)$ inverts $r\mapsto z_R$.
+Let $\pi^{(z)}$ be the greedy policy of $Q^\star_{21,r_z}=Q^\star_c$ with $c=r_z$ (\cref{lem:fb-dp}), and $F(s,a,z)_{(s',a')}:=M^{\pi^{(z)}}_{21}(s,a,\{(s',a')\})/\rho(s',a')$.
+As in (b), $F^\top B(s',a')=M^{\pi^{(z)}}_{21}(s,a,\{(s',a')\})/\rho(s',a')$ and $F(s,a,z)^\top z=Q^{\pi^{(z)}}_{21,r_z}(s,a)=Q^\star_{21,r_z}(s,a)$, whose first maximizer is $\pi^{(z)}(s)$.
+Under FB21's $\in$-reading of $\argmax$ (p.~2), the source proof, which takes ``an optimal policy'', is complete.
+Our greedy family uses a fixed tie-breaking rule. Then the optimal policy must be chosen as the greedy policy of $Q^\star$ under that same rule; otherwise the greedy policy of $F^\top z$ could be a different optimal policy with a different successor measure.
+
+(c) By \cref{prop:occ-resolvent}(a), $\mathbf M^\pi=\tilde PR_\pi$ with $R_\pi$ invertible (\cref{lem:neumann}), so $\operatorname{rank}\mathbf M^\pi=k$.
+Exactness at $z$ means $\mathbf M^{\pi_z}(s,a,s')=F(s,a,z)^\top B(s')\nu(s')$, i.e.\ $\mathbf M^{\pi_z}=\mathbf F_z\mathbf B_\nu^\top$, where $\mathbf F_z\in\R^{(\cS\times\cA)\times d}$ has rows $F(s,a,z)^\top$ and $\mathbf B_\nu\in\R^{\cS\times d}$ has rows $\nu(s')B(s')^\top$. A product through $\R^d$ has rank at most $d$.
+If $[P(s'\mid s,a_0)]$ is nonsingular, its $\#\cS$ rows are linearly independent rows of $\tilde P$, so $k=\#\cS$.
+For the stay action, let $W:=(1-\epsilon)I+\epsilon U$ with $U$ row-stochastic.
+In row $s$, $W_{ss}\ge1-\epsilon$ and $\sum_{s'\ne s}|W_{ss'}|=\epsilon(1-U_{ss})\le\epsilon<1-\epsilon$, so $W$ is strictly diagonally dominant.
+Such a matrix is nonsingular: if $Wx=0$ with $x\ne0$, pick $s$ with $|x_s|=\max|x|$; then $|W_{ss}||x_s|=|\sum_{s'\ne s}W_{ss'}x_{s'}|\le\sum_{s'\ne s}|W_{ss'}|\,|x_s|<|W_{ss}||x_s|$, a contradiction.
+The threshold is sharp: for $\epsilon=\frac12$ and $U$ a transposition, $W$ is singular.
+\end{proof}
+
+\begin{remark}[consequence for the finite mazes]\label{rem:fb-rank16}
+The finite mazes have $\#\cS=\vn{env.cells.4r}{40}$ (four rooms) or $\vn{env.cells.open}{49}$ (open layout), and $d=16$.
+If the configured kernel has a stay action of the form in (c) (deterministic moves, $\epsilon=0$; or a noise model that replaces the chosen action by a random one with probability $\epsilon<\frac12$), then $k=\#\cS>16$ and no exact rank-16 representation exists, for any policy family.
+Every result that assumes exactness (FB-2, FB-5(c)--(d), FB-7, FB-8(c), FB-10(c), FBIL-1(b), FBIL-2(a),(b),(d), FBIL-5(d)) then has a false hypothesis for the implemented model; only the conditional bounds of FB-6 apply.
+The implemented finite kernel has a stay action of this form with $\epsilon=p_{\mathrm{slip}}=0.1$, and its rank is $\#\cS$ (\cref{prop:env-finite}(b)).
+\end{remark}
+
+\begin{proposition}\claim{FB-4}{D}\label{prop:fb-softmax-exist}
+Let $\cS$ and $\cA$ be finite and $\tau>0$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item For every reward $r:\cS\to\R$ there is a stationary policy $\pi$ such that, for every $s$,
+  $\pi(\cdot\mid s)=\mathrm{softmax}\big(Q^{+,\pi}_r(s,\cdot)/\tau\big)$.
+\item If $\nu(s)>0$ for every $s$ and $d\ge\#\cS$, there are $F$ and $B$ (with $B$ one-hot as in \cref{prop:fb-exist}(b)) such that $(F,B,(\pi_{z,\tau})_{z\in\R^d})$ is an exact softmax representation on $\R^d$.
+\item Uniqueness of the fixed point in (a) is not claimed, so the construction in (b) depends on the selection of fixed points.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) $\Pi:=\prod_{s\in\cS}\Delta(\cA)\subset\R^{\cS\times\cA}$ is nonempty, compact and convex.
+For $\pi\in\Pi$, $P_\pi$ depends linearly on $\pi$, and $I-\gamma P_\pi$ is invertible (\cref{lem:neumann}).
+By Cramer's rule the entries of $(I-\gamma P_\pi)^{-1}$ are ratios of polynomials in the entries of $\pi$ with nonvanishing denominator, so they are continuous on $\Pi$.
+Hence $\pi\mapsto Q^{+,\pi}_r(s,a)=p_{sa}(I-\gamma P_\pi)^{-1}r$ (\cref{prop:occ-resolvent}(a), \cref{lem:fb-q}(a)) is continuous, and so is $\Phi(\pi)(\cdot\mid s):=\mathrm{softmax}(Q^{+,\pi}_r(s,\cdot)/\tau)$.
+$\Phi$ maps $\Pi$ into $\Pi$, so Brouwer's fixed-point theorem gives $\pi=\Phi(\pi)$.
+
+(b) Proceed as in \cref{prop:fb-exist}(b), with $\pi^{(z)}$ a fixed point of (a) for the reward $r_z$ (one fixed point chosen for each $z$).
+With $F(s,a,z)_{s'}:=M^{\pi^{(z)},+}(s,a,\{s'\})/\nu(s')$ we get $\hat M_z=M^{\pi^{(z)},+}$ and $F(s,a,z)^\top z=Q^{+,\pi^{(z)}}_{r_z}(s,a)$.
+Hence $\pi_{z,\tau}(\cdot\mid s)=\mathrm{softmax}(Q^{+,\pi^{(z)}}_{r_z}(s,\cdot)/\tau)=\pi^{(z)}(\cdot\mid s)$, and $M^{\pi_{z,\tau},+}=\hat M_z$ for every $z$.
+
+(c) The construction uses an arbitrary selection among fixed points; whether the fixed point is unique is not settled here.
+\end{proof}
+
+\Cref{prop:fb-exist}(b) and \cref{prop:fb-softmax-exist}(b) show that the exactness hypotheses of FB-2 (greedy) and FB-5 (softmax) can be met in the finite maze when $d\ge\#\cS$. \Cref{prop:fb-exist}(c) shows that they cannot be met at $d=16$ when $\operatorname{rank}\tilde P>16$, for instance under the stay-action condition of (c).
+
+\subsection{What replaces Theorem~2 for the softmax family}\label{sec:fb-softmax}
+
+\begin{lemma}[log-sum-exp]\label{lem:fb-lse}
+For $x\in\R^{\cA}$, $\tau>0$ and $p:=\mathrm{softmax}(x/\tau)$:
+$\sum_ap_ax_a=\tau\log\sum_be^{x_b/\tau}-\tau\Ent(p)$ and $\max_ax_a-\tau\log|\cA|\le\sum_ap_ax_a\le\max_ax_a$.
+\end{lemma}
+\begin{proof}
+$\log p_a=x_a/\tau-\log\sum_be^{x_b/\tau}$; multiply by $\tau p_a$ and sum over $a$ to get the identity.
+Moreover $\tau\log\sum_be^{x_b/\tau}\ge\tau\log e^{\max_bx_b/\tau}=\max_bx_b$, and $\Ent(p)=\sum_ap_a\log(1/p_a)\le\log\sum_ap_a(1/p_a)\le\log|\cA|$ by Jensen's inequality.
+The upper bound holds because an average does not exceed a maximum.
+\end{proof}
+
+\begin{proposition}\claim{FB-5}{D}\label{prop:fb-softmax}
+Let $c$ be bounded and measurable, and $\tau>0$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item If a stationary $\pi$ satisfies $\pi(\cdot\mid s)=\mathrm{softmax}\big(Q^\pi_c(s,\cdot)/\tau\big)$ for every $s$, then
+  \[0\le V^\star_c-V^\pi_c\le\frac{\tau\log|\cA|}{1-\gamma},\qquad0\le Q^\star_c-Q^\pi_c\le\frac{\gamma\,\tau\log|\cA|}{1-\gamma}.\]
+\item Such a $\pi$ is optimal if and only if $Q^\pi_c(s,\cdot)$ is constant on $\cA$ for every $s$. More precisely, $V^\pi_c(s)<V^\star_c(s)$ at every $s$ where $Q^\pi_c(s,\cdot)$ is not constant.
+\item (exact softmax FB) Assume \cref{ass:fb}, a bounded reward $r$, and an exact softmax representation at $z_r\in\mathcal Z$.
+  Then $\pi_{z_r,\tau}$ satisfies (a) with $c=c_r$: $V^\star_r-V^{\pi_{z_r,\tau}}_r\le\tau\log|\cA|/(1-\gamma)$, in the units of $r$.
+\item (scale of $z$, under exactness) If instead the softmax representation is exact at $\zeta z_r\in\mathcal Z$ for some $\zeta>0$, then $\pi:=\pi_{\zeta z_r,\tau}$ satisfies $\pi(\cdot\mid s)=\mathrm{softmax}\big(Q^{+,\pi}_r(s,\cdot)/(\tau/\zeta)\big)$, so $V^\star_r-V^\pi_r\le(\tau/\zeta)\log|\cA|/(1-\gamma)$.
+  On the sphere $\mathcal Z_R:=\{z:\|z\|_2=R\}$ with $z_r\ne0$, the representative $Rz_r/\|z_r\|_2$ therefore has \emph{effective temperature} $\tau\|z_r\|_2/R$ relative to $r$.
+\item (orthonormal $B$) If $G_B=I$, then $z_r$ is the coefficient vector of the $L^2(\nu)$-orthogonal projection $\Pi_Br$ of $r$ onto $\mathrm{span}\{B_1,\dots,B_d\}$, and $\|z_r\|_2=\|\Pi_Br\|_{L^2(\nu)}\le\|r\|_{L^2(\nu)}$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) By \cref{lem:fb-dp}(ii), $V^\pi_c(s)=\sum_a\pi(a\mid s)Q^\pi_c(s,a)$.
+\Cref{lem:fb-lse} with $x=Q^\pi_c(s,\cdot)$ gives $V^\pi_c(s)\ge\max_aQ^\pi_c(s,a)-\tau\log|\cA|=(T_cV^\pi_c)(s)-\tau\log|\cA|$; also $V^\pi_c\le T_cV^\pi_c$.
+Hence $\|T_cV^\pi_c-V^\pi_c\|_\infty\le\tau\log|\cA|$, and \cref{lem:fb-dp}(iv) gives $\|V^\pi_c-V^\star_c\|_\infty\le\tau\log|\cA|/(1-\gamma)$; \cref{lem:fb-dp}(iii) gives the sign.
+Finally $Q^\star_c-Q^\pi_c=\gamma\int P(\dd s'\mid\cdot,\cdot)(V^\star_c-V^\pi_c)(s')$.
+
+(b) If every $Q^\pi_c(s,\cdot)$ is constant, every $\pi(\cdot\mid s)$ is supported on $\argmax_aQ^\pi_c(s,\cdot)=\cA$, and \cref{lem:fb-dp}(v) applies.
+Conversely, a softmax policy has full support, so $\sum_a\pi(a\mid s)Q^\pi_c(s,a)<\max_aQ^\pi_c(s,a)$, i.e.\ $(T_cV^\pi_c)(s)>V^\pi_c(s)$, at every $s$ where $Q^\pi_c(s,\cdot)$ is not constant.
+Since $T_cV^\pi_c\ge V^\pi_c$ and $T_c$ is monotone, $T_c^nV^\pi_c$ is nondecreasing in $n$ and converges to $V^\star_c$; hence $V^\star_c(s)\ge(T_cV^\pi_c)(s)>V^\pi_c(s)$ at such $s$.
+
+(c) By \cref{thm:fb-opt}(a) at $z=z_r$, $F(s,\cdot,z_r)^\top z_r=Q^{+,\pi}_r(s,\cdot)$ for $\pi=\pi_{z_r,\tau}$, so $\pi(\cdot\mid s)=\mathrm{softmax}(Q^{+,\pi}_r(s,\cdot)/\tau)$, and $Q^{+,\pi}_r=Q^\pi_{c_r}$ (\cref{lem:fb-q}(b)). Apply (a).
+
+(d) By \cref{thm:fb-opt}(a) at $z=\zeta z_r$ with the reward $r$, $F(s,\cdot,\zeta z_r)^\top z_r=Q^{+,\pi}_r(s,\cdot)$, so $F(s,\cdot,\zeta z_r)^\top(\zeta z_r)/\tau=Q^{+,\pi}_r(s,\cdot)/(\tau/\zeta)$. Apply (a) with temperature $\tau/\zeta$. For the sphere, take $\zeta=R/\|z_r\|_2$.
+
+(e) For $w\in\R^d$, $\|r-w^\top B\|^2_{L^2(\nu)}=\|r\|^2_{L^2(\nu)}-2w^\top z_r+w^\top G_Bw$. With $G_B=I$ this strictly convex quadratic is minimized at $w=z_r$, so $\Pi_Br=z_r^\top B$ and $\|\Pi_Br\|^2_{L^2(\nu)}=z_r^\top G_Bz_r=\|z_r\|_2^2$.
+The orthogonal projection does not increase the norm.
+\end{proof}
+
+\begin{remark}
+Part (b) is why FB21 Theorem~2 does not apply to the softmax family unchanged: even under exact FB, $\pi_{z_r,\tau}$ is strictly suboptimal wherever its action values differ.
+Parts (a), (c) bound the loss, in the units of $r$. As $\tau\to0$ the bound vanishes, which matches the greedy case; but $\pi_{z,\tau}$ with $\tau>0$ is never the greedy family.
+Parts (d)--(e) give the precise sense in which $\tau$ and the scale of $z$ are coupled \emph{under exactness} \audit{T2}: only $\tau/\zeta$ matters, and on a sphere the reward enters through $\|z_r\|_2$, which equals $\|\Pi_Br\|_{L^2(\nu)}$ when $G_B=I$.
+For a trained network, $F(s,a,\zeta z)^\top\zeta z\ne\zeta F(s,a,z)^\top z$ in general (unless the latent input of $F$ is scale-normalized, as in FI24 D.3), so for the implemented model $\tau$ and $R$ are coupled only empirically.
+\end{remark}
+
+\begin{corollary}[finite-horizon evaluation]\claim{FB-5}{D}\label{cor:fb-hstep}
+Let $r\ge0$ be bounded, $\pi$ stationary and $s\in\cS$.
+Let $V^\sigma_H(s):=\E^\sigma_s\sum_{t<H}\gamma^tr(s_{t+1})$ and $V^\star_H(s):=\sup_\sigma V^\sigma_H(s)$, the supremum over all policies.
+Then $0\le V^\star_H(s)-V^\pi_H(s)\le V^\star_r(s)-V^\pi_r(s)+\gamma^H\|r\|_\infty/(1-\gamma)$.
+For finite $\cS$, $V^\star_H$ is the backward-induction value of \cref{prop:occ-hstep}.
+\end{corollary}
+\begin{proof}
+The lower bound holds because $\pi$ is one of the policies in the supremum.
+For every $\sigma$, $V^\sigma_H(s)\le\E^\sigma_s\sum_{t\ge0}\gamma^tr(s_{t+1})\le V^\star_r(s)$, by $r\ge0$, \cref{lem:fb-q}(c) and \cref{lem:fb-dp}(iii); hence $V^\star_H\le V^\star_r$.
+Also $V^\pi_r(s)-V^\pi_H(s)=\E^\pi_s\sum_{t\ge H}\gamma^tr(s_{t+1})\le\gamma^H\|r\|_\infty/(1-\gamma)$.
+Combine the two inequalities. The finite case is \cref{prop:occ-hstep}(a)--(b).
+\end{proof}
+
+\subsection{Approximate representations}\label{sec:fb-approx}
+
+\begin{lemma}[the dual $L^2(\nu)$ norm; FI24 Eq.~30, p.~17]\label{lem:fb-dual}
+Let $\nu$ be a finite measure and $\mu$ a finite signed measure on $\cS$. Then
+\[
+\|\mu\|_{L^2(\nu)^\star}:=\sup\Big\{\int r\dd\mu:\ r\text{ bounded measurable},\ \|r\|_{L^2(\nu)}\le1\Big\}
+\]
+equals $\|\dd\mu/\dd\nu\|_{L^2(\nu)}$ if $\mu\ll\nu$ with $\dd\mu/\dd\nu\in L^2(\nu)$, and $+\infty$ otherwise.
+In particular $|\int r\dd\mu|\le\|r\|_{L^2(\nu)}\|\mu\|_{L^2(\nu)^\star}$ for every bounded measurable $r$ whenever $\|\mu\|_{L^2(\nu)^\star}<\infty$.
+\end{lemma}
+\begin{proof}
+\emph{Case $\mu=\dot\mu\,\nu$ with $\dot\mu\in L^2(\nu)$.} Cauchy--Schwarz gives $\int r\dot\mu\dd\nu\le\|\dot\mu\|_{L^2(\nu)}$. If $\dot\mu\ne0$ in $L^2(\nu)$, the bounded functions $r_n:=\dot\mu\ind[|\dot\mu|\le n]/\|\dot\mu\|_{L^2(\nu)}$ satisfy $\|r_n\|_{L^2(\nu)}\le1$ and $\int r_n\dd\mu=\int\dot\mu^2\ind[|\dot\mu|\le n]\dd\nu/\|\dot\mu\|_{L^2(\nu)}\to\|\dot\mu\|_{L^2(\nu)}$ by monotone convergence.
+\emph{Case $\mu=\dot\mu\,\nu$ with $\dot\mu\notin L^2(\nu)$.} Here $\dot\mu\in L^1(\nu)$ because $\mu$ is finite. With $\dot\mu_n:=\dot\mu\ind[|\dot\mu|\le n]$, the functions $r_n:=\dot\mu_n/\|\dot\mu_n\|_{L^2(\nu)}$ (for $n$ large, so that $\dot\mu_n\ne0$) give $\int r_n\dd\mu=\|\dot\mu_n\|_{L^2(\nu)}\to\infty$.
+\emph{Case $\mu$ not absolutely continuous.} There is a $\nu$-null set $N$ with $|\mu|(N)>0$. With a Hahn decomposition $\cS=S^+\cup S^-$ of $\mu$, one of $\mu(N\cap S^+)>0$ or $\mu(N\cap S^-)<0$ holds; call that set $N'$, a $\nu$-null set with $\mu(N')\ne0$.
+For $r_c:=c\,\mathrm{sign}(\mu(N'))\ind_{N'}$ we have $\|r_c\|_{L^2(\nu)}=0$ and $\int r_c\dd\mu=c|\mu(N')|\to\infty$ as $c\to\infty$.
+The inequality holds in the first case by Cauchy--Schwarz; the other two cases are excluded by its hypothesis. (Without that hypothesis it can fail: if $\mu$ charges a $\nu$-null set $N'$, then $r=\ind_{N'}$ has $\|r\|_{L^2(\nu)}=0$ but $\int r\dd\mu\ne0$.)
+\end{proof}
+
+\begin{lemma}[approximately greedy and soft-greedy policies]\label{lem:fb-softgreedy}
+Let $c$ be bounded and measurable, $\pi$ stationary, and $\hat Q:\cS\times\cA\to\R$ bounded and measurable with $\|\hat Q-Q^\pi_c\|_\infty\le\delta$.
+Let $\kappa\ge0$ satisfy $\sum_a\pi(a\mid s)\hat Q(s,a)\ge\max_a\hat Q(s,a)-\kappa$ for every $s$. Then
+\[
+0\le V^\star_c-V^\pi_c\le\frac{\kappa+2\delta}{1-\gamma},\qquad
+0\le Q^\star_c-Q^\pi_c\le\frac{\gamma(\kappa+2\delta)}{1-\gamma},
+\]
+and $\|\hat Q-Q^\star_c\|_\infty\le\delta+\gamma(\kappa+2\delta)/(1-\gamma)$.
+$\kappa=0$ for the greedy policy of $\hat Q$, and $\kappa=\tau\log|\cA|$ for $\mathrm{softmax}(\hat Q/\tau)$ (\cref{lem:fb-lse}).
+\end{lemma}
+\begin{proof}
+By \cref{lem:fb-dp}(ii) and the two hypotheses,
+\begin{align*}
+V^\pi_c(s)=\sum_a\pi(a\mid s)Q^\pi_c(s,a)&\ge\sum_a\pi(a\mid s)\hat Q(s,a)-\delta\\
+&\ge\max_a\hat Q(s,a)-\kappa-\delta\ge\max_aQ^\pi_c(s,a)-\kappa-2\delta .
+\end{align*}
+The right-hand side is $(T_cV^\pi_c)(s)-\kappa-2\delta$, and $V^\pi_c\le T_cV^\pi_c$.
+So $\|T_cV^\pi_c-V^\pi_c\|_\infty\le\kappa+2\delta$, and \cref{lem:fb-dp}(iv),(iii) give the first bound.
+The second follows from $Q^\star_c-Q^\pi_c=\gamma\int P(\dd s'\mid\cdot,\cdot)(V^\star_c-V^\pi_c)(s')$, and the third from the triangle inequality.
+For the greedy policy of $\hat Q$, $\sum_a\pi(a\mid s)\hat Q(s,a)=\max_a\hat Q(s,a)$.
+\end{proof}
+
+\begin{theorem}\claim{FB-6}{S+D}\label{thm:fb-approx}
+Assume \cref{ass:fb}, without any exactness, and let $(\pi_z)$ be any policy family.
+Define the \emph{error kernel} $\mathcal E_z(s,a,\cdot):=M^{\pi_z,+}(s,a,\cdot)-\hat M_z(s,a,\cdot)$ (FB21 Eq.~98).
+Let $\|\cdot\|_A$ (on functions) and $\|\cdot\|_B$ (on finite signed measures) satisfy $|\int f\dd\mu|\le\|f\|_A\|\mu\|_B$ whenever both factors are finite. Examples:
+\begin{enumerate}[nosep,label=(N\arabic*)]
+\item $\|f\|_\infty$ and the total variation $\|\mu\|_{\TV}:=|\mu|(\cS)$;
+\item $\|f\|_{L^2(\nu)}$ and $\|\mu\|_{L^2(\nu)^\star}$ (\cref{lem:fb-dual});
+\item for a metric on $\cS$ compatible with its topology, $\max(\|f\|_\infty,\|f\|_{\mathrm{Lip}})$ and the Kantorovich--Rubinstein norm of FB21 Eq.~(23) (p.~19).
+\end{enumerate}
+Let $r$ be bounded and measurable with $\|r\|_A<\infty$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (\textsf{S}; FB21 Eqs.~100--103, p.~29) For every $z\in\mathcal Z$ and every $(s,a)$ with $\|\mathcal E_z(s,a,\cdot)\|_B<\infty$,
+  \[\big|Q^{+,\pi_z}_r(s,a)-F(s,a,z)^\top z_r\big|\le\|r\|_A\,\|\mathcal E_z(s,a,\cdot)\|_B .\]
+  Greediness is not used.
+\end{enumerate}
+Let $z_r\in\mathcal Z$, assume $\sup_{s,a}\|\mathcal E_{z_r}(s,a,\cdot)\|_B<\infty$, and set $\delta:=\|r\|_A\sup_{s,a}\|\mathcal E_{z_r}(s,a,\cdot)\|_B$.
+\begin{enumerate}[resume*]
+\item (\textsf{S+D}; FB21 Theorem~8.3, Eqs.~27--28, p.~19, restated in our convention with a direct proof) For the greedy family, with $\pi:=\pi^{\gr}_{z_r}$:
+  $0\le V^\star_r-V^\pi_r\le2\delta/(1-\gamma)$, $0\le Q^\star_r-Q^{+,\pi}_r\le2\gamma\delta/(1-\gamma)$, and $|F(s,a,z_r)^\top z_r-Q^\star_r(s,a)|\le(1+\gamma)\delta/(1-\gamma)$.
+  The same proof in the 2021 convention ($c=r$, $M^\pi_{21}$, $\rho$ on $\cS\times\cA$, error level $\delta_{21}$) gives $2\delta_{21}/(1-\gamma)$, $2\gamma\delta_{21}/(1-\gamma)$ and $(1+\gamma)\delta_{21}/(1-\gamma)$, which imply FB21's bounds $3\delta_{21}/(1-\gamma)$ (Eq.~27, proved as Eq.~108) and $2\delta_{21}/(1-\gamma)$ (Eq.~28, proved as Eq.~109).
+\item (\textsf{D}) For the softmax family, with $\pi:=\pi_{z_r,\tau}$:
+  $0\le V^\star_r-V^\pi_r\le(\tau\log|\cA|+2\delta)/(1-\gamma)$ and $|F(s,a,z_r)^\top z_r-Q^\star_r(s,a)|\le\delta+\gamma(\tau\log|\cA|+2\delta)/(1-\gamma)$.
+\item (\textsf{D}) If $r\ge0$, \cref{cor:fb-hstep} turns (b) and (c) into bounds on the H-step gap $V^\star_H-V^\pi_H$ by adding $\gamma^H\|r\|_\infty/(1-\gamma)$.
+\item (\textsf{D}; scaled latent) Suppose instead that $\zeta z_r\in\mathcal Z$ for some $\zeta>0$ (for instance the representative of $z_r$ on a sphere), $\sup_{s,a}\|\mathcal E_{\zeta z_r}(s,a,\cdot)\|_B<\infty$, and $\eta:=\|r\|_A\sup_{s,a}\|\mathcal E_{\zeta z_r}(s,a,\cdot)\|_B$. Then, for $\pi:=\pi_{\zeta z_r,\tau}$,
+  \begin{align*}
+  0\le V^\star_r-V^\pi_r&\le\frac{(\tau/\zeta)\log|\cA|+2\eta}{1-\gamma},\\
+  |F(s,a,\zeta z_r)^\top z_r-Q^\star_r(s,a)|&\le\eta+\frac{\gamma\big((\tau/\zeta)\log|\cA|+2\eta\big)}{1-\gamma},
+  \end{align*}
+  and the same bounds without the $\tau$ terms hold for $\pi:=\pi^{\gr}_{\zeta z_r}$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+(a) By \cref{lem:fb-q}(a), $Q^{+,\pi_z}_r(s,a)=\int r\dd M^{\pi_z,+}(s,a,\cdot)$; as in the proof of \cref{thm:fb-opt}(a), $\int r\dd\hat M_z(s,a,\cdot)=F(s,a,z)^\top z_r$.
+The difference is $\int r\dd\mathcal E_z(s,a,\cdot)$, which the norm inequality bounds since both factors are finite.
+The examples satisfy the inequality: (N1) because $|\int f\dd\mu|\le\int|f|\dd|\mu|$; (N2) by \cref{lem:fb-dual}; (N3) because $f/\max(\|f\|_\infty,\|f\|_{\mathrm{Lip}})$ is $1$-Lipschitz and bounded by $1$, which is the class in the definition of the Kantorovich--Rubinstein norm.
+
+(b)--(c) Apply \cref{lem:fb-softgreedy} with $c=c_r$, $\hat Q:=F(\cdot,\cdot,z_r)^\top z_r$ (bounded and measurable by \cref{ass:fb}(iv)), and $\delta$ from (a), using $Q^{+,\pi}_r=Q^\pi_{c_r}$ (\cref{lem:fb-q}(b)).
+For the greedy family $\kappa=0$; for the softmax family $\kappa=\tau\log|\cA|$.
+In the 2021 convention the same lemma applies with $c=r$ and $\hat Q=F^\top z_R$, and FB21's constants follow from $2\le3$, $2\gamma\le3$ and $1+\gamma\le2$.
+
+(d) is \cref{cor:fb-hstep}.
+
+(e) By (a) at $z=\zeta z_r$, $\|Q^{+,\pi}_r-F(\cdot,\cdot,\zeta z_r)^\top z_r\|_\infty\le\eta$, where $\pi$ is either policy at the latent $\zeta z_r$.
+Since $\pi_{\zeta z_r,\tau}(\cdot\mid s)=\mathrm{softmax}\big(F(s,\cdot,\zeta z_r)^\top z_r/(\tau/\zeta)\big)$, \cref{lem:fb-softgreedy} with $c=c_r$, $\hat Q:=F(\cdot,\cdot,\zeta z_r)^\top z_r$, $\delta:=\eta$ and $\kappa:=(\tau/\zeta)\log|\cA|$ gives both bounds.
+The first maximizers of $a\mapsto F(s,a,\zeta z_r)^\top(\zeta z_r)$ and of $\hat Q(s,\cdot)$ coincide because $\zeta>0$, so $\pi^{\gr}_{\zeta z_r}$ is the greedy policy of $\hat Q$ and $\kappa=0$ applies.
+\end{proof}
+
+\begin{remark}[what FB-6 does and does not give]\label{rem:fb-approx-limits}
+\leavevmode
+\begin{itemize}[nosep]
+\item FB-6 is conditional on the model error ($\delta$, or $\eta$ in (e)) of a given $(F,B)$ at the latent actually used.
+  Nothing in \cref{prop:fb-loss} bounds that error by the training loss. That loss is not a norm of $\mathcal E_z$, since it omits a parameter-independent and possibly infinite constant; it is minimized only approximately, on the replay distribution, and not uniformly over $(s,a)$.
+\item In the finite maze, the error of a trained network can be computed exactly from $P$ by the oracle. This is an evaluation-only diagnostic and never enters a learner.
+\item In the continuous maze, if $M^{\pi_z,+}(s,a,\cdot)$ has a part singular to $\nu$ (\cref{prop:fb-dom}), then the TV error of the model kernel is at least the singular mass, so the (N1) error level is at least $\|r\|_\infty$ times that mass, and the (N2) error level is $+\infty$.
+  These are lower bounds on errors of measures, not on the error $|\int r\dd\mathcal E_z(s,a,\cdot)|$ for a particular reward, which can still be small (for instance when $r$ vanishes near the singular part).
+  The (N3) error level can also be small: FB21 \S B.6 calls this weak approximation, and it remains useful, in particular for the smooth evaluation reward $r_g$.
+\end{itemize}
+\end{remark}
+
+\subsection{Successor features of \texorpdfstring{$B$}{B}}\label{sec:fb-sf}
+
+\begin{proposition}[FI24 Proposition~1, p.~4, second part]\claim{FB-7}{S}\label{prop:fb-sf}
+Assume \cref{ass:fb} and exactness at $z$, for any family. Then for all $(s,a)$,
+\[
+G_BF(s,a,z)=\int B\dd M^{\pi_z,+}(s,a,\cdot)=\E^{\pi_z}_{(s,a)}\sum_{t\ge0}\gamma^tB(s_{t+1}),\qquad
+G_BF(s,z)=\int B\dd M^{\pi_z,+}(s,\cdot),
+\]
+where $F(s,z):=\sum_a\pi_z(a\mid s)F(s,a,z)$ (FI24 Eq.~3).
+If $G_B$ is invertible, $F(s,a,z)=\E^{\pi_z}_{(s,a)}\sum_t\gamma^t\varphi(s_{t+1})$ with $\varphi:=G_B^{-1}B$ (FI24 Eq.~5).
+Greediness is not used (FI24 states the result under its exact model (2), whose policies are greedy).
+\end{proposition}
+\begin{proof}
+For each coordinate $i$, $\int B_i\dd\hat M_z(s,a,\cdot)=\int B_iB^\top F(s,a,z)\dd\nu=(G_BF(s,a,z))_i$.
+Exactness replaces $\hat M_z$ by $M^{\pi_z,+}$, and \cref{lem:fb-q}(a) with the bounded reward $B_i$ gives the expectation.
+Average over $a\sim\pi_z(\cdot\mid s)$ for the second identity, and multiply by $G_B^{-1}$ for the last.
+\end{proof}
+
+\subsection{The Gram matrix}\label{sec:fb-gram}
+
+\begin{proposition}\claim{FB-10}{I+D}\label{prop:fb-gram}
+Assume \cref{ass:fb}.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (\textsf{I}) $G_B$ is symmetric positive semidefinite, with $w^\top G_Bw=\|w^\top B\|^2_{L^2(\nu)}$.
+  It is invertible if and only if $B_1,\dots,B_d$ are linearly independent in $L^2(\nu)$.
+  If $\cS$ is finite and $d>\#\{s:\nu(s)>0\}$, it is singular.
+\item (\textsf{I}) $G_B$ is \emph{uncentered}. With $m_B:=\nu(\cS)^{-1}\int B\dd\nu$, the covariance is $\mathrm{Cov}_\nu(B):=\nu(\cS)^{-1}\int(B-m_B)(B-m_B)^\top\dd\nu=\nu(\cS)^{-1}G_B-m_Bm_B^\top$.
+\item (\textsf{D}) Under exactness at $z$, for any family, $F(s,a,z)^\top\int B\dd\nu=1/(1-\gamma)$ for every $(s,a)$.
+  Hence $\int B\dd\nu\ne0$ and $\mathrm{Cov}_\nu(B)\ne\nu(\cS)^{-1}G_B$.
+  The identities derived from exactness that involve a second-moment matrix of $B$ (FB-7, FBIL-2) involve $G_B$, never the covariance, and $B$ must not be constrained to have $\nu$-mean zero if exactness is the target.
+\item (\textsf{S+D}; FB21 Remark~7, p.~18, for greedy policies; the softmax family and the statement on exactness are ours) For invertible $C\in\R^{d\times d}$, let $B':=CB$ and $F'(s,a,z):=C^{-\top}F(s,a,C^{-1}z)$.
+  Then $\hat M'_z=\hat M_{C^{-1}z}$ and $F'(s,a,z)^\top z=F(s,a,C^{-1}z)^\top(C^{-1}z)$, so $\pi'^{\gr}_z=\pi^{\gr}_{C^{-1}z}$ and $\pi'_{z,\tau}=\pi_{C^{-1}z,\tau}$ with the same $\tau$.
+  Moreover $z'_r=Cz_r$, $F'(s,a,z'_r)^\top z'_r=F(s,a,z_r)^\top z_r$, and $G_{B'}=CG_BC^\top$.
+  The primed representation is exact on $C\mathcal Z$ if and only if the original one is exact on $\mathcal Z$.
+  If $G_B$ is invertible, $C:=G_B^{-1/2}$ gives $G_{B'}=I$; within this family of transformations, two representations with Gram matrix $I$ differ by an orthogonal $C$.
+  (Exact softmax representations with the same $B$ need not be related by any $C$ if softmax fixed points are not unique, \cref{prop:fb-softmax-exist}(c).)
+\item (\textsf{I}) Let $B$ be fixed. If $\nu$ is a probability and $x_1,\dots,x_N$ are i.i.d.\ $\sim\nu$ and independent of $B$, then $\hat G_B:=N^{-1}\sum_jB(x_j)B(x_j)^\top$ is unbiased and converges to $G_B$ almost surely.
+  For the trained $B_\omega$ evaluated on the buffer it was trained on, $\hat G_B$ is the exact Gram matrix of the empirical measure $\hat\nu$ of the buffer next states; no unbiasedness for the population $G_B$ is claimed, because the buffer is a single dependent sample and $B_\omega$ depends on it.
+  The implemented updates never invert $G_B$ (\cref{prop:fb-loss,prop:fb-orth}, and FBIL-1 to FBIL-5). $G_B^{-1}$ appears only in interpretations (FB-7, FBIL-1(d), FBIL-2(b),(c)), where invertibility is assumed.
+  A diagnostic that needs an inverse must use an explicitly stated ridge $(G_B+\lambda I)^{-1}$, $\lambda>0$, which only approximates $G_B^{-1}$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) $w^\top G_Bw=\int(w^\top B)^2\dd\nu\ge0$. This vanishes for some $w\ne0$ exactly when $w^\top B=0$ $\nu$-a.e., i.e.\ when the coordinates are linearly dependent in $L^2(\nu)$.
+In the finite case $G_B=\sum_{\nu(s)>0}\nu(s)B(s)B(s)^\top$ has rank at most $\#\{\nu>0\}$.
+
+(b) Expand $(B-m_B)(B-m_B)^\top$ and integrate.
+
+(c) $M^{\pi_z,+}(s,a,\cS)=1/(1-\gamma)$ by \cref{prop:occ-norm}(a), and $\hat M_z(s,a,\cS)=F(s,a,z)^\top\int B\dd\nu$; exactness equates the two.
+If $\int B\dd\nu=0$, the right-hand side would vanish. Then $m_B\ne0$, so $m_Bm_B^\top\ne0$.
+
+(d) $\hat M'_z(s,a,\dd x)=F(s,a,C^{-1}z)^\top C^{-1}CB(x)\nu(\dd x)=\hat M_{C^{-1}z}(s,a,\dd x)$, and $F'(s,a,z)^\top z=F(s,a,C^{-1}z)^\top C^{-1}z$.
+Both policy families are functions of these scores, so $\pi'_z=\pi_{C^{-1}z}$.
+Next, $z'_r=\int rCB\dd\nu=Cz_r$, hence $C^{-1}z'_r=z_r$; and $G_{B'}=\int CBB^\top C^\top\dd\nu$.
+Since $M^{\pi'_z,+}=M^{\pi_{C^{-1}z},+}$ and $\hat M'_z=\hat M_{C^{-1}z}$, the primed representation is exact at $z$ if and only if the original is exact at $C^{-1}z$.
+With the symmetric positive definite square root $G_B^{1/2}$, $C=G_B^{-1/2}$ gives $CG_BC^\top=I$.
+If $G_{B'}=I$ and $G_{\tilde CB'}=\tilde C\tilde C^\top=I$, then $\tilde C$ is orthogonal.
+
+(e) The entries of $BB^\top$ are bounded by $\beta_B^2$; linearity of expectation and the strong law of large numbers apply entrywise.
+\end{proof}
+
+\subsection{The pretraining loss in the next-state convention}\label{sec:fb-loss}
+
+\begin{assumption}[A-DATA, A-NET]\label{ass:fb-data}
+\leavevmode
+\begin{enumerate}[nosep,label=(\roman*)]
+\item Replay transitions $(s,a,s_1)$ have a law $\mathsf D$ of the form $\mathsf D(\dd s,\dd a,\dd s_1)=\mathsf D_{\SA}(\dd s,\dd a)\,P(\dd s_1\mid s,a)$.
+  This holds when $\mathsf D$ is the law of a transition drawn from the population replay process (the mixture over collection times and segments) and neither the storage nor the sampling of a transition depends on its next state $s_1$ beyond $(s,a)$.
+  Uniform sampling from a buffer of real environment steps, collected by a task-blind behaviour policy with any reset scheme, satisfies this; discarding transitions according to where they land would not.
+  Reset times are not terminal: the environment is continuing (\cref{sec:notation}), so no transition is masked as an episode end.
+\item $\nu$ is the law of $s_1$ under $\mathsf D$ (the replay next states): $\nu=\int\mathsf D_{\SA}(\dd s,\dd a)P(\cdot\mid s,a)$.
+\item Latents $z\sim\mathcal D_z$, a law on $\mathcal Z$, are independent of the transitions; target states $x\sim\nu$ are independent of everything else.
+\item The online parameters $(\xi,\omega)$ range over open sets. For every $(s,a,z,x)$ in the supports, $(\xi,\omega)\mapsto(F_\xi(s,a,z),B_\omega(x))$ is $C^1$, and the values and parameter gradients are bounded uniformly in $(s,a,z,x)$, locally uniformly in $(\xi,\omega)$.
+  The target parameters $(\xi^-,\omega^-)$ are fixed during a gradient step, and $F^-:=F_{\xi^-}$, $B^-:=B_{\omega^-}$ are bounded.
+\end{enumerate}
+\end{assumption}
+Multilayer perceptrons with $C^1$ activations (for example $\tanh$, ELU or SiLU) on a bounded state domain and a compact latent domain satisfy (iv).
+ReLU networks, used by FB21 (D.2, p.~35) and FI24 (D.3, p.~28), are only piecewise $C^1$: for them, parts (b)--(c) below and \cref{prop:fb-orth} are not proved \audit{U-14}; the implemented networks use LayerNorm, $\tanh$ and SiLU, which are $C^\infty$.
+The target policy and the target expected features are those of FB21 Algorithm~1, line~18:
+\begin{equation}\label{eq:fb-target}
+\pi^-_z(a\mid s):=\mathrm{softmax}_a\big(F^-(s,a,z)^\top z/\tau\big),\qquad\bar F^-(s,z):=\sum_a\pi^-_z(a\mid s)F^-(s,a,z).
+\end{equation}
+The per-sample, population and minibatch losses are
+\begin{align}
+\ell(\xi,\omega;s,a,s_1,z)&:=\tfrac12\int\big(F_\xi(s,a,z)^\top B_\omega(x)-\gamma\bar F^-(s_1,z)^\top B^-(x)\big)^2\nu(\dd x)\notag\\
+&\qquad-F_\xi(s,a,z)^\top B_\omega(s_1),\label{eq:fb-loss-sample}\\
+L(\xi,\omega)&:=\E_{z\sim\mathcal D_z}\E_{(s,a,s_1)\sim\mathsf D}\,\ell(\xi,\omega;s,a,s_1,z),\label{eq:fb-loss-pop}\\
+\hat L&:=\frac1{2bb'}\sum_{i=1}^b\sum_{j=1}^{b'}\big(F_\xi(s_i,a_i,z_i)^\top B_\omega(x_j)-\gamma\bar F^-(s_{i+1},z_i)^\top B^-(x_j)\big)^2\notag\\
+&\qquad-\frac1b\sum_{i=1}^bF_\xi(s_i,a_i,z_i)^\top B_\omega(s_{i+1}),\label{eq:fb-loss-batch}
+\end{align}
+where $(s_i,a_i,s_{i+1})\sim\mathsf D$, $z_i\sim\mathcal D_z$ and $x_j\sim\nu$ are i.i.d.\ and mutually independent.
+For fixed $z$, the \emph{target measure} is the Bellman operator of \cref{prop:fb-bellman}(a) applied to the target model with the target policy:
+\[
+(\mathcal T_z\hat M^-)(s,a,\dd x):=P(\dd x\mid s,a)+\gamma\int P(\dd s_1\mid s,a)\,\bar F^-(s_1,z)^\top B^-(x)\,\nu(\dd x).
+\]
+
+\begin{proposition}\claim{FB-8}{D}\label{prop:fb-loss}
+Assume \cref{ass:fb} for $(F_\xi,B_\omega)$ and \cref{ass:fb-data}.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (Bellman residual) Fix $(s,a,z)$ and write $\hat m(x):=F_\xi(s,a,z)^\top B_\omega(x)$ and $\bar n(x):=\gamma\int P(\dd s_1\mid s,a)\bar F^-(s_1,z)^\top B^-(x)$. Then
+  \[
+  \int P(\dd s_1\mid s,a)\,\ell(\xi,\omega;s,a,s_1,z)=\tfrac12\!\int\hat m^2\dd\nu-\int\hat m\dd P(\cdot\mid s,a)-\int\hat m\,\bar n\dd\nu+C_1,
+  \]
+  where $C_1$ does not depend on $(\xi,\omega)$.
+  If $P(\cdot\mid s,a)\ll\nu$ with $p_\nu:=\dd P(\cdot\mid s,a)/\dd\nu\in L^2(\nu)$, this equals $\tfrac12\|\hat M_z(s,a,\cdot)-(\mathcal T_z\hat M^-)(s,a,\cdot)\|^2_{L^2(\nu)^\star}-C_z(s,a)$, with $C_z(s,a)$ finite and independent of $(\xi,\omega)$.
+  Otherwise the residual norm is $+\infty$ (\cref{lem:fb-dual}), and $L$ is not a residual minus a finite constant: it is defined by \eqref{eq:fb-loss-sample}.
+  If moreover $P(N\mid s,a)>0$ for a $\nu$-null set $N$, then over model classes that can concentrate mass near $N$ the left-hand side is unbounded below (the term $-\int\hat m\dd P$ rewards $\hat m$ large on $N$ at no $L^2(\nu)$ cost).
+\item (unbiased minibatch; closed form) $\E\hat L=L$ and $\E\nabla_{\xi,\omega}\hat L=\nabla_{\xi,\omega}L$.
+  The double sum in $\hat L$ equals
+  $\frac1{2b}\sum_i\big[F_i^\top\hat GF_i-2\gamma F_i^\top\hat G_\times\bar F^-_i+\gamma^2\bar F_i^{-\top}\hat G^-\bar F^-_i\big]$,
+  where $F_i:=F_\xi(s_i,a_i,z_i)$, $\bar F^-_i:=\bar F^-(s_{i+1},z_i)$, $\hat G:=\frac1{b'}\sum_jB_\omega(x_j)B_\omega(x_j)^\top$, $\hat G_\times:=\frac1{b'}\sum_jB_\omega(x_j)B^-(x_j)^\top$ and $\hat G^-:=\frac1{b'}\sum_jB^-(x_j)B^-(x_j)^\top$.
+  If the target states are not independent of the transitions (for instance $x_i:=s_{i+1}$), the terms with $i=j$ are biased.
+  These identities use only the independence of the draws, not \cref{ass:fb-data}(i): they hold for whatever law $\mathsf D$ the transitions are drawn from, with $\nu$ the law of its next states. With minibatches drawn from a stored buffer, $\mathsf D$ and $\nu$ are the empirical laws $\hat{\mathsf D}$ and $\hat\nu$, so (b) gives unbiasedness for the empirical (buffer) loss and its gradient, not for the population loss (\cref{rem:fb-approx}(2)).
+\item (exactness implies stationarity) Suppose $(\xi^-,\omega^-)=(\xi,\omega)$ and the softmax representation $(F_\xi,B_\omega,(\pi_{z,\tau}))$ is exact on $\cS\times\cA$ for every $z$ in the support of $\mathcal D_z$.
+  Then $\nabla_{\xi,\omega}L=0$, the gradient being taken with the target held fixed.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) Expand the square in \eqref{eq:fb-loss-sample} and integrate over $s_1\sim P(\cdot\mid s,a)$; all terms are bounded, so Fubini's theorem exchanges $\int P(\dd s_1\mid s,a)$ and $\int\nu(\dd x)$.
+This gives the displayed form with $C_1:=\frac{\gamma^2}2\int P(\dd s_1\mid s,a)\int(\bar F^-(s_1,z)^\top B^-(x))^2\nu(\dd x)$.
+If $P(\cdot\mid s,a)=p_\nu\nu$ with $p_\nu\in L^2(\nu)$, then $\int\hat m\dd P(\cdot\mid s,a)=\int\hat mp_\nu\dd\nu$, and $(\mathcal T_z\hat M^-)(s,a,\cdot)$ has density $p_\nu+\bar n\in L^2(\nu)$. Expanding,
+\[
+\tfrac12\|\hat m-p_\nu-\bar n\|^2_{L^2(\nu)}=\tfrac12\int\hat m^2\dd\nu-\int\hat m(p_\nu+\bar n)\dd\nu+\tfrac12\|p_\nu+\bar n\|^2_{L^2(\nu)},
+\]
+so the claim holds with $C_z(s,a):=\frac12\|p_\nu+\bar n\|^2_{L^2(\nu)}-C_1$, which depends only on the kernel and the target parameters.
+By \cref{lem:fb-dual}, the first expression is $\frac12\|\hat M_z(s,a,\cdot)-(\mathcal T_z\hat M^-)(s,a,\cdot)\|^2_{L^2(\nu)^\star}$.
+If $P(\cdot\mid s,a)$ has no square-integrable $\nu$-density, the difference of the two measures does not have one either, since $\hat M_z$ and the $\gamma$-part have bounded densities; the norm is then $+\infty$ by \cref{lem:fb-dual}.
+For the last claim, a model with $\hat m\ge0$, $\hat m=K$ on an open neighbourhood $O$ of $N$ with $\nu(O)\le K^{-2}$, and $\hat m=0$ far from $N$ has $\int\hat m^2\dd\nu\le1$ and $-\int\hat m\dd P\le-KP(N\mid s,a)$; letting $K\to\infty$ makes the expression tend to $-\infty$ when the class contains such $\hat m$.
+
+(b) In the double sum, every pair $(i,j)$ consists of independent samples from $\mathsf D\otimes\mathcal D_z$ and from $\nu$, so its expectation is $\E_{z,\mathsf D}\frac12\int(\cdots)^2\dd\nu$; the single sum has expectation $\E_{z,\mathsf D}F_\xi(s,a,z)^\top B_\omega(s_1)$. Hence $\E\hat L=L$.
+Under \cref{ass:fb-data}(iv) the integrands have parameter gradients bounded uniformly in the data, locally uniformly in the parameters. The mean value theorem and dominated convergence then allow differentiation under the expectation, as in \cref{lem:fpg-lr}.
+The closed form follows from $(F^\top B_j)^2=F^\top B_jB_j^\top F$ and $(F^\top B_j)(\bar F^{-\top}B^-_j)=F^\top B_jB^{-\top}_j\bar F^-$.
+If $x_i=s_{i+1}$, the $i=j$ term pairs a target state with its own transition, so the independence used above fails.
+
+(c) Fix $(s,a,z)$ and a direction $v$ in parameter space, and write $\partial_v\hat m$ for the directional derivative of $\hat m$, with the target held fixed.
+Differentiating under the integrals (justified as in (b)),
+\begin{align*}
+\partial_v\int P(\dd s_1\mid s,a)\,\ell&=\int\partial_v\hat m\,\dd\Gamma,\quad\text{where}\\
+\Gamma(\dd x)&:=\hat M_z(s,a,\dd x)-\gamma\int P(\dd s_1\mid s,a)\,\bar F^-(s_1,z)^\top B^-(x)\,\nu(\dd x)-P(\dd x\mid s,a).
+\end{align*}
+With $(\xi^-,\omega^-)=(\xi,\omega)$ we have $\pi^-_z=\pi_{z,\tau}$, and $\bar F^-(s_1,z)^\top B(x)\nu(\dd x)=\sum_{a_1}\pi_{z,\tau}(a_1\mid s_1)\hat M_z(s_1,a_1,\dd x)$.
+Exactness on all of $\cS\times\cA$ replaces every $\hat M_z$ by $M^{\pi_{z,\tau},+}$, so $\Gamma=0$ by \cref{prop:fb-bellman}(a).
+Integrating over $\mathsf D_{\SA}\otimes\mathcal D_z$ and differentiating under the expectation gives $\partial_vL=0$ for every $v$.
+\end{proof}
+
+\begin{remark}[what the loss does not give; the diagonal term]\label{rem:fb-loss}
+\leavevmode
+\begin{itemize}[nosep]
+\item \emph{No converse, no convergence.} (c) is one-directional: stationary points of the semi-gradient field need not be exact. At $d=16$ in the finite maze exactness is impossible under the condition of \cref{rem:fb-rank16}.
+  The semi-gradient need not be the gradient of any fixed objective, because the target moves (TD learning; FB21 p.~2: ``learning seeks a fixed point but the loss itself is not observable'').
+  No convergence of Adam with Polyak targets is claimed, and the loss value, which omits $C_z$, cannot certify the error of FB-6.
+\item \emph{The implemented $\omega$-update.} (c) concerns $L$ only. The $\omega$-update descends $L+\lambda_{\mathrm{orth}}L_{\mathrm{reg}}$ (\cref{prop:fb-orth}); an exact representation is stationary for it only if moreover $\nabla_\omega\mathcal R=0$, for instance if $G_B=I$.
+\item \emph{Only the replay support is constrained.} $L$ weights $(s,a,z)$ by $\mathsf D_{\SA}\otimes\mathcal D_z$. Pairs or latents outside the support are extrapolation. Exactness at all next states is needed in (c), because the target is evaluated at $s_1$.
+\item \emph{Diagonal term and time shift.} The diagonal term of FB21 Eq.~(164) (p.~36) is
+  \[-\frac1b\sum_iF(s_i,a_i,z_i)^\top B(s_i,a_i),\]
+  the integral of $\hat m$ against the $t=0$ atom $\delta_{(s,a)}$ of $M^\pi_{21}$ (\cref{prop:fb-bellman}(c)--(d)).
+  In the next-state convention the $t=0$ term is $P(\cdot\mid s,a)$, whose sample is the observed $s_{i+1}$. Hence our diagonal term is
+  \[-\frac1b\sum_iF(s_i,a_i,z_i)^\top B(s_{i+1}).\]
+  FB21 \S B.6 (p.~24) describes a ``$t=1$'' variant whose measure is $\sum_{t\ge1}\gamma^t\Prob(s_t\in\cdot)=\gamma M^{\pi,+}$ for state-only targets, which is why its diagonal term carries a factor $\gamma$; ours does not.
+  We read the pair $(s',a')$ in that bullet as the next pair $(s_1,a_1)$ of the transition, not as the independent target sample of FB21 Eq.~(5).
+\item \emph{FI24.} FI24 Theorem~5 (p.~19) is a population analogue in a different setting: it concerns $z$-gradients of a Bellman-gap loss with expert transitions, action-averaged $F(s,z)$ and the population $\mathrm{Cov}\,B$. Its quadratic (Eq.~39) equals twice ours after replacing $\mathrm{Cov}\,B$ by $\hat G$ and setting $\hat G_\times=\hat G^-=\hat G$.
+\end{itemize}
+\end{remark}
+
+\subsection{The orthonormality penalty}\label{sec:fb-orth}
+
+\begin{proposition}[FB21 Eqs.~165--166, pp.~36--37]\claim{FB-9}{S}\label{prop:fb-orth}
+Let $\nu$ be a probability and let $B_\omega$ satisfy \cref{ass:fb-data}(iv). Let $\mathcal R(\omega):=\frac14\|G_{B_\omega}-I\|_F^2$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item With $\partial_\omega B_\omega(x)\in\R^{d\times p}$ the parameter Jacobian,
+  \begin{equation}\label{eq:fb-orth-grad}
+  \nabla_\omega\mathcal R=\E_{(x,x')\sim\nu\otimes\nu}\Big[\partial_\omega B_\omega(x)^\top\big(B_\omega(x')B_\omega(x')^\top B_\omega(x)-B_\omega(x)\big)\Big].
+  \end{equation}
+\item Let $x_1,\dots,x_b$ and $x'_1,\dots,x'_{b'}$ be independent i.i.d.\ samples of $\nu$, and let $\lfloor\cdot\rfloor$ denote a stop-gradient (a value treated as a constant when differentiating). Then
+  \begin{equation}\label{eq:fb-orth-loss}
+  L_{\mathrm{reg}}(\omega):=\frac1{bb'}\sum_{i,j}B_\omega(x_i)^\top\lfloor B_\omega(x'_j)\rfloor\,\lfloor B_\omega(x_i)^\top B_\omega(x'_j)\rfloor-\frac1b\sum_iB_\omega(x_i)^\top\lfloor B_\omega(x_i)\rfloor
+  \end{equation}
+  satisfies $\E\nabla_\omega L_{\mathrm{reg}}=\nabla_\omega\mathcal R$. With batches drawn from a stored buffer, $\nu$ is the empirical law $\hat\nu$, and $\mathcal R$ is the penalty for the Gram matrix of $\hat\nu$.
+\item $\mathcal R=0$ if and only if $G_B=I$. The penalty is soft: the $\omega$-update descends $L+\lambda_{\mathrm{orth}}L_{\mathrm{reg}}$, $G_B\ne I$ in general, and no claim is made that its fixed points satisfy $G_B=I$ or minimize $L$.
+  Only on $\{\mathcal R=0\}$ does the freedom of \cref{prop:fb-gram}(d) reduce to orthogonal transformations.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) $\|G-I\|_F^2=\mathrm{tr}(G^2)-2\,\mathrm{tr}\,G+d$.
+Since $G_{ij}=\E B_i(x)B_j(x)$, $\mathrm{tr}(G^2)=\sum_{ij}G_{ij}^2=\E_{x,x'}[(B(x)^\top B(x'))^2]$, and $\mathrm{tr}\,G=\E\|B(x)\|^2$.
+Differentiating under the expectation (dominated convergence, as in \cref{prop:fb-loss}(b)),
+$\nabla\mathrm{tr}(G^2)=2\E[(B(x)^\top B(x'))(\partial B(x)^\top B(x')+\partial B(x')^\top B(x))]=4\E[(B(x)^\top B(x'))\,\partial B(x)^\top B(x')]$, where the second step exchanges the i.i.d.\ $x$ and $x'$; and $\nabla\mathrm{tr}\,G=2\E[\partial B(x)^\top B(x)]$.
+Divide by $4$ and use $(B(x)^\top B(x'))B(x')=B(x')B(x')^\top B(x)$.
+
+(b) $\nabla L_{\mathrm{reg}}=\frac1{bb'}\sum_{i,j}\partial B(x_i)^\top B(x'_j)(B(x_i)^\top B(x'_j))-\frac1b\sum_i\partial B(x_i)^\top B(x_i)$. Every pair $(x_i,x'_j)$ is independent, so the expectation is (a).
+
+(c) $\|G-I\|_F=0$ if and only if $G=I$. If $G_B=I$ and $G_{CB}=CC^\top=I$, then $C$ is orthogonal.
+\end{proof}
+In FB21 Algorithm~1 (line~21), the first batch is the transition batch $(s_i,a_i)$ and the second the target batch, both distributed as $\rho$ there.
+In our convention both batches must be $\nu$-distributed: we take $x_i:=s_{i+1}$, the next states of the transition batch ($\nu$-distributed by \cref{ass:fb-data}(ii)), and $x'_j$ the independent target batch.
+Using the current states $s_i$ instead would whiten $B$ under a different law and break the single-reference requirement \audit{A3}.
+
+\subsection{Domination and singular measures}\label{sec:fb-dom}
+
+\begin{proposition}\claim{FB-11}{D}\label{prop:fb-dom}
+Under \cref{ass:mdp}, let $\nu$ be a finite measure on $\cS$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item $\hat M_z(s,a,\cdot)\ll\nu$ for all $(s,a,z)$ and every $(F,B)$ satisfying \cref{ass:fb}.
+  Hence if $M^{\pi_z,+}(s,a,\cdot)$ is not absolutely continuous with respect to $\nu$ for some $(s,a)$, no exact representation at $z$ exists.
+  This happens for every $\pi$ and $z$ as soon as $P(X\mid s,a)>0$ for some $X$ with $\nu(X)=0$, because $M^{\pi,+}(s,a,\cdot)\ge P(\cdot\mid s,a)$.
+\item (sufficient condition) Let $\lambda$ be a $\sigma$-finite measure on $\cS$.
+  Suppose $P(\dd x\mid s,a)=p(x\mid s,a)\lambda(\dd x)$ with $p$ jointly measurable and $p\le p_{\max}$, and $\nu(\dd x)=n(x)\lambda(\dd x)$ with $n\ge n_{\min}>0$ on $\cS$ (so $\lambda(\cS)\le\nu(\cS)/n_{\min}<\infty$).
+  Then for every stationary $\pi$ and every $(s,a)$, $M^{\pi,+}(s,a,\cdot)\ll\nu$, with density $m^\pi(s,a,\cdot)\le p_{\max}/(n_{\min}(1-\gamma))$; in particular $m^\pi(s,a,\cdot)\in L^2(\nu)$.
+\item (singular mass) Let $M^{\pi_z,+}(s,a,\cdot)=M_{\mathrm{ac}}+M_{\mathrm{sing}}$ be the Lebesgue decomposition with respect to $\nu$.
+  For every $(F,B)$ satisfying \cref{ass:fb}, $\|M^{\pi_z,+}(s,a,\cdot)-\hat M_z(s,a,\cdot)\|_{\TV}\ge M_{\mathrm{sing}}(\cS)$, and the $L^2(\nu)^\star$ norm of the difference is $+\infty$ if $M_{\mathrm{sing}}\ne0$.
+\item (finite case) If $\cS$ is finite and $\nu(s)>0$ for every $s$, every measure on $\cS$ is absolutely continuous with respect to $\nu$, densities are ratios $M(s,a,\{x\})/\nu(x)$, and all $L^2(\nu)$ quantities are finite sums.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) If $\nu(X)=0$, then $\hat M_z(s,a,X)=\int_XF^\top B\dd\nu=0$, while exactness would give $M^{\pi_z,+}(s,a,X)=\hat M_z(s,a,X)$.
+The $t=0$ term of $M^{\pi,+}(s,a,\cdot)$ is $P(\cdot\mid s,a)$.
+
+(b) Fix $(s,a)$ and let $\mu_t$ be the law of $(s_t,a_t)$ under $\Prob^\pi_{(s,a)}$.
+By the trajectory construction, $\Prob^\pi_{(s,a)}(s_{t+1}\in X)=\int\mu_t(\dd\bar s,\dd\bar a)P(X\mid\bar s,\bar a)=\int_X\big[\int\mu_t(\dd\bar s,\dd\bar a)\,p(x\mid\bar s,\bar a)\big]\lambda(\dd x)$ by Tonelli's theorem, and the inner integral is at most $p_{\max}$.
+By monotone convergence, $M^{\pi,+}(s,a,\cdot)=\sum_t\gamma^t\Prob^\pi_{(s,a)}(s_{t+1}\in\cdot)$ has a $\lambda$-density $g\le p_{\max}/(1-\gamma)$.
+Since $n\ge n_{\min}$, $\lambda(X)\le\nu(X)/n_{\min}$, so $\lambda\ll\nu$ on $\cS$ with $\dd\lambda/\dd\nu=1/n$. Hence $M^{\pi,+}(s,a,\cdot)\ll\nu$ with density $g/n\le p_{\max}/(n_{\min}(1-\gamma))$.
+A bounded function is in $L^2(\nu)$ for finite $\nu$.
+
+(c) Let $N$ be a $\nu$-null set with $M_{\mathrm{sing}}(\cS\setminus N)=0$. Then $M_{\mathrm{ac}}(N)=\hat M_z(s,a,N)=0$, so the difference $\mu$ satisfies $\mu(N)=M_{\mathrm{sing}}(\cS)$.
+Hence $|\mu|(\cS)\ge|\mu(N)|=M_{\mathrm{sing}}(\cS)$. If $M_{\mathrm{sing}}\ne0$, then $\mu$ charges the $\nu$-null set $N$, so it is not absolutely continuous and \cref{lem:fb-dual} gives $+\infty$.
+
+(d) A $\nu$-null set is empty when every point has positive mass.
+\end{proof}
+
+\begin{remark}[the continuous maze and the 2021 atom]\label{rem:fb-dom}
+These consequences depend on the design of the kernel; the implemented kernel is analysed in \cref{sec:env-continuous}.
+\begin{itemize}[nosep]
+\item The Gaussian part of a move has a Lebesgue density bounded by $1/(2\pi\sigma_{\mathrm{noise}}^2)$, but on the bounded free space a kernel needs a rule for moves that leave it or cross a wall, and that rule decides (b).
+  A rule that redraws only the noise while the deterministic part of the move is admissible, and replaces a blocked deterministic move by ``stay'' before adding noise, keeps a bounded density, because the acceptance probability of the noise near a straight wall or corner is bounded below (about $1/4$).
+  Redrawing a full noisy move into an adjacent wall would have acceptance probability of order $\Phi(-(1/7)/0.01)$, which gives no useful bound.
+\item ``Undoing'' a move that would cross a wall (FB21 D.1, p.~35) gives $P(\cdot\mid s,a)$ an atom at $s$. Domination fails from that atom only if $\nu(\{s\})=0$.
+  This holds when the replay law of the states from which such moves start has no atom at $s$ (for instance with diffuse resets and Gaussian noise), but not at a state that carries an atom of the replay law, such as a fixed reset state from which a move is undone.
+  Where $\nu(\{s\})=0$, (a) and (c) apply at $(s,a)$: no exact representation exists, the $L^2(\nu)^\star$ error of the model kernel is infinite, and its TV error is at least the singular mass, hence at least the probability of the undone move.
+  These are errors of measures; weak (Kantorovich--Rubinstein) approximation, (N3) of FB-6, can still be small and useful (FB21 \S B.6).
+\item Boundary clipping (FB21 D.1: ``the agent's position is clipped'') puts positive probability on the boundary lines, a Lebesgue-null set. With $\nu$ the law of replay next states, clipping during replay collection gives these lines positive $\nu$-mass as well, so clipping alone need not trigger (a) and (c); it does break the bounded-density condition of (b), whose conclusion then has to be checked directly.
+\item In the 2021 convention, $M^\pi_{21}(s,a,\cdot\times\cA)\ge\delta_s$ (\cref{prop:fb-bellman}(d)), which is singular to every diffuse reference measure (FB21 \S B.6, p.~24). The next-state convention removes this atom but not the atoms created by the kernel. FB21 \S B.6 gives sufficient conditions for an ordinary density in the $t=1$ variant: non-singular kernels, a reference measure with positive density and non-singular policies.
+\item Empirical measures, such as demonstration states or a finite replay buffer, are atomic and hence singular to every diffuse $\nu$ (FBIL-1).
+\end{itemize}
+\end{remark}
+
+\subsection{The implemented model: approximations and design decisions}\label{sec:fb-impl}
+
+\begin{remark}[approximations in FB pretraining]\label{rem:fb-approx}
+Each item names what changes and which result stops applying. \textsf{[I]} marks an implementation approximation.
+\begin{enumerate}[nosep,label=(\arabic*)]
+\item \textsf{[I] Finite rank and neural parametrization.} $d=16$, two hidden layers of width 64, float32. Exactness is impossible in the finite maze under the condition of \cref{rem:fb-rank16} and is not claimed in the continuous maze.
+  The results that assume exactness (listed in \cref{rem:fb-rank16}) do not apply to the trained model; FB-6 applies with an unknown error, in the scaled form (e) when the latent is projected onto a sphere.
+\item \textsf{[I] Finite replay buffer.} $\mathsf D$ and $\nu$ are replaced by the empirical laws of the buffer. The loss then defines densities with respect to the empirical $\hat\nu$, so $\hat G_B$, $z_r$ and the orthonormality penalty must use the same buffer next states \audit{A3}. In the continuous maze $\hat\nu$ is atomic, and a smooth network relates to the population $\nu$ only through generalization; no statement is made about it.
+  The unbiasedness statements of \cref{prop:fb-loss}(b) and \cref{prop:fb-orth}(b) then refer to the empirical buffer loss and the Gram matrix of $\hat\nu$, and $\hat G_B$ is exact for $\hat\nu$ (\cref{prop:fb-gram}(e)). None of them is unbiased for its population counterpart in general: the buffer is a single dependent sample, and the networks are trained on it.
+\item \textsf{[I] Minibatches, Adam and moving targets.} The minibatch gradient $\nabla\hat L$ is unbiased for the gradient of the empirical buffer loss (\cref{prop:fb-loss}(b)), not for the population $\nabla L$; an Adam step is not an unbiased step of anything, the targets move, and no convergence is claimed.
+  \Cref{prop:fb-loss}(c) shows only that an exact representation with $\xi^-=\xi$ is stationary for $L$ (no converse), and \cref{rem:fb-loss} adds the condition $\nabla_\omega\mathcal R=0$ for the implemented $\omega$-update.
+\item \textsf{[I] Latent sampling.} The loss constrains the model only on the support of $\mathcal D_z$. A latent outside it, such as an unprojected ER$_{\mathrm{FB}}$ vector, is extrapolation.
+\item \textsf{[I] Soft orthonormality.} $G_B\ne I$ in general; DM$_{\mathrm{FB}}$ uses the measured $\hat G_B$, not $I$.
+\item \textsf{[I] Activation.} With ReLU networks the gradient statements of \cref{prop:fb-loss}(b)--(c) and \cref{prop:fb-orth} are not proved \audit{U-14}.
+\item \textsf{No finite-horizon truncation} enters pretraining: transitions bootstrap through segment ends (\cref{ass:fb-data}(i)). Truncation enters only in DM$_{\mathrm{FB}}$ (FBIL-3) and in H-step evaluation (\cref{cor:fb-hstep}).
+\item \textsf{Temperature.} $\tau>0$: the policy family is not greedy, and FB-5 replaces FB-2(b).
+\end{enumerate}
+\end{remark}
+
+\begin{remark}[design decisions: network copy, latent domain, temperature, targets]\label{rem:fb-design}
+\leavevmode
+\begin{enumerate}[nosep,label=D\arabic*.]
+\item \audit{U-3} After pretraining, the \emph{online} copy $(\xi,\omega)$ defines $F$, $B$, $\pi_{z,\tau}$, $\hat G_B$, $z_{ER}$, the DM$_{\mathrm{FB}}$ objective and evaluation: one copy for all of them \audit{A2--A3}.
+  Target copies appear only inside the pretraining target, with the target policy $\pi^-_z$ computed from $F^-$ (FB21 Algorithm~1, lines~18--19). FB21 also acts with the online network (line~8).
+  \Cref{prop:fb-loss}(c) assumes $\xi^-=\xi$; it does not show that the two copies coincide after training.
+\item \audit{U-2} Under exactness at $\zeta z_r$, \cref{prop:fb-softmax}(d)--(e) show that only $\tau/\zeta$ matters, and that on a sphere $\mathcal Z_R$ the effective temperature for a reward $r$ is $\tau\|z_r\|_2/R$, which equals $\tau\|\Pi_Br\|_{L^2(\nu)}/R$ when $G_B=I$. For the trained network this coupling is only empirical.
+  Recommendation: $\mathcal Z=\mathcal Z_R$ with $R=\sqrt d$ (the normalization of FI24 D.3, p.~28), $\mathcal D_z$ uniform on $\mathcal Z_R$, and ER/DM outputs projected onto $\mathcal Z_R$ (FBIL-5).
+  The pilot fixed $\tau=1$ together with $R=\sqrt d=4$ (\cref{sec:protocol}); $\tau$ is reported with the measured $\|z_{ER}\|_2$.
+  FB21 instead samples $z=\sqrt d\,u\,x/\|x\|$ with Cauchy $u$ and feeds $z/\sqrt{1+\|z\|^2/d}$ to $F$ (D.3, p.~36). Whatever is chosen must be identical in pretraining, ER$_{\mathrm{FB}}$, DM$_{\mathrm{FB}}$ and evaluation.
+\item (targets) Polyak averaging $\xi^-\leftarrow\alpha_{\mathrm{tgt}}\xi^-+(1-\alpha_{\mathrm{tgt}})\xi$, and likewise for $\omega^-$, after a stated number of updates. FB21 uses $\alpha=0.95$ after every 40 updates (D.3 and Table~1, pp.~36--37); FI24 uses momentum $0.99$ (D.4, p.~29). The implementation uses momentum $0.99$ after every update (\cref{sec:protocol}).
+\end{enumerate}
+\end{remark}

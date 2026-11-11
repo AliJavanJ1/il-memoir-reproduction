@@ -1,0 +1,716 @@
+{
+ "compact_ablations|finite|four_rooms|goal_5_5|DM_FB/no_orth|0": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|DM_FB/no_orth|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|DM_FB/no_orth|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|DM_FB|0": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|DM_FB|1": {
+  "budget": 10000,
+  "first": 5000,
+  "met_last": false,
+  "n_met": 1,
+  "n_points": 4
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|DM_FB|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|ER_FB/no_orth|0": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|ER_FB/no_orth|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|ER_FB/no_orth|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|ER_FB|0": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|ER_FB|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|ER_FB|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|f-PG[js]|0": {
+  "budget": 50000,
+  "first": 30000,
+  "met_last": true,
+  "n_met": 3,
+  "n_points": 6
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|f-PG[js]|1": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|f-PG[js]|2": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|f-PG[kl_dq]|0": {
+  "budget": 50000,
+  "first": 30000,
+  "met_last": true,
+  "n_met": 3,
+  "n_points": 6
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|f-PG[kl_dq]|1": {
+  "budget": 50000,
+  "first": 30000,
+  "met_last": true,
+  "n_met": 3,
+  "n_points": 6
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|f-PG[kl_dq]|2": {
+  "budget": 50000,
+  "first": 30000,
+  "met_last": true,
+  "n_met": 3,
+  "n_points": 6
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|f-PG[kl_qd]|0": {
+  "budget": 50000,
+  "first": 40000,
+  "met_last": true,
+  "n_met": 2,
+  "n_points": 6
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|f-PG[kl_qd]|1": {
+  "budget": 50000,
+  "first": 50000,
+  "met_last": true,
+  "n_met": 1,
+  "n_points": 6
+ },
+ "compact_ablations|finite|four_rooms|goal_5_5|f-PG[kl_qd]|2": {
+  "budget": 50000,
+  "first": 40000,
+  "met_last": true,
+  "n_met": 2,
+  "n_points": 6
+ },
+ "core|continuous|four_rooms|goal_1_5|DM_FB|0": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_1_5|DM_FB|1": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_1_5|DM_FB|2": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_1_5|ER_FB|0": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_1_5|ER_FB|1": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_1_5|ER_FB|2": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_1_5|f-PG[js]|0": {
+  "budget": 100000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 11
+ },
+ "core|continuous|four_rooms|goal_1_5|f-PG[js]|1": {
+  "budget": 100000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 11
+ },
+ "core|continuous|four_rooms|goal_1_5|f-PG[js]|2": {
+  "budget": 100000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 11
+ },
+ "core|continuous|four_rooms|goal_5_1|DM_FB|0": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_5_1|DM_FB|1": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_5_1|DM_FB|2": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_5_1|ER_FB|0": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_5_1|ER_FB|1": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_5_1|ER_FB|2": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_5_1|f-PG[js]|0": {
+  "budget": 100000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 11
+ },
+ "core|continuous|four_rooms|goal_5_1|f-PG[js]|1": {
+  "budget": 100000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 11
+ },
+ "core|continuous|four_rooms|goal_5_1|f-PG[js]|2": {
+  "budget": 100000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 11
+ },
+ "core|continuous|four_rooms|goal_5_5|DM_FB|0": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_5_5|DM_FB|1": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_5_5|DM_FB|2": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_5_5|ER_FB|0": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_5_5|ER_FB|1": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_5_5|ER_FB|2": {
+  "budget": 20000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|continuous|four_rooms|goal_5_5|f-PG[js]|0": {
+  "budget": 100000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 11
+ },
+ "core|continuous|four_rooms|goal_5_5|f-PG[js]|1": {
+  "budget": 100000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 11
+ },
+ "core|continuous|four_rooms|goal_5_5|f-PG[js]|2": {
+  "budget": 100000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 11
+ },
+ "core|finite|four_rooms|goal_1_5|DM_FB|0": {
+  "budget": 10000,
+  "first": 7500,
+  "met_last": false,
+  "n_met": 1,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_1_5|DM_FB|1": {
+  "budget": 10000,
+  "first": 5000,
+  "met_last": false,
+  "n_met": 1,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_1_5|DM_FB|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_1_5|ER_FB|0": {
+  "budget": 10000,
+  "first": 10000,
+  "met_last": true,
+  "n_met": 1,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_1_5|ER_FB|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_1_5|ER_FB|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_1_5|f-PG[js]|0": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|four_rooms|goal_1_5|f-PG[js]|1": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|four_rooms|goal_1_5|f-PG[js]|2": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|four_rooms|goal_5_1|DM_FB|0": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_5_1|DM_FB|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_5_1|DM_FB|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_5_1|ER_FB|0": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_5_1|ER_FB|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_5_1|ER_FB|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_5_1|f-PG[js]|0": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|four_rooms|goal_5_1|f-PG[js]|1": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|four_rooms|goal_5_1|f-PG[js]|2": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|four_rooms|goal_5_5|DM_FB|0": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_5_5|DM_FB|1": {
+  "budget": 10000,
+  "first": 5000,
+  "met_last": false,
+  "n_met": 1,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_5_5|DM_FB|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_5_5|ER_FB|0": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_5_5|ER_FB|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_5_5|ER_FB|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|four_rooms|goal_5_5|f-PG[js]|0": {
+  "budget": 50000,
+  "first": 30000,
+  "met_last": true,
+  "n_met": 3,
+  "n_points": 6
+ },
+ "core|finite|four_rooms|goal_5_5|f-PG[js]|1": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|four_rooms|goal_5_5|f-PG[js]|2": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|open|goal_1_5|DM_FB|0": {
+  "budget": 10000,
+  "first": 2500,
+  "met_last": false,
+  "n_met": 1,
+  "n_points": 4
+ },
+ "core|finite|open|goal_1_5|DM_FB|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_1_5|DM_FB|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_1_5|ER_FB|0": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_1_5|ER_FB|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_1_5|ER_FB|2": {
+  "budget": 10000,
+  "first": 10000,
+  "met_last": true,
+  "n_met": 1,
+  "n_points": 4
+ },
+ "core|finite|open|goal_1_5|f-PG[js]|0": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|open|goal_1_5|f-PG[js]|1": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|open|goal_1_5|f-PG[js]|2": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|open|goal_5_1|DM_FB|0": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_5_1|DM_FB|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_5_1|DM_FB|2": {
+  "budget": 10000,
+  "first": 2500,
+  "met_last": false,
+  "n_met": 1,
+  "n_points": 4
+ },
+ "core|finite|open|goal_5_1|ER_FB|0": {
+  "budget": 10000,
+  "first": 2500,
+  "met_last": false,
+  "n_met": 1,
+  "n_points": 4
+ },
+ "core|finite|open|goal_5_1|ER_FB|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_5_1|ER_FB|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_5_1|f-PG[js]|0": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|open|goal_5_1|f-PG[js]|1": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|open|goal_5_1|f-PG[js]|2": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|open|goal_5_5|DM_FB|0": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_5_5|DM_FB|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_5_5|DM_FB|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_5_5|ER_FB|0": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_5_5|ER_FB|1": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_5_5|ER_FB|2": {
+  "budget": 10000,
+  "first": null,
+  "met_last": false,
+  "n_met": 0,
+  "n_points": 4
+ },
+ "core|finite|open|goal_5_5|f-PG[js]|0": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|open|goal_5_5|f-PG[js]|1": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ },
+ "core|finite|open|goal_5_5|f-PG[js]|2": {
+  "budget": 50000,
+  "first": 20000,
+  "met_last": true,
+  "n_met": 4,
+  "n_points": 6
+ }
+}

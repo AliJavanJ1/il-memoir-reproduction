@@ -1,0 +1,96 @@
+% Preamble of report/report.tex.  The mathematical macros are those of theory/preamble.tex,
+% so that the proof appendices (report/appendix/A-G) compile unchanged.
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}% required: scalable Latin Modern Type 1 fonts (microtype's font expansion needs scalable fonts; README)
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{placeins}
+\usepackage[most]{tcolorbox}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage[capitalise,nameinlink]{cleveref}
+
+\graphicspath{{figures/}}
+\setlength{\emergencystretch}{2em}
+\numberwithin{equation}{section}
+\captionsetup{font=small,labelfont=bf}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% Claim identifiers (see the introduction of the appendices) and their status labels.
+%   S = source result reproved under its own assumptions; D = our derived adaptation;
+%   I = identity or definition-level fact;   C = cited for comparison only.
+\newcommand{\claim}[2]{\textup{\textsf{[#1\,|\,#2]}}}
+% Reference to an item of the source audit (appendix "Source discrepancies and design decisions").
+\newcommand{\audit}[1]{\textup{\textsf{[\hyperref[app:audit]{SA\,#1}]}}}
+% verified number: \vn{<claim id>}{<literal>} prints the literal; report/verify/claims.py registers each
+% claim id with the same literal and the value recomputed from the saved files, and verify_results.py
+% checks every occurrence (see appendix J)
+\newcommand{\vn}[2]{#2}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\law}{\mathrm{Law}}
+\newcommand{\KL}{\mathrm{KL}}
+\newcommand{\JS}{\mathrm{JS}}
+\newcommand{\TV}{\mathrm{TV}}
+\newcommand{\Ent}{\mathcal{H}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\cS}{\mathcal{S}}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cT}{\mathcal{T}}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\pre}{\mathrm{pre}}
+\newcommand{\SA}{\mathrm{SA}}
+\newcommand{\tail}{\mathrm{tail}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\supp}{\mathrm{supp}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+% Symbols that the appendices define with \providecommand, also used in the main text.
+\newcommand{\Leb}{\lambda}
+\newcommand{\cW}{\mathcal W}
+\newcommand{\cB}{\mathcal B}
+\newcommand{\Bb}{\mathcal B_b}
+\newcommand{\gr}{\mathrm{gr}}
+
+% Method names.
+\newcommand{\fPG}{\mbox{$f$-PG}}
+\newcommand{\fIRL}{\mbox{$f$-IRL}}
+\newcommand{\DMFB}{DM$_{\mathrm{FB}}$}
+\newcommand{\ERFB}{ER$_{\mathrm{FB}}$}
+
+% Algorithm boxes (no algorithm package is assumed).
+\newtcolorbox{algobox}[1]{breakable,enhanced,colback=white,colframe=black!55,boxrule=0.5pt,arc=1pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries\small,coltitle=black,colbacktitle=black!7,
+  title={#1}}
+% Answer boxes for the research questions.
+\newtcolorbox{answerbox}[1]{breakable,enhanced,colback=black!2,colframe=black!40,boxrule=0.4pt,arc=1pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries\small,coltitle=black,colbacktitle=black!5,
+  title={#1}}

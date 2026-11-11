@@ -1,0 +1,107 @@
+{
+ "action_names": [
+  "stay",
+  "right",
+  "up",
+  "left",
+  "down"
+ ],
+ "buffers": [
+  {
+   "content_hash_checked": true,
+   "content_sha256": "0f915c89b60d13193311d18bce8cd96633dda3978d1b5434ab8a407d76bad959",
+   "histogram": {
+    "bins_per_axis": 20,
+    "free_area_fraction_of_low_bins": {
+     "max": 0.1428571428571435,
+     "min": 0.14285714285714005
+    },
+    "median_count": 59.0,
+    "min_count": 0,
+    "n_cells": 356,
+    "n_pairs": 1780,
+    "n_pairs_below_low": 33,
+    "zero_count_pairs": [
+     {
+      "action": 1,
+      "action_name": "right",
+      "bin": [
+       17,
+       9
+      ],
+      "free_area_fraction": 0.14285714285714005
+     }
+    ]
+   },
+   "key": "replay/continuous/four_rooms/s0",
+   "lattice": {
+    "cell_side": 0.14285714285714285,
+    "cells_visited": 40,
+    "manifest_min_cell_action_count": 435,
+    "min_cell_action_count": 435
+   },
+   "layout": "four_rooms",
+   "n_transitions": 100000,
+   "path": "replay/continuous/four_rooms/s0.npz",
+   "seed": 0
+  },
+  {
+   "content_hash_checked": true,
+   "content_sha256": "2569b3c7f7a048e30bffefc8f654f203f764efb9de6be4ee3d60d5010c2fc7df",
+   "histogram": {
+    "bins_per_axis": 20,
+    "free_area_fraction_of_low_bins": {
+     "max": 0.1428571428571435,
+     "min": 0.14285714285714005
+    },
+    "median_count": 59.0,
+    "min_count": 1,
+    "n_cells": 356,
+    "n_pairs": 1780,
+    "n_pairs_below_low": 29,
+    "zero_count_pairs": []
+   },
+   "key": "replay/continuous/four_rooms/s1",
+   "lattice": {
+    "cell_side": 0.14285714285714285,
+    "cells_visited": 40,
+    "manifest_min_cell_action_count": 434,
+    "min_cell_action_count": 434
+   },
+   "layout": "four_rooms",
+   "n_transitions": 100000,
+   "path": "replay/continuous/four_rooms/s1.npz",
+   "seed": 1
+  },
+  {
+   "content_hash_checked": true,
+   "content_sha256": "43440945ee072113d19a8b5e53a7e5164dd5ae4d39b531b33ae109bfc0bdab84",
+   "histogram": {
+    "bins_per_axis": 20,
+    "free_area_fraction_of_low_bins": {
+     "max": 0.1428571428571435,
+     "min": 0.14285714285714005
+    },
+    "median_count": 58.0,
+    "min_count": 2,
+    "n_cells": 356,
+    "n_pairs": 1780,
+    "n_pairs_below_low": 34,
+    "zero_count_pairs": []
+   },
+   "key": "replay/continuous/four_rooms/s2",
+   "lattice": {
+    "cell_side": 0.14285714285714285,
+    "cells_visited": 40,
+    "manifest_min_cell_action_count": 423,
+    "min_cell_action_count": 423
+   },
+   "layout": "four_rooms",
+   "n_transitions": 100000,
+   "path": "replay/continuous/four_rooms/s2.npz",
+   "seed": 2
+  }
+ ],
+ "low_threshold": 10,
+ "source": "data/final-v1/manifest.json and the stored replay files; content hashes checked"
+}

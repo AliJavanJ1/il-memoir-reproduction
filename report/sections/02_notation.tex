@@ -1,0 +1,113 @@
+\section{Setting, conventions and notation}\label{sec:notation}\label{sec:setting}
+
+The sources use different symbols, timings and divergence orientations (\cref{app:audit}).
+This section fixes one convention for the whole memoir.
+It never identifies two objects that the sources treat differently: in particular the initial distribution, the replay reference measure, the expert distributions and the occupancies always have distinct symbols.
+Logarithms are natural and divergences are in nats.
+
+\subsection{Decision process, trajectories and timing}
+
+A Markov decision process is $(\cS,\cA,P,\mu_0,\gamma)$: a state space $\cS$ (finite, or a Borel subset of $\R^2$), a finite action set $\cA$ (here five actions: stay, right, up, left, down), a Markov kernel $P(\cdot\mid s,a)$, an initial law $\mu_0$ and a discount $\gamma\in(0,1)$; we use $\gamma=0.95$.
+A trajectory is $(s_0,a_0,s_1,a_1,\dots)$: action $a_t$ is chosen in $s_t$ and leads to $s_{t+1}\sim P(\cdot\mid s_t,a_t)$.
+Rollouts and demonstrations have $H=100$ transitions, and $Z_H:=\sum_{t=0}^{H-1}\gamma^t=(1-\gamma^H)/(1-\gamma)\approx\vn{const.ZH}{19.88}$.
+The environment is \emph{continuing}: reaching a goal changes neither $P$ nor the rollout, and a policy may stay at the goal.
+A policy is a stationary Markov kernel $\pi(\cdot\mid s)$ unless stated otherwise, and $P_\pi(s,\cdot):=\sum_a\pi(a\mid s)P(\cdot\mid s,a)$.
+$\Prob^\pi_{\mu_0}$ is the law of the trajectory started from $s_0\sim\mu_0$, and $\Prob^\pi_{(s,a)}$ the law started from $(s_0,a_0)=(s,a)$; $\law_t:=\Prob^\pi_{\mu_0}(s_t\in\cdot)$.
+Rewards are functions of states, read at the \emph{next} state: the return of $\pi$ is
+\begin{equation}\label{eq:m-return}
+J_H(\pi):=\E^\pi_{\mu_0}\sum_{t=0}^{H-1}\gamma^tr(s_{t+1}),\qquad J_\infty(\pi):=\E^\pi_{\mu_0}\sum_{t\ge0}\gamma^tr(s_{t+1}).
+\end{equation}
+This timing is the one of FPG (pp.~2--3) and of FI24 Eq.~(1); FI24 prints its $Q$-function with $r(s_t)$, which is inconsistent with its own successor measure \audit{R1}.
+
+\subsection{Occupancy and successor measures}
+
+\begin{definition}[occupancies]\label{def:m-occ}
+For a policy $\pi$ and measurable $X\subseteq\cS$, $Y\subseteq\cS\times\cA$,
+\begin{align*}
+d^+_\pi(X)&:=(1-\gamma)\textstyle\sum_{t\ge0}\gamma^t\law_{t+1}(X), &
+d^+_{\pi,H}(X)&:=Z_H^{-1}\textstyle\sum_{t=0}^{H-1}\gamma^t\law_{t+1}(X),\\
+d^{\SA}_\pi(Y)&:=(1-\gamma)\textstyle\sum_{t\ge0}\gamma^t\Prob^\pi_{\mu_0}((s_t,a_t)\in Y), &
+d^{\SA}_{\pi,H}(Y)&:=Z_H^{-1}\textstyle\sum_{t=0}^{H-1}\gamma^t\Prob^\pi_{\mu_0}((s_t,a_t)\in Y),
+\end{align*}
+and $d^{\pre}_\pi$ is the state marginal of $d^{\SA}_\pi$.
+$d^+_\pi$ is the \emph{next-state occupancy}, the object matched by $f$-PG; $d^+_{\pi,H}$ is its $H$-step version, which is what rollouts of length $H$ estimate; $d^{\SA}_{\pi,H}$ is the \emph{pre-action state--action occupancy} used as a diagnostic.
+\end{definition}
+
+\begin{definition}[successor measures]\label{def:m-succ}
+The next-state successor measure of $\pi$ (FI24 Eq.~1, p.~3) and its action average (FI24 Eq.~3) are
+\[
+M^{\pi,+}(s,a,X):=\sum_{t\ge0}\gamma^t\,\Prob^\pi_{(s,a)}(s_{t+1}\in X),\qquad M^{\pi,+}(s,X):=\sum_a\pi(a\mid s)M^{\pi,+}(s,a,X).
+\]
+Each has total mass $1/(1-\gamma)=\vn{const.mass}{20}$. FB21 (Eq.~1, p.~2) uses instead the state--action successor measure from $t=0$, $M^\pi_{21}(s,a,Y):=\sum_{t\ge0}\gamma^t\Prob^\pi_{(s,a)}((s_t,a_t)\in Y)$, which contains the atom $\delta_{(s,a)}$; the two are related by $M^\pi_{21}(s,a,X\times\cA)=\delta_s(X)+\gamma M^{\pi,+}(s,a,X)$ (\cref{prop:m-conv}).
+\end{definition}
+
+\subsection{Divergences}
+
+For probability vectors $p,q$ on a finite set and a convex $f$ with $f(1)=0$,
+\begin{equation}\label{eq:m-div}
+D_f(p\Vert q):=\sum_{x:\,q(x)>0}q(x)\,f\Big(\frac{p(x)}{q(x)}\Big)+f'(\infty)\,p(\{q=0\}),\qquad f'(\infty):=\lim_{u\to\infty}f(u)/u .
+\end{equation}
+This is the convention of FPG Table~1 and its proofs and of FIRL Eq.~(18); FPG Eq.~(3) prints the opposite orientation \audit{D1}.
+In our objectives the \emph{learner is always the first argument}.
+The three generators used are
+\[
+\JS(p,q):\ f_{\JS}(u)=\tfrac12\big[u\log u-(1+u)\log\tfrac{1+u}2\big],
+\]
+\[
+\KL(p\Vert q):\ f(u)=u\log u,\qquad
+\KL(q\Vert p):\ f(u)=-\log u .
+\]
+$\JS$ is the standard Jensen--Shannon divergence with half weights, $0\le\JS\le\log2\approx\vn{const.log2}{0.693}$; the generator printed in FPG Table~1 and FIRL Table~2 is $2f_{\JS}$ and gives $2\JS$ \audit{D3}.
+The names ``forward'' and ``reverse'' KL are avoided: FPG's ``fkl'' is $\KL(\text{learner}\Vert\text{target})$, which FIRL calls ``RKL'' when the expert is the target \audit{D2}; we always write the arguments.
+For a strictly positive reference law $\upsilon$ and $\varepsilon\in(0,1]$, the \emph{smoothed} law is $p_\varepsilon:=(1-\varepsilon)p+\varepsilon\upsilon$ (masses are mixed with masses and densities with densities); we use $\varepsilon=0.01$.
+
+\subsection{Three expert distributions that must not be confused}\label{sec:m-expert-laws}
+
+The methods use three different summaries of the same demonstrations $(s^i_0,\dots,s^i_H)$, $i=1,\dots,N_E$, with $N_E=4$.
+\begin{itemize}[nosep]
+\item $q_E:=d^+_{\pi_E,H}$ is the population next-state occupancy of the expert; $\hat q_E$ is its empirical version (weight $\gamma^t/(N_EZ_H)$ on $s^i_{t+1}$, $t=0,\dots,H-1$), and $q_{E,\varepsilon}$ its smoothed version, the \emph{$f$-PG target}. The finite evaluation compares learners with the exact $q_E$.
+\item $\rho_e:=\frac1{N_E}\sum_i\frac1H\sum_{t=1}^H\delta_{s^i_t}$ weights $s_1,\dots,s_H$ uniformly within each demonstration (FI24 Eq.~8 and footnote~3, pp.~4--5); it defines the \emph{\ERFB{} latent}.
+\item $\bar\rho_{\cT}:=|\cT|^{-1}\sum_{t\in\cT}\law^{\pi_E}_t$ with $\cT=\{0,\dots,H-K\}$ and $K=60$ is the \emph{\DMFB{} start law}; it includes $t=0$ (decision D5, \cref{rem:fbil-u4}).
+\end{itemize}
+For example, an expert that reaches an absorbing goal at step $4$ puts mass $\vn{const.dwell.rho}{0.97}$ on the goal under $\rho_e$ and $\vn{const.dwell.qE}{0.8565}$ under $q_E$ ($\gamma=0.95$, $H=100$; proof of \cref{prop:fbil-er}(e)).
+
+\subsection{Objects of the forward--backward representation}
+
+\begin{itemize}[nosep]
+\item $\nu$ is the \emph{replay reference measure}: the law of a replay next state. It is used for the target states of the successor loss, the Gram matrix, $z_r$ and every density statement. $\hat\nu$ is the empirical law of the stored next states.
+\item $B:\cS\to\R^d$ and $F:\cS\times\cA\times\R^d\to\R^d$ are the backward and forward networks, with rank $d=16$; $\xi,\omega$ are their parameters and $\xi^-,\omega^-$ the target copies.
+\item $G_B:=\E_\nu[BB^\top]$ is an \emph{uncentered} Gram matrix (FB21 and FI24 call it ``$\mathrm{Cov}\,B$''), and $\hat G_B$ its empirical version over the buffer next states; nothing is mean-subtracted.
+\item $z_r:=\E_\nu[r\,B]\in\R^d$ is the task vector of a state reward $r$.
+\item The policy attached to $z$ is the softmax policy $\pi_{z,\tau}(a\mid s):=\mathrm{softmax}_a\big(F(s,a,z)^\top z/\tau\big)$ with temperature $\tau>0$, and $F(s,z):=\sum_a\pi_{z,\tau}(a\mid s)F(s,a,z)$. The same family is used in pretraining targets, \ERFB, \DMFB{} and evaluation. FB21's greedy policy is $\pi^{\mathrm{gr}}_z(s)\in\argmax_aF(s,a,z)^\top z$.
+\item Latent vectors live on the sphere $\mathcal Z_R:=\{\lVert z\rVert_2=R\}$ with $R=\sqrt d=4$; we use $\tau=1$ (\cref{sec:protocol}).
+\end{itemize}
+
+\Cref{tab:notation} summarizes the symbols; the map from each source's symbols to ours is in \cref{app:audit}.
+
+\begin{table}[ht]
+\centering\small
+\caption{Main symbols. ``Used by'' names the method or analysis in which the object appears.}\label{tab:notation}
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{3.3cm}@{}}
+\toprule
+Symbol & Meaning & Used by\\
+\midrule
+$\mu_0$ & initial law: the Dirac mass at the start cell $(1,1)$ (finite) or at its centre (continuous) & all\\
+$\gamma$, $H$, $Z_H$ & discount $0.95$, horizon $100$, $Z_H=\sum_{t<H}\gamma^t$ & all\\
+$d^+_{\pi,H}$, $d_\phi$ & $H$-step next-state occupancy; $d_\phi:=d^+_{\pi_\phi,H}$ & $f$-PG, evaluation\\
+$d^{\SA}_{\pi,H}$ & $H$-step pre-action state--action occupancy & diagnostic\\
+$M^{\pi,+}$, $M^\pi_{21}$ & next-state (2024) and state--action (2021) successor measures & FB theory\\
+$q_E$, $\hat q_E$, $q_{E,\varepsilon}$ & expert occupancy, its empirical version, its smoothed version & $f$-PG target, evaluation\\
+$\rho_e$ & empirical expert state law, uniform over $s_1,\dots,s_H$ & \ERFB\\
+$\bar\rho_{\cT}$ & expert state law averaged over start times $\cT=\{0,\dots,40\}$ & \DMFB\\
+$\pi_\phi$, $\phi$ & $f$-PG policy and its parameters & $f$-PG\\
+$g_\phi$, $G_k$, $\chi_k$ & $f$-PG signal $f'(d_\phi/q)$, signal-to-go, score $\nabla\log\pi_\phi(a_k\mid s_k)$ & $f$-PG\\
+$\theta$, $r_\theta$, $\alpha$ & reward parameters, reward and MaxEnt temperature of $f$-IRL & $f$-IRL (theory)\\
+$\nu$, $\hat\nu$ & replay reference measure and its empirical version & FB\\
+$F$, $B$, $d$ & forward and backward networks, rank $16$ & FB\\
+$G_B$, $z_r$ & uncentered Gram matrix $\E_\nu[BB^\top]$, task vector $\E_\nu[rB]$ & FB\\
+$\pi_{z,\tau}$, $\tau$, $R$ & softmax FB policy, temperature $1$, latent radius $4$ & FB, \ERFB, \DMFB\\
+$z_{ER}$, $\ell_{DM}$ & \ERFB{} latent; \DMFB{} objective & FB imitation\\
+$r_g$ & evaluation reward $\exp(-\lvert x-\bar g\rvert^2/(2w^2))$, $w=1/14$ & evaluation only\\
+\bottomrule
+\end{tabularx}
+\end{table}

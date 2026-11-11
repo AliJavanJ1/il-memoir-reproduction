@@ -1,0 +1,71 @@
+\section{The role of the hyperparameters}\label{sec:hyper}
+
+This section answers Q3. It separates what the theory says about each hyperparameter from what the experiments show; the empirical statements refer to \cref{sec:results-finite,sec:results-continuous,sec:ablations}.
+
+\subsection{The choice of \texorpdfstring{$f$}{f}}\label{sec:m-choice-f}
+
+\paragraph{Where $f$ enters.}
+In $f$-PG the generator enters only through the signal $g=f'(v)$ evaluated at the learner-to-target ratio $v=d_\phi/q$ (\cref{thm:m-fpg}); in $f$-IRL it enters through $h_f(u)=(f^\circ)'(1/u)$, which is the \emph{same} function of $v=1/u$ (\cref{prop:m-firl-h,prop:m-firl-fpg}).
+So the choice of $f$ in both methods is the choice of how strongly each cell is pushed according to how much the learner over- or under-visits it.
+Adding a constant to the signal changes nothing (\cref{cor:m-fpg-mc}(a)), so only the \emph{shape} of $v\mapsto f'(v)$ matters, together with the finiteness of the objective.
+In descent, a large signal makes a cell repulsive and a very negative one attractive.
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+divergence (learner first) & signal $f'(v)$ & $v\to0$ (under-visited) & $v\to\infty$ (over-visited) & finite against a deterministic expert?\\
+\midrule
+$\JS(d,q)$ & $\frac12\log\frac{2v}{1+v}$ & $-\infty$ & $\frac12\log2$ (bounded) & always\\
+$\KL(d\Vert q)$ & $1+\log v$ & $-\infty$ & $+\infty$ & no, unless smoothed (\cref{prop:m-fpg-opt})\\
+$\KL(q\Vert d)$ & $-1/v$ & $-\infty$ (fast) & $0$ (bounded) & yes, for a positive policy\\
+\bottomrule
+\end{tabularx}
+\end{center}
+$\KL(d\Vert q)$ penalizes visits to cells the expert rarely visits without bound: it is ``zero-forcing'' and infinite against an unsmoothed target with zeros, which is why both arguments are smoothed.
+$\KL(q\Vert d)$ penalizes under-coverage most strongly ($-1/v$) and over-visits hardly at all: it is ``mass-covering'' and tolerates a spread-out learner.
+$\JS$ is bounded on the over-visit side and logarithmic on the under-visit side, and is the only one of the three that is bounded by $\log2$.
+These are statements about the signal; which stationary point descent reaches is not determined by them.
+For $f$-IRL the table of $h_f$ (\cref{prop:m-firl-h}) has the same content, and FIRL's names FKL and RKL correspond to our $\KL(q\Vert d)$ and $\KL(d\Vert q)$.
+
+\paragraph{What the ablation shows.}
+On the four-rooms goal $(5,5)$, the three generators all reach the thresholds in all three seeds, but not equally fast or equally well (\cref{sec:ablations}): $\KL(d\Vert q)$ behaves like $\JS$, while $\KL(q\Vert d)$ is slower (first meeting the thresholds at the $\vn{s09.klqd.first.lo}{40{,}000}$- to $\vn{s09.klqd.first.hi}{50{,}000}$-transition checkpoints, against $\vn{s09.js_kldq.first.lo}{20{,}000}$ to $\vn{s09.js_kldq.first.hi}{30{,}000}$), ends at a larger held-out divergence and a lower return, and keeps a more stochastic policy. The last observation is consistent with the mass-covering shape of its signal. All three use the learning rate tuned for $\JS$, so the comparison mixes the generator with a step size chosen for another one. $f$-IRL is not implemented, so its choice of $f$ is discussed theoretically only.
+
+\subsection{The other \texorpdfstring{$f$}{f}-PG hyperparameters}
+
+\begin{itemize}[nosep]
+\item \textbf{Smoothing $\varepsilon$} changes the objective to $J_\varepsilon$ (\cref{prop:m-div}(c)); it keeps the signal bounded because every ratio lies in $[\varepsilon\upsilon_{\min},1/(\varepsilon\upsilon_{\min})]$. We use $\varepsilon=0.01$ and always evaluate the unsmoothed divergence.
+\item \textbf{Batch size and folds.} $N=20$ trajectories per update with two folds: each fold's signal is estimated from 10 trajectories of the other fold. Cross-fitting removes the same-batch dependence, not the plug-in bias (\cref{prop:m-fpg-approx}(b),(d)), at the price of a noisier signal.
+\item \textbf{Learning rate.} Adam with $0.3$ (tabular) and $0.003$ (MLP), chosen on one pilot seed and one goal as the largest values of a three-point grid (\cref{tab:pilot}). Both are at the edge of the tested grid, so a larger rate might have done better.
+\item \textbf{Density estimator.} In the continuous maze, a cut-and-normalize Gaussian KDE with $h=0.05$; it ignores walls, with a hidden mass share of mean $\vn{kde.mean_pct}{1.1}\%$ and up to about $\vn{kde.max_pct}{31.5}\%$ near doorway corners (\cref{rem:env-kde}). At equal learning rate the histogram signal gave the same pilot divergence ($\vn{s09.hist.js}{0.488}$ against $\vn{s09.kde.js}{0.486}$ nats).
+\item \textbf{$\gamma$ and $H$} define the objective itself: with $\gamma=0.95$ and $H=100$ the matched occupancy weighs early steps more and is within $\gamma^H\approx\vn{const.gH.006}{0.006}$ in total variation of its infinite-horizon version.
+\end{itemize}
+
+\subsection{The FB hyperparameters}
+
+\begin{itemize}[nosep]
+\item \textbf{Rank $d$.} In the finite mazes exactness needs $d\ge\operatorname{rank}\tilde P$, that is $\vn{env.rank.4r}{40}$ or $\vn{env.rank.open}{49}$ (\cref{prop:m-fb-rank}), so $d=16$ makes the model approximate by construction there; for the continuous maze no such statement is proved. Larger $d$ was an optional study that was not run.
+\item \textbf{Temperature $\tau$ and latent radius $R$.} Under exactness only $\tau/\zeta$ matters, and on the sphere the effective temperature relative to a reward $r$ is $\tau\lVert z_r\rVert/R$ (\cref{prop:m-fb-softmax}(d)). In the pilot, $\tau=0.1$ and $0.3$ made the \DMFB{} policy nearly greedy (score spread divided by $\tau$ of $\vn{s09.pilot.spread.0.1}{110}$ and $\vn{s09.pilot.spread.0.3}{35}$ in the finite maze, policy entropy $\vn{s09.pilot.ent.0.1}{0.05}$ and $\vn{s09.pilot.ent.0.3}{0.06}$ nats), while $\tau=1$ kept it stochastic (spread $\vn{s09.pilot.spread.1}{11}$, entropy $\vn{s09.pilot.ent.1}{0.62}$); $\tau=1$ also gave the best \ERFB{} results in the finite maze and the best \ERFB{} success in the continuous one, and was frozen with $R=4$ (\cref{tab:pilot}); for \DMFB{} alone, $\tau=0.3$ had the lower finite divergence.
+\item \textbf{Orthonormality weight $\lambda_{\mathrm{orth}}$.} It fixes the gauge $B\mapsto CB$ only softly. Without it, the Gram matrix drifts far from the identity and $\lVert z_{ER}\rVert$ grows from about $\vn{s09.erz.base.lo}{2.6}$--$\vn{s09.erz.base.hi}{2.9}$ to $\vn{s09.erz.noorth.lo}{13.8}$--$\vn{s09.erz.noorth.hi}{17.2}$ (\cref{sec:ablations}); since the latent is projected to radius $4$, this changes which direction is chosen, not the scale.
+\item \textbf{Target networks} (Polyak momentum $0.99$ after every update), the \textbf{independent target batch} (without it the $i=j$ terms are biased, \cref{prop:m-fb-loss}(b)), the \textbf{latent distribution} (uniform on $\mathcal Z_4$; the loss constrains the model only on its support), and the \textbf{inputs} (one-hot or raw $(x,y)$; FB21 fed $21\times21$ radial-basis features to $B$ in its continuous maze) are design choices without a theorem behind them. Raw inputs are one untested candidate cause of the nearly singular continuous Gram matrix of \cref{sec:results-continuous}.
+\end{itemize}
+
+\subsection{The algorithm used to learn the successor measure}\label{sec:m-hyper-learn}
+
+The successor measure is not observed: it is the solution of the measure-valued Bellman equation of \cref{prop:m-fb-bellman}.
+In a finite MDP with known $P$ it is the matrix $P(\cdot\mid s,a)(I-\gamma P_\pi)^{-1}$, which our oracle computes for evaluation; a learner without $P$ must estimate it from transitions.
+FB21's algorithm, which we implement in the next-state convention, does so by temporal-difference learning on a parametric model:
+\begin{enumerate}[nosep,label=(\roman*)]
+\item the model $F(s,a,z)^\top B(x)\nu(\dd x)$ represents the measures of all policies $\pi_z$ at once through the latent $z$;
+\item the loss \eqref{eq:m-fb-loss} is, up to a constant, the squared $L^2(\nu)^\star$ distance between the model and its one-step Bellman target built from a slowly moving target copy (\cref{prop:m-fb-loss}(a));
+\item the target uses the policy $\pi^-_z$ itself, so the learned measure is that of $\pi_z$, whatever policy collected the data (off-policy learning from task-blind replay);
+\item the orthonormality penalty, the latent distribution and the reference measure $\nu$ decide the gauge, the latents on which the model is trained, and the norm in which errors are weighed.
+\end{enumerate}
+What this algorithm guarantees is limited: its minibatch gradient is unbiased for the buffer loss, and an exact representation is a stationary point (\cref{prop:m-fb-loss}(b)--(c)). There is no converse, no convergence statement, and the loss value omits a constant that can be infinite, so it cannot certify the model error that \cref{thm:m-fb-approx} needs.
+In the runs, the imitation results moved substantially from one pretraining snapshot to the next: the held-out divergence of the same imitation method changed by up to $\vn{s09.swing}{0.53}$ nats between consecutive snapshots in the finite mazes, and \vn{s09.lost}{12} of the \vn{s09.curves}{36} finite \ERFB{} and \DMFB{} curves reached success $0.8$ at some earlier snapshot but not at the last one (\cref{sec:results-finite}). The successor-measure learner was not stationary at the budget.
+
+\subsection{The \texorpdfstring{\DMFB}{DM-FB} hyperparameters}
+
+\begin{itemize}[nosep]
+\item \textbf{Truncation $K=60$} bounds the missing tail of each target by $\gamma^K\beta_B/(1-\gamma)\approx\vn{const.gK_over}{0.92}\,\beta_B$, against $\vn{const.mass}{20}\,\beta_B$ for the full sum (\cref{prop:m-dm-est}(b)).
+\item \textbf{Start times} $\{0,\dots,40\}$ include $t=0$, which gives $\bar\rho\ge\mu_0/\vn{const.n_starts}{41}$ and the occupancy control of \cref{thm:m-dm}(e) for the true objective.
+\item \textbf{Optimization}: 300 projected Adam steps with learning rate $0.05$ from the projected $z_{ER}$. In every final adaptation, at least $\vn{s09.frac100}{97}\%$ of the total decrease of the model objective was reached within the first 100 steps (\cref{sec:results-finite}).
+\end{itemize}

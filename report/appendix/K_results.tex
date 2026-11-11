@@ -1,0 +1,73 @@
+\section{Every run: per-seed results and full learning curves}\label{app:results}
+
+This appendix reports every final run.
+\Cref{tab:seeds} gives the last-checkpoint divergence and success of each seed, including every run that does not meet the operational thresholds.
+\Cref{fig:curves-first} and the following figures show the full learning curves of every core cell, drawn by \texttt{scripts/analyze.py} from the evaluation records: $f$-PG against learner transitions (left), \ERFB{} and \DMFB{} against FB pretraining updates (middle), and the 300 \DMFB{} latent steps at the final FB snapshot (right); thin lines are seeds and thick lines means.
+A run marked ``not reached'' in \cref{tab:convergence} did not meet the thresholds at any assessed checkpoint within the budget: every evaluated checkpoint for $f$-PG, and every FB snapshot after completed adaptation for \ERFB{} and \DMFB{} (for \DMFB, the latent after its 300 steps). The intermediate \DMFB{} iterates evaluated at the final snapshot (right-hand panels) are not assessed by this rule; in \vn{s11.dm.mid_cross}{three} runs they entered the threshold region and left it before the final step (\cref{sec:results-finite}).
+
+{\footnotesize\setlength{\tabcolsep}{4pt}
+\input{generated/tab_seeds}
+}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{figures/curves_core_finite_open_goal_5_1.png}
+\caption{Learning curves, core suite, finite open maze, goal (5,1).}\label{fig:curves-first}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{figures/curves_core_finite_open_goal_5_5.png}
+\caption{Learning curves, core suite, finite open maze, goal (5,5).}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{figures/curves_core_finite_open_goal_1_5.png}
+\caption{Learning curves, core suite, finite open maze, goal (1,5).}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{figures/curves_core_finite_four_rooms_goal_5_1.png}
+\caption{Learning curves, core suite, finite four-rooms maze, goal (5,1).}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{figures/curves_core_finite_four_rooms_goal_5_5.png}
+\caption{Learning curves, core suite, finite four-rooms maze, goal (5,5).}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{figures/curves_core_finite_four_rooms_goal_1_5.png}
+\caption{Learning curves, core suite, finite four-rooms maze, goal (1,5).}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{figures/curves_core_continuous_four_rooms_goal_5_1.png}
+\caption{Learning curves, core suite, continuous four-rooms maze, goal (5,1).}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{figures/curves_core_continuous_four_rooms_goal_5_5.png}
+\caption{Learning curves, core suite, continuous four-rooms maze, goal (5,5).}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{figures/curves_core_continuous_four_rooms_goal_1_5.png}
+\caption{Learning curves, core suite, continuous four-rooms maze, goal (1,5).}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{figures/curves_compact_ablations_finite_four_rooms_goal_5_5.png}\\[4pt]
+\includegraphics[width=0.49\textwidth]{figures/final_js_nats_compact_ablations.png}\hfill
+\includegraphics[width=0.49\textwidth]{figures/final_success_compact_ablations.png}
+\caption{Compact ablations (four rooms, goal $(5,5)$): learning curves of every variant (top) and the final divergence and success of each seed (bottom).}\label{fig:curves-ablation}
+\end{figure}
+\FloatBarrier

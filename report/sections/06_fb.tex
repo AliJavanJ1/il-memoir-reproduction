@@ -1,0 +1,135 @@
+\section{Forward--backward representations}\label{sec:m-fb}
+
+The FB representation \citep{touati2021fb} learns successor measures, an object introduced for value prediction by \citet{dayan1993successor} and generalized to features by \citet{barreto2017successor}, for a whole family of policies at once.
+We work in the next-state convention of FI24 and translate FB21's 2021 statements with \cref{prop:m-conv}. Complete proofs are in \cref{sec:fb}; the setting is \cref{ass:fb}: $\nu$ a finite reference measure, $B$ bounded, $F(\cdot,\cdot,z)$ bounded for each $z$.
+
+\subsection{Successor measures and the FB model}
+
+\begin{proposition}[successor Bellman identity; FB21 Eq.~4, p.~4; \cref{prop:fb-bellman}]\claim{FB-1}{S}\label{prop:m-fb-bellman}
+For every stationary policy $\pi$,
+\[
+M^{\pi,+}(s,a,\cdot)=P(\cdot\mid s,a)+\gamma\int P(\dd s_1\mid s,a)\sum_{a_1}\pi(a_1\mid s_1)\,M^{\pi,+}(s_1,a_1,\cdot),
+\]
+and $M^{\pi,+}$ is the unique bounded solution. In the 2021 convention the first term is the atom $\delta_{(s,a)}$ instead of $P(\cdot\mid s,a)$.
+\end{proposition}
+
+The \emph{FB model} of the successor measure is $\hat M_z(s,a,\dd x):=F(s,a,z)^\top B(x)\,\nu(\dd x)$.
+It is \emph{exact at $z$} for a policy family $(\pi_z)$ if $\hat M_z(s,a,\cdot)=M^{\pi_z,+}(s,a,\cdot)$ for every $(s,a)$ (\cref{def:fb}); FI24 Eq.~(2) states this with ``$\approx$''.
+
+\begin{theorem}[reward-to-task; FB21 Theorem~2, p.~3; FI24 Proposition~1, p.~4; \cref{thm:fb-opt}]\claim{FB-2}{S}\label{thm:m-fb}
+Let $r$ be a bounded state reward and $z_r=\int rB\dd\nu$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (policy evaluation, any family) If the representation is exact at $z$, then $Q^{+,\pi_z}_r(s,a)=F(s,a,z)^\top z_r$ for all $(s,a)$.
+\item (optimality, greedy family) If the \emph{greedy} representation is exact at $z_r$, then $\pi^{\mathrm{gr}}_{z_r}$ is optimal among all policies and $Q^\star_r=F(\cdot,\cdot,z_r)^\top z_r$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+(a) $Q^{+,\pi_z}_r(s,a)=\E^{\pi_z}_{(s,a)}\sum_t\gamma^tr(s_{t+1})=\int r\dd M^{\pi_z,+}(s,a,\cdot)$ by dominated convergence and \eqref{eq:occ-int}. Exactness replaces the measure by $F(s,a,z)^\top B\,\nu$, and linearity of the integral over the $d$ bounded functions $rB_i$ gives $F(s,a,z)^\top\int rB\dd\nu=F(s,a,z)^\top z_r$.
+(b) Let $\pi:=\pi^{\mathrm{gr}}_{z_r}$. By (a) at $z=z_r$, $F(s,\cdot,z_r)^\top z_r=Q^{+,\pi}_r(s,\cdot)$, and $\pi(s)$ maximizes the left-hand side, so $\pi$ is greedy with respect to its own action values. A policy that is greedy with respect to its own $Q$-function is a fixed point of the Bellman optimality operator, hence optimal among all history-dependent policies (\cref{lem:fb-dp}(v), applied with the one-step reward $c_r(s,a)=\int P(\dd x\mid s,a)r(x)$, \cref{lem:fb-q}). Then $Q^\star_r=Q^{+,\pi}_r=F^\top z_r$.
+\end{proof}
+
+Exactness is needed only at the single latent $z_r$; FB21 assumes it for all $z$ so that the conclusion holds for every reward.
+Greediness enters only in (b).
+Exactness also forces $M^{\pi_z,+}(s,a,\cdot)\ll\nu$, which is stronger than FB21's support condition (Remark~5, p.~16; \cref{prop:fb-dom}).
+In the 2021 convention the same argument gives $Q^\star_{21,r}=r(s)+\gamma F^\top z_r$.
+
+\subsection{When can the model be exact? The rank obstruction}
+
+\begin{proposition}[finite realizability and its limit; FB21 Proposition~6, p.~17; \cref{prop:fb-exist,prop:fb-softmax-exist}]\claim{FB-3, FB-4}{S+D}\label{prop:m-fb-rank}
+Let $\cS$ and $\cA$ be finite.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item If $\nu(s)>0$ for every $s$ and $d\ge\#\cS$, an exact greedy representation exists on $\R^d$, with $B$ one-hot (our next-state analogue of FB21 Proposition~6, which needs $d\ge\#\cS\cdot\#\cA$). For every $\tau>0$ an exact softmax representation also exists, because a softmax fixed point $\pi=\mathrm{softmax}(Q^{+,\pi}_r/\tau)$ exists for every reward (Brouwer's theorem; uniqueness is not claimed).
+\item For every stationary $\pi$, the matrix $[M^{\pi,+}(s,a,\{s'\})]$ has the rank $k$ of the matrix $\tilde P$ with rows $P(\cdot\mid s,a)$, so an exact representation needs $d\ge k$. If some action has a nonsingular transition matrix, for example a stay action $(1-\epsilon)\delta_s+\epsilon u_s$ with $\epsilon<\frac12$, then $k=\#\cS$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}[Proof of (b)]
+$M^{\pi,+}(s,a,\cdot)=P(\cdot\mid s,a)R_\pi$ with $R_\pi$ invertible (\cref{prop:m-resolvent}), so the successor matrix is $\tilde PR_\pi$ and has rank $k$; an exact model is a product $\mathbf F_z\mathbf B_\nu^\top$ through $\R^d$, of rank at most $d$. A matrix $(1-\epsilon)I+\epsilon U$ with $U$ row-stochastic is strictly diagonally dominant when $\epsilon<\frac12$, hence nonsingular, and its rows are rows of $\tilde P$.
+\end{proof}
+
+\noindent\textbf{Consequence for this study.}
+Our finite kernels have such a stay action ($\epsilon=0.1$), and $\operatorname{rank}\tilde P=\#\cS$ is $\vn{env.rank.open}{49}$ (open) or $\vn{env.rank.4r}{40}$ (four rooms) (\cref{prop:env-finite}); the oracle measures smallest singular values of about $\vn{env.sv}{2.01}$.
+Since $d=16<\vn{env.rank.4r}{40}$, \emph{no exact rank-16 FB model exists in either finite maze, for any policy family.}
+Every result that assumes exactness (\cref{thm:m-fb}, \cref{prop:m-fb-softmax}(c)--(d), \cref{prop:m-fb-sf}, \cref{thm:m-dm}(a)--(b),(d) and their corollaries) is therefore an interpretation for the trained finite-maze models, not a guarantee; only the conditional bound of \cref{thm:m-fb-approx} applies, with an error that the oracle measures. In the continuous maze exactness is not disproved, but it is not established either, and the error cannot be computed.
+
+\subsection{Softmax policies}
+
+The implementation uses the softmax family $\pi_{z,\tau}$ in pretraining targets, imitation and evaluation (FB21 itself uses a softmax in its training targets, Algorithm~1, line~18, with $\tau=200$).
+\Cref{thm:m-fb}(b) does not apply to it.
+
+\begin{proposition}[what replaces optimality for softmax policies; \cref{prop:fb-softmax,cor:fb-hstep}]\claim{FB-5}{D}\label{prop:m-fb-softmax}
+Let $c$ be a bounded one-step reward and $\tau>0$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item A softmax fixed point $\pi=\mathrm{softmax}(Q^\pi_c/\tau)$ satisfies $0\le V^\star_c-V^\pi_c\le\tau\log\lvert\cA\rvert/(1-\gamma)$.
+\item It is strictly suboptimal at every state where $Q^\pi_c(s,\cdot)$ is not constant.
+\item Under an exact softmax representation at $z_r$, $\pi_{z_r,\tau}$ is such a fixed point for $r$.
+\item If instead the representation is exact at $\zeta z_r$, $\zeta>0$, the bound holds with temperature $\tau/\zeta$; on the sphere $\mathcal Z_R$ the \emph{effective temperature} relative to $r$ is $\tau\lVert z_r\rVert_2/R$. If $G_B=I$, $\lVert z_r\rVert_2$ is the $L^2(\nu)$ norm of the projection of $r$ onto $\mathrm{span}(B)$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}[Proof of (a)]
+By the log-sum-exp inequality, $\sum_a\pi(a\mid s)Q^\pi_c(s,a)\ge\max_aQ^\pi_c(s,a)-\tau\log\lvert\cA\rvert$, that is $V^\pi_c\ge T_cV^\pi_c-\tau\log\lvert\cA\rvert$, while $V^\pi_c\le T_cV^\pi_c$. The residual bound $\lVert V-V^\star_c\rVert_\infty\le\lVert T_cV-V\rVert_\infty/(1-\gamma)$ concludes.
+\end{proof}
+
+At the frozen $\tau=1$ with five actions and $\gamma=0.95$, $\tau\log5/(1-\gamma)\approx\vn{const.taulog5}{32.2}$, which exceeds the largest possible return $1/(1-\gamma)=\vn{const.mass}{20}$ of a reward in $[0,1]$: at $\zeta=1$ the bound is vacuous.
+The temperature was chosen in the pilot for keeping the FB policy stochastic (\cref{sec:protocol}), not for this bound.
+Part (d) shows that $\tau$ and the scale of $z$ are coupled under exactness \audit{T2}; for a trained network $F(s,a,\zeta z)^\top\zeta z\ne\zeta F(s,a,z)^\top z$ in general, so the coupling is only empirical.
+
+\subsection{Approximate representations}
+
+\begin{theorem}[approximation bound; FB21 Theorem~8, p.~19, Eqs.~100--103; \cref{thm:fb-approx}]\claim{FB-6}{S+D}\label{thm:m-fb-approx}
+Without any exactness, let $\mathcal E_z(s,a,\cdot):=M^{\pi_z,+}(s,a,\cdot)-\hat M_z(s,a,\cdot)$ be the error kernel, and let $\lVert\cdot\rVert_A$, $\lVert\cdot\rVert_B$ be dual norms, $\lvert\int f\dd\mu\rvert\le\lVert f\rVert_A\lVert\mu\rVert_B$ (for example the sup norm and total variation).
+\begin{enumerate}[nosep,label=(\alph*)]
+\item For every $z$ and every policy family, $\lvert Q^{+,\pi_z}_r(s,a)-F(s,a,z)^\top z_r\rvert\le\lVert r\rVert_A\lVert\mathcal E_z(s,a,\cdot)\rVert_B$.
+\item With $\delta:=\lVert r\rVert_A\sup_{s,a}\lVert\mathcal E_{z_r}(s,a,\cdot)\rVert_B$: the greedy policy satisfies $V^\star_r-V^{\pi}_r\le2\delta/(1-\gamma)$, and the softmax policy $V^\star_r-V^\pi_r\le(\tau\log\lvert\cA\rvert+2\delta)/(1-\gamma)$. With a scaled latent $\zeta z_r$ the same holds with $\tau/\zeta$ and the error at $\zeta z_r$.
+\end{enumerate}
+\end{theorem}
+
+Part (a) needs no greediness and is the only FB guarantee that applies to our trained models. It is conditional on the error, which the pretraining loss does not bound (\cref{rem:fb-approx-limits}).
+In the finite mazes the oracle computes the error exactly for evaluation only: at the latents actually used, the sup-norm total-variation error ranges from $\vn{s06.tv.lo}{36.2}$ to $\vn{s06.tv.hi}{79.7}$, against a true successor mass of $\vn{const.mass}{20}$, and $\max_{s,a}\lvert Q^{+,\pi}_{r_g}-F^\top z_{r_g}\rvert$ from $\vn{s06.q.lo}{2.69}$ to $\vn{s06.q.hi}{15.22}$ (\cref{sec:results-finite}). With such errors the value bounds of (b) are vacuous.
+
+\subsection{Learning the successor measure}\label{sec:m-fb-loss}
+
+\paragraph{The loss.}
+Let replay transitions $(s,a,s_1)$ be drawn from $\mathsf D(\dd s,\dd a,\dd s_1)=\mathsf D_{\SA}(\dd s,\dd a)P(\dd s_1\mid s,a)$, let $\nu$ be the law of $s_1$, latents $z\sim\mathcal D_z$ and target states $x\sim\nu$ independent (\cref{ass:fb-data}). With the target policy $\pi^-_z=\mathrm{softmax}(F^-(\cdot,\cdot,z)^\top z/\tau)$ and $\bar F^-(s_1,z):=\sum_a\pi^-_z(a\mid s_1)F^-(s_1,a,z)$ computed from the target copies, the per-sample loss is
+\begin{equation}\label{eq:m-fb-loss}
+\ell(\xi,\omega;s,a,s_1,z):=\tfrac12\int\big(F_\xi(s,a,z)^\top B_\omega(x)-\gamma\bar F^-(s_1,z)^\top B^-(x)\big)^2\nu(\dd x)-F_\xi(s,a,z)^\top B_\omega(s_1),
+\end{equation}
+estimated on a minibatch of $b$ transitions and an \emph{independent} batch of $b'$ target states by
+\[
+\hat L=\frac1{2bb'}\sum_{i,j}\big(F_i^\top B(x_j)-\gamma\bar F^{-\top}_iB^-(x_j)\big)^2-\frac1b\sum_iF_i^\top B(s_{i+1}).
+\]
+
+\begin{proposition}[the pretraining loss; \cref{prop:fb-loss}]\claim{FB-8}{D}\label{prop:m-fb-loss}
+\begin{enumerate}[nosep,label=(\alph*)]
+\item If $P(\cdot\mid s,a)$ has a density $p_\nu\in L^2(\nu)$, then $\int P(\dd s_1\mid s,a)\ell=\frac12\lVert\hat M_z(s,a,\cdot)-(\mathcal T_z\hat M^-)(s,a,\cdot)\rVert^2_{L^2(\nu)^\star}-C_z(s,a)$, where $\mathcal T_z\hat M^-=P+\gamma P\,\bar F^{-\top}B^-\nu$ is the Bellman target of \cref{prop:m-fb-bellman} built from the target model and $C_z$ does not depend on $(\xi,\omega)$. Without such a density the loss is not a residual and can be unbounded below.
+\item $\E\hat L=L$ and $\E\nabla\hat L=\nabla L$ for independent draws; with a stored buffer this is unbiasedness for the \emph{empirical buffer loss}, not for the population loss. Target states taken from the same transitions bias the $i=j$ terms.
+\item If $(\xi^-,\omega^-)=(\xi,\omega)$ and the softmax representation is exact on $\cS\times\cA$ for every latent in the support of $\mathcal D_z$, then $\nabla_{\xi,\omega}L=0$. There is no converse and no convergence statement.
+\end{enumerate}
+\end{proposition}
+\begin{proof}[Proof of (a)]
+Expand the square, integrate over $s_1\sim P(\cdot\mid s,a)$ and exchange the integrals (all terms are bounded): with $\hat m(x)=F_\xi(s,a,z)^\top B_\omega(x)$ and $\bar n(x)=\gamma\int P(\dd s_1\mid s,a)\bar F^-(s_1,z)^\top B^-(x)$, the left-hand side is $\frac12\int\hat m^2\dd\nu-\int\hat m(p_\nu+\bar n)\dd\nu+C_1$. Completing the square gives $\frac12\lVert\hat m-p_\nu-\bar n\rVert^2_{L^2(\nu)}$ minus a constant, and $\hat m-p_\nu-\bar n$ is the $\nu$-density of $\hat M_z-\mathcal T_z\hat M^-$, whose $L^2(\nu)^\star$ norm is that $L^2(\nu)$ norm (\cref{lem:fb-dual}).
+\end{proof}
+
+The diagonal term $-F(s_i,a_i,z_i)^\top B(s_{i+1})$ is the integral of the model density against the first term $P(\cdot\mid s,a)$ of the next-state Bellman identity, sampled by the observed next state. FB21's loss (Eq.~164, p.~36) has $B(s_i,a_i)$ instead, the integral against the atom $\delta_{(s,a)}$ of the 2021 convention (\cref{rem:fb-loss}).
+Because the target moves, the update is a semi-gradient, as in temporal-difference learning; FB21 notes that ``the loss itself is not observable''.
+
+\paragraph{Orthonormality.}
+The FB factorization is invariant under $B\mapsto CB$, $F\mapsto C^{-\top}F(\cdot,\cdot,C^{-1}z)$ (FB21 Remark~7, p.~18), which also maps the softmax family to itself (\cref{prop:fb-gram}(d)). FB21 fixes this freedom softly with the penalty $\mathcal R(\omega)=\frac14\lVert G_{B_\omega}-I\rVert_F^2$.
+
+\begin{proposition}[the orthonormality penalty and the Gram matrix; FB21 Eqs.~165--166; \cref{prop:fb-orth,prop:fb-gram}]\claim{FB-9, FB-10}{S, I+D}\label{prop:m-fb-orth}
+(a) $\nabla_\omega\mathcal R=\E_{x,x'\sim\nu\otimes\nu}[\partial_\omega B(x)^\top(B(x')B(x')^\top B(x)-B(x))]$, and the stop-gradient loss $L_{\mathrm{reg}}$ evaluated on two independent $\nu$-batches has this gradient in expectation; in our convention both batches must be next states (the transition next states and the target batch).
+(b) $G_B$ is symmetric positive semidefinite, invertible if and only if $B_1,\dots,B_d$ are linearly independent in $L^2(\nu)$, and \emph{uncentered}: $\Cov_\nu(B)=G_B/\nu(\cS)-m_Bm_B^\top$. Under exactness at any $z$, $F(s,a,z)^\top\int B\dd\nu=1/(1-\gamma)$, so $B$ has nonzero mean and must not be constrained to mean zero.
+(c) The penalty is soft: $G_B\ne I$ in general.
+\end{proposition}
+
+\paragraph{Domination.}
+The model kernel $\hat M_z(s,a,\cdot)$ always has a density with respect to $\nu$. A successor measure with a part singular to $\nu$, such as the 2021 atom $\delta_s$ or a reachable $\nu$-null set, therefore has no exact representation, and the total-variation error of any model is at least the singular mass (\cref{prop:fb-dom}).
+Our continuous kernel has a Lebesgue density bounded by $p_{\max}\approx\vn{const.p_max}{6366}$ and no atom (\cref{prop:env-cont}); the population replay law has a Lebesgue density at least $n_{\min}\approx\vn{const.n_min}{1.2\times10^{-3}}$ on the free space, so every successor measure has a bounded $\nu$-density (\cref{prop:env-replay}).
+The trained model, however, sees only the empirical $\hat\nu$, which is atomic: no measure with a Lebesgue density is dominated by it, and the model relates to the population $\nu$ only through the generalization of a smooth network, about which nothing is claimed.
+
+\begin{algobox}{Algorithm 2: implemented FB pretraining (\texttt{il\_memoir/fb.py}, \texttt{FBPretrainer.update})}
+\small
+\textbf{Task-blind replay.} Segments of $50$ transitions from resets uniform on the free space, with i.i.d.\ uniform actions; $50{,}000$ transitions (finite, $1{,}000$ resets) or $100{,}000$ (continuous, $2{,}000$ resets) per layout and seed; no reward, no expert data. The population reference law is uniform on the states in the finite mazes (\cref{prop:env-replay}(a)); every state--action pair (finite) and every pair of a free maze-lattice cell of side $1/7$ and an action (continuous) is covered; at the finer resolution of the evaluation histogram the continuous coverage is incomplete near walls (\cref{sec:results-continuous}).\\[2pt]
+\textbf{Networks.} $F_\xi(s,a,z)$: input $[\mathrm{enc}(s),z]$, output $\lvert\cA\rvert\times d$ (one $d$-vector per action, the DQN-style head); $B_\omega(x)$: input $\mathrm{enc}(x)$, output $d=16$. Two hidden layers of width $64$, the first Linear--LayerNorm--$\tanh$, the second SiLU; one-hot inputs (finite) or raw $(x,y)$ (continuous); float32.\\[2pt]
+\textbf{Each update.} Sample $b=128$ transitions, an independent batch of $b'=128$ replay next states, and $128$ latents uniform on $\mathcal Z_4$. Compute $\bar F^-$ from the target copies with $\pi^-_{z,\tau}$, $\tau=1$. Take one Adam step (learning rate $3\times10^{-4}$) on $\hat L$ for $\xi$ and on $\hat L+\lambda_{\mathrm{orth}}L_{\mathrm{reg}}$ for $\omega$, $\lambda_{\mathrm{orth}}=1$; then Polyak-average the target copies with momentum $0.99$.\\[2pt]
+\textbf{After $10{,}000$ (finite) or $20{,}000$ (continuous) updates.} Freeze the \emph{online} copy (decision D1); compute $\hat G_B$ over all buffer next states in float64. Snapshots are also frozen every $2{,}500$ or $5{,}000$ updates to trace imitation over pretraining.
+\end{algobox}
